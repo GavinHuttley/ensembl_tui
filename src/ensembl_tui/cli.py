@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import sys
+import typing
 
 import click
 import trogon
@@ -15,22 +16,39 @@ from ensembl_tui import _homology as eti_homology
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
+if typing.TYPE_CHECKING:
+    from click.core import Context, Option
 
-def _get_coord_names(ctx, param, coord_names) -> list[str] | None:
-    """returns a list of chrom/coord names"""
-    if coord_names is None:
+
+def _values_from_csv_or_file(
+    ctx: "Context",  # noqa: ARG001
+    param: "Option",  # noqa: ARG001
+    value: str | None,
+) -> list[str] | None:
+    """extract values from command line or a file
+
+    Notes
+    -----
+    converts either comma separated values or a file with one value per line
+    into values
+    """
+    if not value:
         return None
 
-    path = pathlib.Path(coord_names)
+    path = pathlib.Path(value)
     if path.is_file():
         return [l.strip() for l in path.read_text().splitlines()]
 
-    return [f.strip() for f in coord_names.split(",")]
+    return [f.strip() for f in value.split(",")]
 
 
-def _get_installed_config_path(ctx, param, path) -> pathlib.Path:
+def _get_installed_config_path(
+    ctx: "Context",  # noqa: ARG001
+    param: "Option",  # noqa: ARG001
+    path: pathlib.Path | str | None,
+) -> pathlib.Path:
     """path to installed.cfg"""
-    path = pathlib.Path(path)
+    path = pathlib.Path(path or ".")
     if path.name == eti_config.INSTALLED_CONFIG_NAME:
         return path
 
@@ -41,18 +59,18 @@ def _get_installed_config_path(ctx, param, path) -> pathlib.Path:
     return path
 
 
-def _values_from_csv(ctx, param, value) -> list[str] | None:
-    return None if value is None else [f.strip() for f in value.split(",")]
-
-
-def _species_names_from_csv(ctx, param, species) -> list[str] | None:
+def _species_names_from_csv(
+    ctx: "Context",
+    param: "Option",
+    species: str,
+) -> list[str] | None:
     """returns species names"""
-    species = _values_from_csv(ctx, param, species)
-    if species is None:
+    species_names = _values_from_csv_or_file(ctx, param, species)
+    if species_names is None:
         return None
 
     db_names = []
-    for name in species:
+    for name in species_names:
         try:
             db_name = eti_species.Species.get_ensembl_db_prefix(name)
         except ValueError:
@@ -163,13 +181,13 @@ _species = click.option(
 )
 _mask_features = click.option(
     "--mask_features",
-    callback=_values_from_csv,
+    callback=_values_from_csv_or_file,
     help="Biotypes to mask (comma separated).",
 )
 _coord_names = click.option(
     "--coord_names",
     default=None,
-    callback=_get_coord_names,
+    callback=_values_from_csv_or_file,
     help="Comma separated list of ref species chrom/coord names or a path leading to names, one per line.",
 )
 
