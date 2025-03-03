@@ -69,10 +69,17 @@ class Hdf5Mixin(eti_util.SerialisableMixin):
 
     def close(self) -> None:
         """closes the hdf5 file"""
+        # during garbage collection at shutdown, the open function is
+        # not available
+        try:
+            open  # noqa: B018
+        except NameError:
+            return
+
         # hdf5 dumps content to stdout if resource already closed, so
         # we trap that here, and capture expected exceptions raised in the process
         with (
-            open(os.devnull, "w") as devnull,  # noqa: PTH123
+            open(os.devnull, "w") as devnull,
             contextlib.redirect_stderr(devnull),
             contextlib.redirect_stdout(devnull),
         ):

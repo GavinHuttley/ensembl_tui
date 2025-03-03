@@ -35,7 +35,7 @@ def tmp_config(tmp_dir):
     parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
     parser.set("local path", "install_path", value=str(tmp_dir / "install"))
     download_cfg = tmp_dir / "download.cfg"
-    with open(download_cfg, "w") as out:  # noqa: PTH123
+    with open(download_cfg, "w") as out:
         parser.write(out)
 
     return download_cfg

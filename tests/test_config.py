@@ -106,7 +106,7 @@ def cfg_just_aligns(empty_cfg):
     parser.add_section("compara")
     parser.set("compara", "align_names", value="10_primates.epo")
     download_cfg = tmp_dir / "download.cfg"
-    with open(download_cfg, "w") as out:  # noqa: PTH123
+    with open(download_cfg, "w") as out:
         parser.write(out)
 
     return download_cfg
@@ -136,7 +136,7 @@ def cfg_just_genomes(empty_cfg):
         parser.add_section(name)
         parser.set(name, "db", value="core")
 
-    with open(download_cfg, "w") as out:  # noqa: PTH123
+    with open(download_cfg, "w") as out:
         parser.write(out)
 
     return download_cfg
