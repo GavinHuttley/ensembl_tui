@@ -130,10 +130,28 @@ class LimitExons:
     rel_stop: int
     strand: int
     transcript_id: int
+    phase: int = dataclasses.field(init=False, default=-1)
+    end_phase: int = dataclasses.field(init=False, default=-1)
 
     @property
     def single_exon(self) -> bool:
         return self.start_rank == self.stop_rank
+
+    def set_phase_values(self, phase: int, end_phase: int) -> None:
+        if self.rel_start == 0 and phase > 0:
+            msg = f"WARNING: phase is {phase} but rel_start==0 for {self.transcript_id}"
+            eti_util.print_colour(msg, colour="red")
+
+        self.phase = phase
+        self.end_phase = end_phase
+
+    @property
+    def new_start(self) -> int:
+        return self.rel_start if self.phase <= 0 else self.rel_start + 3 - self.phase
+
+    @property
+    def new_stop(self) -> int:
+        return self.rel_stop if self.end_phase <= 0 else self.rel_stop - self.end_phase
 
 
 def get_all_limit_exons(
@@ -148,7 +166,7 @@ def get_all_limit_exons(
         ev.rank,
         t.seq_start,
         t.seq_end,
-        ev.strand
+        ev.strand,
     FROM exon_view ev
     JOIN translation t ON ev.transcript_id = t.transcript_id
     AND (ev.exon_id = t.start_exon_id OR ev.exon_id = t.end_exon_id);
@@ -236,8 +254,8 @@ class TranscriptAttrRecord:
 def _adjust_single_exon(lex: LimitExons, cds_span: tuple[int, int]) -> tuple[int, int]:
     ex_start = cds_span[0] if lex.strand == 1 else cds_span[1]
     if lex.strand == 1:
-        return ex_start + lex.rel_start, ex_start + lex.rel_stop
-    return ex_start - lex.rel_stop, ex_start - lex.rel_start
+        return ex_start + lex.new_start, ex_start + lex.new_stop
+    return ex_start - lex.new_stop, ex_start - lex.new_start
 
 
 def get_transcript_attr_records(
@@ -250,7 +268,9 @@ def get_transcript_attr_records(
     transcript_id, gene_id, strand, seqid, transcript_stable_id, cds_stable_id,
     STRING_AGG(CAST(start AS VARCHAR), ' ') AS agg_start,
     STRING_AGG(CAST(stop AS VARCHAR), ' ') AS agg_stop,
-    STRING_AGG(CAST(rank AS VARCHAR), ' ') AS agg_rank
+    STRING_AGG(CAST(rank AS VARCHAR), ' ') AS agg_rank,
+    STRING_AGG(CAST(phase AS VARCHAR), ' ') AS agg_phase,
+    STRING_AGG(CAST(end_phase AS VARCHAR), ' ') AS agg_end_phase
     FROM exon_view
     GROUP BY transcript_id, gene_id, strand, seqid, transcript_stable_id, cds_stable_id
     """
@@ -265,17 +285,23 @@ def get_transcript_attr_records(
         agg_start,
         agg_stop,
         agg_rank,
+        agg_phase,
+        agg_end_phase,
     ) in conn.sql(sql).fetchall():
         # Note that the adjustment of start to be 0-based has already been
         # done during the mysqldump import
         starts = numpy.fromstring(agg_start, sep=" ", dtype=numpy.int32)
         stops = numpy.fromstring(agg_stop, sep=" ", dtype=numpy.int32)
         ranks = numpy.fromstring(agg_rank, sep=" ", dtype=numpy.int32)
+        phases = numpy.fromstring(agg_phase, sep=" ", dtype=numpy.int32)
+        end_phases = numpy.fromstring(agg_end_phase, sep=" ", dtype=numpy.int32)
         # make the transcript exon spans, in rank order
         # to facilitate getting the cds spans
         transcript_spans = numpy.empty((starts.size, 2), dtype=numpy.int32)
+        exon_phases = numpy.empty((starts.size, 2), dtype=numpy.int32)
         for i, rank in enumerate(ranks):
             transcript_spans[rank - 1] = (starts[i], stops[i])
+            exon_phases[rank - 1] = phases[i], end_phases[i]
 
         cds_spans = transcript_spans.copy()
         transcript_spans = transcript_spans[numpy.lexsort(transcript_spans.T), :]
@@ -296,6 +322,7 @@ def get_transcript_attr_records(
         lex = get_limit_exons(limit_exons[transcript_id])
         start_index = lex.start_rank - 1
         stop_index = lex.stop_rank - 1
+        lex.set_phase_values(exon_phases[start_index, 0], exon_phases[stop_index, 1])
         # adjust the start and end using the limiting exons
         # the rel_start and rel_stop are BOTH relative to the
         # 5' end of an exon
@@ -321,20 +348,20 @@ def get_transcript_attr_records(
         stop_exon_coords = cds_spans[stop_index]
         if lex.strand == 1:
             start_exon_coords = (
-                start_exon_coords[0] + lex.rel_start,
+                start_exon_coords[0] + lex.new_start,
                 start_exon_coords[1],
             )
             stop_exon_coords = (
                 stop_exon_coords[0],
-                stop_exon_coords[0] + lex.rel_stop,
+                stop_exon_coords[0] + lex.new_stop,
             )
         else:
             start_exon_coords = (
                 start_exon_coords[0],
-                start_exon_coords[1] - lex.rel_start,
+                start_exon_coords[1] - lex.new_start,
             )
             stop_exon_coords = (
-                stop_exon_coords[1] - lex.rel_stop,
+                stop_exon_coords[1] - lex.new_stop,
                 stop_exon_coords[1],
             )
 
@@ -371,10 +398,13 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
             ex.seq_region_start AS start,
             ex.seq_region_end AS stop,
             ex.seq_region_strand AS strand,
+            ex.phase AS phase,
+            ex.end_phase AS end_phase,
             et.rank AS rank,
             tr.gene_id as gene_id,
             tr.stable_id as transcript_stable_id,
             tl.stable_id as cds_stable_id,
+            ex.stable_id as exon_stable_id,
         FROM exon ex
         JOIN seq_region sr ON ex.seq_region_id = sr.seq_region_id
         JOIN exon_transcript et ON ex.exon_id = et.exon_id

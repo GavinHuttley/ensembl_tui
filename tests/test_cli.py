@@ -53,7 +53,7 @@ def test_exportrc(tmp_dir):
 
 @pytest.fixture(scope="module")
 def installed(tmp_downloaded):
-    # tmp_downloaded is a temp copy of the doanload folder
+    # tmp_downloaded is a temp copy of the download folder
     # we add the verbose and force_overwrite flags to exercise
     # those conditional statements
     r = RUNNER.invoke(
