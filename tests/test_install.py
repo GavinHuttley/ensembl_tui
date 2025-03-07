@@ -31,6 +31,8 @@ EXON_VIEW_SCHEMA = (
     "gene_id INTEGER",
     "transcript_stable_id TEXT",
     "cds_stable_id TEXT",
+    "phase TINYINT",
+    "end_phase TINYINT",
 )
 
 EXON_VIEW_COLS = [c.split()[0] for c in EXON_VIEW_SCHEMA]
@@ -49,6 +51,8 @@ EXON_SCHEMA = (
     "seq_region_start INTEGER",
     "seq_region_end INTEGER",
     "seq_region_strand INTEGER",
+    "phase TINYINT",
+    "end_phase TINYINT",
 )
 
 EXON_COLS = [c.split()[0] for c in EXON_SCHEMA]
@@ -288,6 +292,8 @@ def four_exons(empty_ev_tr):
             "gene_id": 42,
             "transcript_stable_id": "a1",
             "cds_stable_id": "a1",
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "transcript_id": 11,
@@ -300,6 +306,8 @@ def four_exons(empty_ev_tr):
             "gene_id": 42,
             "transcript_stable_id": "a1",
             "cds_stable_id": "a1",
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "transcript_id": 11,
@@ -312,6 +320,8 @@ def four_exons(empty_ev_tr):
             "gene_id": 42,
             "transcript_stable_id": "a1",
             "cds_stable_id": "a1",
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "transcript_id": 11,
@@ -324,6 +334,8 @@ def four_exons(empty_ev_tr):
             "gene_id": 42,
             "transcript_stable_id": "a1",
             "cds_stable_id": "a1",
+            "phase": -1,
+            "end_phase": -1,
         },
     ]
     value_placeholder = "?, " * len(EXON_VIEW_COLS)
@@ -437,6 +449,8 @@ def two_exons_minus_strand(empty_ev_tr):
             "gene_id": 42,
             "transcript_stable_id": "a1",
             "cds_stable_id": "a1",
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "transcript_id": 11,
@@ -449,10 +463,14 @@ def two_exons_minus_strand(empty_ev_tr):
             "gene_id": 42,
             "transcript_stable_id": "a1",
             "cds_stable_id": "a1",
+            "phase": -1,
+            "end_phase": -1,
         },
     ]
+    value_placeholder = "?, " * len(EXON_VIEW_COLS)
+
     conn.executemany(
-        "INSERT INTO exon_view VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        f"INSERT INTO exon_view VALUES ({value_placeholder})",
         [[r[c] for c in EXON_VIEW_COLS] for r in exon_view_data],
     )
     return conn
@@ -529,6 +547,8 @@ def mixed_data():
             "seq_region_start": 100,
             "seq_region_end": 200,
             "seq_region_strand": 1,
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "exon_id": 2,
@@ -537,6 +557,8 @@ def mixed_data():
             "seq_region_start": 300,
             "seq_region_end": 400,
             "seq_region_strand": 1,
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "exon_id": 3,
@@ -545,6 +567,8 @@ def mixed_data():
             "seq_region_start": 500,
             "seq_region_end": 600,
             "seq_region_strand": 1,
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "exon_id": 4,
@@ -553,6 +577,8 @@ def mixed_data():
             "seq_region_start": 700,
             "seq_region_end": 800,
             "seq_region_strand": 1,
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "exon_id": 5,
@@ -561,6 +587,8 @@ def mixed_data():
             "seq_region_start": 900,
             "seq_region_end": 1000,
             "seq_region_strand": -1,
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "exon_id": 6,
@@ -569,6 +597,8 @@ def mixed_data():
             "seq_region_start": 1100,
             "seq_region_end": 1200,
             "seq_region_strand": -1,
+            "phase": -1,
+            "end_phase": -1,
         },
         {
             "exon_id": 7,
@@ -577,10 +607,14 @@ def mixed_data():
             "seq_region_start": 1300,
             "seq_region_end": 1400,
             "seq_region_strand": -1,
+            "phase": -1,
+            "end_phase": -1,
         },
     ]
+    value_placeholder = "?, " * len(EXON_COLS)
+
     conn.executemany(
-        "INSERT INTO exon VALUES (?, ?, ?, ?, ?, ?)",
+        f"INSERT INTO exon VALUES ({value_placeholder})",
         parameters=[[r[c] for c in EXON_COLS] for r in exon_data],
     )
     et_data = [
