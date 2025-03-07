@@ -404,7 +404,6 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
             tr.gene_id as gene_id,
             tr.stable_id as transcript_stable_id,
             tl.stable_id as cds_stable_id,
-            ex.stable_id as exon_stable_id,
         FROM exon ex
         JOIN seq_region sr ON ex.seq_region_id = sr.seq_region_id
         JOIN exon_transcript et ON ex.exon_id = et.exon_id
