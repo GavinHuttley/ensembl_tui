@@ -138,8 +138,8 @@ class LimitExons:
         return self.start_rank == self.stop_rank
 
     def set_phase_values(self, phase: int, end_phase: int) -> None:
-        if self.rel_start == 0 and phase > 0:
-            msg = f"WARNING: phase is {phase} but rel_start==0 for {self.transcript_id}"
+        if self.rel_start != 0 and phase > 0:
+            msg = f"\nWARNING: phase={phase} but rel_start={self.rel_start} for {self.transcript_id}"
             eti_util.print_colour(msg, colour="red")
 
         self.phase = phase
