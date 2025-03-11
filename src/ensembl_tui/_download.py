@@ -17,12 +17,12 @@ from ensembl_tui import _util as eti_util
 
 DEFAULT_CFG = eti_util.get_resource_path("sample.cfg")
 
-_invalid_seq = re.compile("(dna_(sm|rm)|(toplevel|primary_assembly).fa.gz)")
+_valid_seq = re.compile(r"dna[.](nonchromosomal|toplevel)\.fa\.gz")
 
 
 def valid_seq_file(name: str) -> bool:
     """unmasked genomic DNA sequences"""
-    return _invalid_seq.search(name) is None
+    return _valid_seq.search(name) is not None
 
 
 class valid_gff3_file:  # noqa: N801
