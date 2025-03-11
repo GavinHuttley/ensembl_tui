@@ -225,7 +225,8 @@ class SeqsDataHdf5(eti_storage.Hdf5Mixin, SeqsDataABC):
                 # already seen this seq
                 return
             # but it's different, which is a problem
-            msg = f"{seqid!r} already present but with different seq"
+            num_diffs = (seq != stored).sum()
+            msg = f"{seqid!r} already present but with different seq {num_diffs=}"
             raise ValueError(msg)
 
         self._file.create_dataset(
