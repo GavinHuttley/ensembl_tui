@@ -89,7 +89,7 @@ def test_repeat_view_count_distinct(worm_repeats):
 def test_create_genome(genome_dir):
     g = gen_pqt.Annotations(source=genome_dir)
     prot = list(g.get_features_matching(biotype="protein_coding"))
-    assert len(prot)
+    assert prot
 
 
 def test_get_feature_by_symbol(genome_dir):
