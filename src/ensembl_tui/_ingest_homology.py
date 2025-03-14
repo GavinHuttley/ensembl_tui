@@ -63,7 +63,7 @@ def merge_grouped(
             val = grouped[next(iter(present))]
             val.gene_ids |= group.gene_ids
         else:
-            grouped |= {gene_id: group for gene_id in group.gene_ids}
+            grouped |= dict.fromkeys(group.gene_ids, group)
 
     return tuple(set(grouped.values()))
 

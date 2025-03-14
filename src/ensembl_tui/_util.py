@@ -552,7 +552,7 @@ class category_indexer:  # noqa: N801
             self._index += 1
             index = self._index
             new_vals = vals
-        entries |= {val: index for val in new_vals}
+        entries |= dict.fromkeys(new_vals, index)
         self._values[category] = entries
         return index
 

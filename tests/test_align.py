@@ -451,7 +451,7 @@ def test_align_db_get_records_no_matches(coord):
     # no hits at all
     _, align_db = make_sample()
     got = list(align_db.get_records_matching(**kwargs))
-    assert not len(got)
+    assert not got
 
 
 def test_get_species():
