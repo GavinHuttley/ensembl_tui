@@ -71,7 +71,8 @@ def get_annotation_db() -> dict[str, eti_annots.Annotations]:
         ),
     }
     for sp, gv in gene_attr.items():
-        gene_attr[sp] = eti_annots.Annotations(source=":memory:", genes=gv)
+        bt = eti_annots.BiotypeView(source=gv.source, db=gv.conn)
+        gene_attr[sp] = eti_annots.Annotations(source=":memory:", genes=gv, biotypes=bt)
     return gene_attr
 
 
