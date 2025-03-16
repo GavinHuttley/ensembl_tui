@@ -82,6 +82,8 @@ def _species_names_from_csv(
     return db_names
 
 
+_csv_or_file_help = "(comma separated or a path to file of names, one per line)"
+
 _click_command_opts = {
     "no_args_is_help": True,
     "context_settings": {"show_default": True},
@@ -113,7 +115,7 @@ _outdir = click.option(
     "--outdir",
     required=True,
     type=pathlib.Path,
-    help="path to write files",
+    help="Path to write files",
 )
 _align_name = click.option(
     "--align_name",
@@ -179,16 +181,21 @@ _species = click.option(
     callback=_species_names_from_csv,
     help="Single species name or multiple (comma separated).",
 )
-_mask_features = click.option(
-    "--mask_features",
+_mask = click.option(
+    "--mask",
     callback=_values_from_csv_or_file,
-    help="Biotypes to mask (comma separated).",
+    help=f"mask the specified biotypes {_csv_or_file_help}.",
+)
+_mask_shadow = click.option(
+    "--mask_shadow",
+    callback=_values_from_csv_or_file,
+    help=f"mask everything but the specified biotypes {_csv_or_file_help}.",
 )
 _coord_names = click.option(
     "--coord_names",
     default=None,
     callback=_values_from_csv_or_file,
-    help="Comma separated list of ref species chrom/coord names or a path leading to names, one per line.",
+    help=f"list of ref species chrom/coord names {_csv_or_file_help}.",
 )
 
 
@@ -434,7 +441,8 @@ def compara_summary(installed: pathlib.Path) -> None:
 @_ref
 @_coord_names
 @_ref_genes_file
-@_mask_features
+@_mask
+@_mask_shadow
 @_limit
 @_force
 @_verbose
@@ -445,7 +453,8 @@ def alignments(
     ref: str,
     coord_names: str,
     ref_genes_file: pathlib.Path,
-    mask_features: pathlib.Path,
+    mask: pathlib.Path,
+    mask_shadow: pathlib.Path,
     limit: int,
     force_overwrite: bool,
     verbose: bool,
@@ -455,6 +464,13 @@ def alignments(
     from rich import progress
 
     from ensembl_tui import _align as eti_align
+
+    if mask and mask_shadow:
+        eti_util.print_colour(
+            text="ERROR: cannot specify both mask and mask_shadow",
+            colour="red",
+        )
+        sys.exit(1)
 
     # TODO support genomic coordinates, e.g. coord_name:start-stop, for
     #  a reference species
@@ -474,7 +490,7 @@ def alignments(
     align_path = config.path_to_alignment(align_name, eti_align.ALIGN_STORE_SUFFIX)
     if align_path is None:
         eti_util.print_colour(
-            text=f"{align_name!r} does not match any alignments under {str(config.aligns_path)!r}",
+            text=f"{align_name!r} does not match any alignments under '{config.aligns_path}'",
             colour="red",
         )
         available = "\n".join(
@@ -537,10 +553,13 @@ def alignments(
         stableids=stableids,
     )
 
+    mask = mask_shadow or mask
+    shadow = bool(mask_shadow)
     maker = eti_align.construct_alignment(
         align_db=align_db,
         genomes=genomes,
-        mask_features=mask_features,
+        mask_features=mask,
+        shadow=shadow,
     )
     output = open_data_store(outdir, mode="w", suffix="fa")
     writer = get_app("write_seqs", format="fasta", data_store=output)
@@ -561,6 +580,7 @@ def alignments(
         for alignments in maker.as_completed(locations, show_progress=False):
             progress.update(task, advance=1)
             if not alignments:
+                eti_util.print_colour(str(alignments), colour="red")
                 continue
             input_source = alignments[0].info.source
             if len(alignments) == 1:

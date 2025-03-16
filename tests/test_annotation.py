@@ -1,11 +1,11 @@
 import pytest
 
-import ensembl_tui._annotation as gen_pqt
+import ensembl_tui._annotation as eti_anno
 
 
 @pytest.fixture
 def gene_view(genome_dir):
-    return gen_pqt.GeneView(source=genome_dir)
+    return eti_anno.GeneView(source=genome_dir)
 
 
 def test_select_protein_coding(worm_genes):
@@ -87,13 +87,13 @@ def test_repeat_view_count_distinct(worm_repeats):
 
 
 def test_create_genome(genome_dir):
-    g = gen_pqt.Annotations(source=genome_dir)
+    g = eti_anno.Annotations(source=genome_dir)
     prot = list(g.get_features_matching(biotype="protein_coding"))
     assert prot
 
 
 def test_get_feature_by_symbol(genome_dir):
-    g = gen_pqt.GeneView(source=genome_dir)
+    g = eti_anno.GeneView(source=genome_dir)
     features = list(g.get_by_symbol(symbol="sms-2"))
     assert features
     # validate that all genes have a span with single start and stop
@@ -104,21 +104,21 @@ def test_get_feature_by_symbol(genome_dir):
 
 
 def test_get_feature_by_description(genome_dir):
-    g = gen_pqt.GeneView(source=genome_dir)
+    g = eti_anno.GeneView(source=genome_dir)
     features = list(g.get_by_description(description="Alcohol dehydrogenase"))
     assert features
     assert all("alcohol dehydrogenase" in ft["description"].lower() for ft in features)
 
 
 def test_canonical_cds(genome_dir):
-    g = gen_pqt.GeneView(source=genome_dir)
+    g = eti_anno.GeneView(source=genome_dir)
     gene = next(iter(g.get_features_matching(stable_id="WBGene00004893")))
     cds = g.get_cds(gene=gene)
     assert cds.stable_id == "F53H8.4.1"  # ID from ensembl.org
 
 
 def test_featuredb(genome_dir):
-    db = gen_pqt.GeneView(source=genome_dir)
+    db = eti_anno.GeneView(source=genome_dir)
     gene = next(iter(db.get_by_stable_id(stable_id="WBGene00000138")))
     cds = next(iter(db.get_feature_children(gene)))
     assert cds.stable_id.startswith("B0019.1")
@@ -147,14 +147,14 @@ def test_convert_to_dict():
         "gene_stable_id": "WBGene00011936",
         "transcript_id": 16967,
     }
-    cds = gen_pqt.CdsData(**raw)
+    cds = eti_anno.CdsData(**raw)
     got = dict(cds)
     assert isinstance(got, dict)
 
 
 def test_get_ids_for_biotype(small_install_cfg):
     config = small_install_cfg
-    genome = gen_pqt.GeneView(
+    genome = eti_anno.GeneView(
         source=config.installed_genome(species="caenorhabditis_elegans"),
     )
     stable_ids = genome.get_ids_for_biotype(biotype="protein_coding", limit=10)
@@ -176,3 +176,41 @@ def test_view_species(worm_db):
     assert worm_db.genes.species == "caenorhabditis_elegans"
     assert worm_db.repeats.species == "caenorhabditis_elegans"
     assert worm_db.biotypes.species == "caenorhabditis_elegans"
+
+
+@pytest.fixture
+def multi_species_db(yeast_db, worm_db):
+    dbs = {"caenorhabditis_elegans": worm_db, "saccharomyces_cerevisiae": yeast_db}
+    name_map = {
+        "worm-WBGene00011936": eti_anno.get_species_seqid(
+            species="caenorhabditis_elegans",
+            seqid="I",
+        ),
+        "yeast-YCR105W": eti_anno.get_species_seqid(
+            species="saccharomyces_cerevisiae",
+            seqid="III",
+        ),
+    }
+    return eti_anno.MultispeciesAnnotations(species_annotations=dbs, name_map=name_map)
+
+
+def test_multi_species(multi_species_db):
+    stable_id = "WBGene00011936"
+    kwargs = {"name": stable_id, "biotype": "protein_coding"}
+    gene = next(
+        iter(
+            multi_species_db.get_features_matching(seqid=f"worm-{stable_id}", **kwargs),
+        ),
+    )
+    expect = next(
+        iter(
+            multi_species_db.species_annotations[
+                "caenorhabditis_elegans"
+            ].get_features_matching(**kwargs),
+        ),
+    )
+    got = dict(gene)
+    got["spans"] = got["spans"].tolist()
+    expect = dict(expect)
+    expect["spans"] = expect["spans"].tolist()
+    assert got == expect

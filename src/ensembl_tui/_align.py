@@ -9,6 +9,7 @@ from cogent3.app.composable import define_app
 from cogent3.core import new_alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
 
+from ensembl_tui import _annotation as eti_ann
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _storage_mixin as eti_storage
 from ensembl_tui import _util as eti_util
@@ -213,6 +214,7 @@ def get_alignment(
     ref_end: int | None = None,
     namer: typing.Callable | None = None,
     mask_features: list[str] | None = None,
+    shadow: bool = False,
 ) -> typing.Iterable[c3_align.Alignment]:
     """yields cogent3 Alignments"""
 
@@ -274,6 +276,9 @@ def get_alignment(
 
         seqs = {}
         gaps = {}
+        offsets = {}
+        seqid_species = {}
+        ann_dbs = {}
         for align_record in block:
             record_species = align_record.species
             genome = genomes[record_species]
@@ -315,18 +320,29 @@ def get_alignment(
 
             if s.name in seqs:
                 print(f"duplicated {s.name}")
+
             seqs[s.name] = numpy.array(s)
             gaps[s.name] = imap.array
+            offsets[s.name] = genome_start + seq_start
+            seqid_species[s.name] = eti_ann.get_species_seqid(
+                species=record_species,
+                seqid=align_record.seqid,
+            )
+            ann_dbs[record_species] = genome.annotation_db
 
         aln_data = c3_align.AlignedSeqsData.from_seqs_and_gaps(
             seqs=seqs,
             gaps=gaps,
             alphabet=DNA.most_degen_alphabet(),
+            offset=offsets,
         )
         aln = c3_align.Alignment(seqs_data=aln_data, moltype=DNA)
-        aln.annotation_db = genome.annotation_db
+        aln.annotation_db = eti_ann.MultispeciesAnnotations(
+            name_map=seqid_species,
+            species_annotations=ann_dbs,
+        )
         if mask_features:
-            aln = aln.with_masked_annotations(biotypes=mask_features)
+            aln = aln.with_masked_annotations(biotypes=mask_features, shadow=shadow)
 
         yield aln
 
@@ -344,11 +360,13 @@ class construct_alignment:  # noqa: N801
         align_db: AlignDb,
         genomes: dict[str, eti_genome.Genome],
         mask_features: list[str] | None = None,
+        shadow: bool = False,
         sep: str = "?",
     ) -> None:
         self._align_db = align_db
         self._genomes = genomes
         self._mask_features = mask_features
+        self._shadow = shadow
         self._sep = sep
 
     def main(self, segment: eti_genome.genome_segment) -> list[c3_align.Alignment]:
@@ -361,6 +379,7 @@ class construct_alignment:  # noqa: N801
             segment.start,
             segment.stop,
             mask_features=self._mask_features,
+            shadow=self._shadow,
         ):
             aln.info.source = segment.source
             results.append(aln)

@@ -589,44 +589,49 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         **kwargs,  # noqa: ANN003
     ) -> typing.Iterator[FeatureDataType]:
         limit = kwargs.pop("limit", None)
+        repeat_type = repeat_type or biotype
+        biotype = "repeat"
+        repeat_class = repeat_class or name
+        name = repeat_class
         local_vars = locals()
-        if kwargs := {
+        local_vars = {
             k: v
             for k, v in local_vars.items()
-            if k not in ("self", "kwargs", "limit", "local_vars") and v is not None
-        }:
-            like_cols = "repeat_type", "repeat_class", "repeat_name"
-            like_conds = {k: v for k, v in kwargs.items() if k in like_cols}
-            equals_conds = {k: v for k, v in kwargs.items() if k not in like_cols}
-            columns = "seqid", "start", "stop", "strand"
-            sql = _select_records_sql(
-                table_name="repeat_view",
-                equals_conds=equals_conds,
-                like_conds=like_conds,
-                columns=columns + like_cols,
-            )
-            sql += f" LIMIT {limit}" if limit else ""
+            if k not in ("self", "kwargs", "limit", "local_vars", "name", "biotype")
+            and v is not None
+        }
+        core_cols = "seqid", "start", "stop", "strand"
+        repeat_cols = "repeat_type", "repeat_class", "repeat_name"
+        if kwargs := {k: v for k, v in local_vars.items() if v is not None}:
+            like_conds = {k: v for k, v in kwargs.items() if k in repeat_cols}
+            equals_conds = {k: v for k, v in kwargs.items() if k not in repeat_cols}
         else:
-            columns = (
-                "seqid",
-                "start",
-                "stop",
-                "strand",
-                "repeat_type",
-                "repeat_class",
-                "repeat_name",
-            )
-            sql = "SELECT * FROM repeat_view LIMIT 10"
+            like_conds = None
+            equals_conds = None
 
+        sql = _select_records_sql(
+            table_name="repeat_view",
+            equals_conds=equals_conds,
+            like_conds=like_conds,
+            columns=core_cols + repeat_cols,
+        )
+        sql += f" LIMIT {limit}" if limit else ""
+
+        columns = core_cols + repeat_cols
         for record in self.conn.sql(sql).fetchall():
-            data = dict(zip(columns, record, strict=False))
+            data = dict(zip(columns, record, strict=True))
+            rep_data = {k: data.pop(k) for k in repeat_cols}
             spans = numpy.array(
                 [(data.pop("start"), data.pop("stop"))],
                 dtype=numpy.int32,
             )
             data["spans"] = spans
             data["biotype"] = "repeat"
-            yield FeatureDataType(**data)
+            data["name"] = rep_data["repeat_name"]
+            data["start"] = spans.min()
+            data["stop"] = spans.max()
+            # data["xattr"] = rep_data
+            yield FeatureDataBase(**data)
 
     def get_children_matching(self, **kwargs):
         return ()
@@ -689,9 +694,16 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         biotype: str,
         **kwargs,
     ) -> typing.Iterator[FeatureDataType]:
-        view = self.repeats if biotype == "repeat" else self.genes
-        if biotype != "repeat":
-            kwargs["biotype"] = biotype
+        biotype = biotype or "protein_coding"
+        gene_biotypes = set(self.biotypes.distinct)
+        kwargs["biotype"] = biotype
+        if biotype in gene_biotypes:
+            view = self.genes
+        else:
+            view = self.repeats
+        if not view:
+            return
+
         yield from view.get_features_matching(**kwargs)
 
     def __len__(self) -> int:
@@ -761,3 +773,67 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         self.biotypes.close()
         self.genes.close()
         self.repeats.close()
+
+
+@dataclasses.dataclass(frozen=True)
+class species_seqid:
+    species: str
+    seqid: str
+
+
+@functools.cache
+def get_species_seqid(*, species: str, seqid: str) -> species_seqid:
+    return species_seqid(species, seqid)
+
+
+@dataclasses.dataclass
+class MultispeciesAnnotations(AnnotationDbABC):
+    name_map: dict[str, species_seqid]
+    species_annotations: dict[str, Annotations]
+
+    def __len__(self) -> int:
+        return sum(len(ann) for ann in self.species_annotations.values())
+
+    def get_features_matching(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_features_matching(seqid=sp_sid.seqid, **kwargs)
+
+    def get_feature_children(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_feature_children(seqid=sp_sid.seqid, **kwargs)
+
+    def get_feature_parent(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_feature_parent(seqid=sp_sid.seqid, **kwargs)
+
+    def num_matches(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.num_matches(seqid=sp_sid.seqid, **kwargs)
+
+    def subset(self, **kwargs):
+        raise NotImplementedError
+
+    def add_feature(self, **kwargs):
+        raise NotImplementedError
+
+    def add_records(self, **kwargs):
+        raise NotImplementedError
+
+    def update(self, **kwargs):
+        raise NotImplementedError
+
+    def union(self, **kwargs):
+        raise NotImplementedError
+
+    def to_rich_dict(self) -> dict:
+        raise NotImplementedError
+
+    def to_json(self) -> str:
+        raise NotImplementedError
+
+    def from_dict(self, **kwargs) -> None:
+        raise NotImplementedError

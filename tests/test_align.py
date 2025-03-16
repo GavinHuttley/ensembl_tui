@@ -71,7 +71,8 @@ def get_annotation_db() -> dict[str, eti_annots.Annotations]:
         ),
     }
     for sp, gv in gene_attr.items():
-        gene_attr[sp] = eti_annots.Annotations(source=":memory:", genes=gv)
+        bt = eti_annots.BiotypeView(source=gv.source, db=gv.conn)
+        gene_attr[sp] = eti_annots.Annotations(source=":memory:", genes=gv, biotypes=bt)
     return gene_attr
 
 
@@ -380,7 +381,7 @@ def test_get_alignment_features(coord):
     got = next(
         iter(eti_align.get_alignment(align_db=align_db, genomes=genomes, **kwargs)),
     )
-    assert len(got.annotation_db) == 1
+    assert len(got.annotation_db) == 3
 
 
 @pytest.mark.parametrize(
@@ -401,7 +402,7 @@ def test_get_alignment_masked_features(coord):
     got = next(
         iter(eti_align.get_alignment(align_db=align_db, genomes=genomes, **kwargs)),
     )
-    assert len(got.annotation_db) == 1
+    assert len(got.annotation_db) == 3
 
 
 @pytest.mark.parametrize(
