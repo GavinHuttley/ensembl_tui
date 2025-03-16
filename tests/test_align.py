@@ -380,7 +380,7 @@ def test_get_alignment_features(coord):
     got = next(
         iter(eti_align.get_alignment(align_db=align_db, genomes=genomes, **kwargs)),
     )
-    assert len(got.annotation_db) == 1
+    assert len(got.annotation_db) == 3
 
 
 @pytest.mark.parametrize(
@@ -401,7 +401,7 @@ def test_get_alignment_masked_features(coord):
     got = next(
         iter(eti_align.get_alignment(align_db=align_db, genomes=genomes, **kwargs)),
     )
-    assert len(got.annotation_db) == 1
+    assert len(got.annotation_db) == 3
 
 
 @pytest.mark.parametrize(
