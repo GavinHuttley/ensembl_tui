@@ -761,3 +761,67 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         self.biotypes.close()
         self.genes.close()
         self.repeats.close()
+
+
+@dataclasses.dataclass(frozen=True)
+class species_seqid:
+    species: str
+    seqid: str
+
+
+@functools.cache
+def get_species_seqid(*, species: str, seqid: str) -> species_seqid:
+    return species_seqid(species, seqid)
+
+
+@dataclasses.dataclass
+class MultispeciesAnnotations(AnnotationDbABC):
+    name_map: dict[str, species_seqid]
+    species_annotations: dict[str, Annotations]
+
+    def __len__(self) -> int:
+        return sum(len(ann) for ann in self.species_annotations.values())
+
+    def get_features_matching(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_features_matching(seqid=sp_sid.seqid, **kwargs)
+
+    def get_feature_children(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_feature_children(seqid=sp_sid.seqid, **kwargs)
+
+    def get_feature_parent(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_feature_parent(seqid=sp_sid.seqid, **kwargs)
+
+    def num_matches(self, seqid: str, **kwargs):
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.num_matches(seqid=sp_sid.seqid, **kwargs)
+
+    def subset(self, **kwargs):
+        raise NotImplementedError
+
+    def add_feature(self, **kwargs):
+        raise NotImplementedError
+
+    def add_records(self, **kwargs):
+        raise NotImplementedError
+
+    def update(self, **kwargs):
+        raise NotImplementedError
+
+    def union(self, **kwargs):
+        raise NotImplementedError
+
+    def to_rich_dict(self) -> dict:
+        raise NotImplementedError
+
+    def to_json(self) -> str:
+        raise NotImplementedError
+
+    def from_dict(self, **kwargs) -> None:
+        raise NotImplementedError
