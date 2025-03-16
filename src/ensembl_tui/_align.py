@@ -214,6 +214,7 @@ def get_alignment(
     ref_end: int | None = None,
     namer: typing.Callable | None = None,
     mask_features: list[str] | None = None,
+    shadow: bool = False,
 ) -> typing.Iterable[c3_align.Alignment]:
     """yields cogent3 Alignments"""
 
@@ -341,7 +342,7 @@ def get_alignment(
             species_annotations=ann_dbs,
         )
         if mask_features:
-            aln = aln.with_masked_annotations(biotypes=mask_features)
+            aln = aln.with_masked_annotations(biotypes=mask_features, shadow=shadow)
 
         yield aln
 
@@ -359,11 +360,13 @@ class construct_alignment:  # noqa: N801
         align_db: AlignDb,
         genomes: dict[str, eti_genome.Genome],
         mask_features: list[str] | None = None,
+        shadow: bool = False,
         sep: str = "?",
     ) -> None:
         self._align_db = align_db
         self._genomes = genomes
         self._mask_features = mask_features
+        self._shadow = shadow
         self._sep = sep
 
     def main(self, segment: eti_genome.genome_segment) -> list[c3_align.Alignment]:
@@ -376,6 +379,7 @@ class construct_alignment:  # noqa: N801
             segment.start,
             segment.stop,
             mask_features=self._mask_features,
+            shadow=self._shadow,
         ):
             aln.info.source = segment.source
             results.append(aln)

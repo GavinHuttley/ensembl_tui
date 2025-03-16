@@ -589,18 +589,22 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         **kwargs,  # noqa: ANN003
     ) -> typing.Iterator[FeatureDataType]:
         limit = kwargs.pop("limit", None)
-        local_vars = locals()
         repeat_type = repeat_type or biotype
         biotype = "repeat"
         repeat_class = repeat_class or name
         name = repeat_class
-        core_columns = "seqid", "start", "stop", "strand"
+        local_vars = locals()
+        local_vars = {
+            k: v
+            for k, v in local_vars.items()
+            if k not in ("self", "kwargs", "limit", "local_vars", "name", "biotype") and v is not None
+        }
+        core_cols = "seqid", "start", "stop", "strand"
         repeat_cols = "repeat_type", "repeat_class", "repeat_name"
         if kwargs := {
             k: v
             for k, v in local_vars.items()
-            if k not in ("self", "kwargs", "limit", "local_vars", "biotype")
-            and v is not None
+            if v is not None
         }:
             like_conds = {k: v for k, v in kwargs.items() if k in repeat_cols}
             equals_conds = {k: v for k, v in kwargs.items() if k not in repeat_cols}
@@ -608,13 +612,15 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
                 table_name="repeat_view",
                 equals_conds=equals_conds,
                 like_conds=like_conds,
-                columns=core_columns + repeat_cols,
+                columns=core_cols + repeat_cols,
             )
             sql += f" LIMIT {limit}" if limit else ""
         else:
-            sql = "SELECT * FROM repeat_view LIMIT 10"
+            sql = (
+                f"SELECT {','.join(core_cols + repeat_cols)} FROM repeat_view LIMIT 10"
+            )
 
-        columns = core_columns + repeat_cols
+        columns = core_cols + repeat_cols
         for record in self.conn.sql(sql).fetchall():
             data = dict(zip(columns, record, strict=True))
             rep_data = {k: data.pop(k) for k in repeat_cols}
@@ -625,8 +631,10 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
             data["spans"] = spans
             data["biotype"] = "repeat"
             data["name"] = rep_data["repeat_name"]
-            data["xattr"] = rep_data
-            yield FeatureDataType(**data)
+            data["start"] = spans.min()
+            data["stop"] = spans.max()
+            # data["xattr"] = rep_data
+            yield FeatureDataBase(**data)
 
     def get_children_matching(self, **kwargs):
         return ()
@@ -691,11 +699,14 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
     ) -> typing.Iterator[FeatureDataType]:
         biotype = biotype or "protein_coding"
         gene_biotypes = set(self.biotypes.distinct)
-        view = self.genes if biotype in gene_biotypes else self.repeats
+        kwargs["biotype"] = biotype
+        if biotype in gene_biotypes:
+            view = self.genes
+        else:
+            view = self.repeats
         if not view:
             return
-        if biotype != "repeat":
-            kwargs["biotype"] = biotype
+
         yield from view.get_features_matching(**kwargs)
 
     def __len__(self) -> int:

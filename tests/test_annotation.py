@@ -197,16 +197,20 @@ def multi_species_db(yeast_db, worm_db):
 def test_multi_species(multi_species_db):
     stable_id = "WBGene00011936"
     kwargs = {"name": stable_id, "biotype": "protein_coding"}
-    gene = next(iter(
-        multi_species_db.get_features_matching(seqid=f"worm-{stable_id}", **kwargs),
-    ))
-    expect = next(iter(
-        multi_species_db.species_annotations[
-            "caenorhabditis_elegans"
-        ].get_features_matching(**kwargs),
-    ))
-    got =  dict(gene)
-    got["spans"] =  got["spans"].tolist()
+    gene = next(
+        iter(
+            multi_species_db.get_features_matching(seqid=f"worm-{stable_id}", **kwargs),
+        ),
+    )
+    expect = next(
+        iter(
+            multi_species_db.species_annotations[
+                "caenorhabditis_elegans"
+            ].get_features_matching(**kwargs),
+        ),
+    )
+    got = dict(gene)
+    got["spans"] = got["spans"].tolist()
     expect = dict(expect)
-    expect["spans"] =  expect["spans"].tolist()
+    expect["spans"] = expect["spans"].tolist()
     assert got == expect
