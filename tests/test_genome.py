@@ -208,6 +208,17 @@ def test_get_celegans_cds(worm):
 
 
 def test_yeast_repeat(yeast):
-    repeat = next(iter(yeast.get_features(biotype="dust", name="dust", seqid="VI", limit=20, start=8680, stop=9000)))
+    repeat = next(
+        iter(
+            yeast.get_features(
+                biotype="dust",
+                name="dust",
+                seqid="VI",
+                limit=20,
+                start=8680,
+                stop=9000,
+            ),
+        ),
+    )
     seq = repeat.get_slice()
     assert str(seq) == "AAAAAAAAAA"

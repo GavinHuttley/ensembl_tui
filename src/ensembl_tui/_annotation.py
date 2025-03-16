@@ -597,28 +597,25 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         local_vars = {
             k: v
             for k, v in local_vars.items()
-            if k not in ("self", "kwargs", "limit", "local_vars", "name", "biotype") and v is not None
+            if k not in ("self", "kwargs", "limit", "local_vars", "name", "biotype")
+            and v is not None
         }
         core_cols = "seqid", "start", "stop", "strand"
         repeat_cols = "repeat_type", "repeat_class", "repeat_name"
-        if kwargs := {
-            k: v
-            for k, v in local_vars.items()
-            if v is not None
-        }:
+        if kwargs := {k: v for k, v in local_vars.items() if v is not None}:
             like_conds = {k: v for k, v in kwargs.items() if k in repeat_cols}
             equals_conds = {k: v for k, v in kwargs.items() if k not in repeat_cols}
-            sql = _select_records_sql(
-                table_name="repeat_view",
-                equals_conds=equals_conds,
-                like_conds=like_conds,
-                columns=core_cols + repeat_cols,
-            )
-            sql += f" LIMIT {limit}" if limit else ""
         else:
-            sql = (
-                f"SELECT {','.join(core_cols + repeat_cols)} FROM repeat_view LIMIT 10"
-            )
+            like_conds = None
+            equals_conds = None
+
+        sql = _select_records_sql(
+            table_name="repeat_view",
+            equals_conds=equals_conds,
+            like_conds=like_conds,
+            columns=core_cols + repeat_cols,
+        )
+        sql += f" LIMIT {limit}" if limit else ""
 
         columns = core_cols + repeat_cols
         for record in self.conn.sql(sql).fetchall():
