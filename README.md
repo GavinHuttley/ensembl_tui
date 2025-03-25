@@ -100,7 +100,6 @@ Some commands can be run in parallel but have moderate memory requirements. If y
       "```\n{}\n```".format(help)
   )
   ]]] -->
-
   ```
   Usage: eti download [OPTIONS]
 
@@ -233,16 +232,16 @@ We provide a conventional command line interface for querying the data with subc
     --help     Show this message and exit.
 
   Commands:
-    alignments       export multiple alignments in fasta format for named genes
-    compara-summary  summary data for compara
-    download         download data from Ensembl's ftp site
-    dump-genes       export meta-data table for genes from one species to...
+    tui              Open Textual TUI.
     exportrc         exports sample config and species table to the nominated...
-    homologs         exports CDS sequence data in fasta format for homology...
+    download         download data from Ensembl's ftp site
     install          create the local representations of the data
     installed        show what is installed
     species-summary  genome summary data for a species
-    tui              Open Textual TUI.
+    dump-genes       export meta-data table for genes from one species to...
+    compara-summary  summary data for compara
+    homologs         exports CDS sequence data in fasta format for homology...
+    alignments       export multiple alignments in fasta format for named genes
 
   ```
   <!-- [[[end]]] -->
