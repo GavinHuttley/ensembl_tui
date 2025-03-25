@@ -219,7 +219,7 @@ class OrderedGroup(click.Group):
 @trogon.tui()
 @click.group(cls=OrderedGroup, **_click_command_opts)
 @click.version_option(__version__)
-def main():
+def main() -> None:
     """Tools for obtaining and interrogating subsets of https://ensembl.org genomic data."""
 
 
