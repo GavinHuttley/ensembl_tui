@@ -2,6 +2,8 @@ import pathlib
 import shutil
 import sys
 import typing
+from collections import OrderedDict
+from collections.abc import Mapping
 
 import click
 import trogon
@@ -199,8 +201,23 @@ _coord_names = click.option(
 )
 
 
+class OrderedGroup(click.Group):
+    def __init__(
+        self,
+        name: str | None = None,
+        commands: Mapping[str, click.Command] | None = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(name, commands, **kwargs)
+        #: the registered subcommands by their exported names.
+        self.commands = commands or OrderedDict()
+
+    def list_commands(self, ctx: click.Context) -> Mapping[str, click.Command]:
+        return self.commands
+
+
 @trogon.tui()
-@click.group(**_click_command_opts)
+@click.group(cls=OrderedGroup, **_click_command_opts)
 @click.version_option(__version__)
 def main():
     """Tools for obtaining and interrogating subsets of https://ensembl.org genomic data."""
@@ -420,6 +437,42 @@ def species_summary(installed: pathlib.Path, species: str) -> None:
 
 @main.command(**_click_command_opts)
 @_installed
+@_species
+@_outdir
+@_limit
+def dump_genes(
+    installed: pathlib.Path,
+    species: str,
+    outdir: pathlib.Path,
+    limit: int,
+) -> None:
+    """export meta-data table for genes from one species to <species>-<release>.gene_metadata.tsv"""
+
+    config = eti_config.read_installed_cfg(installed)
+    if species is None:
+        eti_util.print_colour(text="ERROR: a species name is required", colour="red")
+        sys.exit(1)
+
+    if len(species) > 1:
+        eti_util.print_colour(
+            text=f"ERROR: one species at a time, not {species!r}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    annot_db = eti_genome.load_annotations_for_species(
+        path=config.installed_genome(species=species[0]),
+    )
+    path = annot_db.source
+    table = eti_genome.get_gene_table_for_species(annot_db=annot_db, limit=limit)
+    outdir.mkdir(parents=True, exist_ok=True)
+    outpath = outdir / f"{path.stem}-{config.release}-gene_metadata.tsv"
+    table.write(outpath)
+    eti_util.print_colour(text=f"Finished: wrote {str(outpath)!r}!", colour="green")
+
+
+@main.command(**_click_command_opts)
+@_installed
 def compara_summary(installed: pathlib.Path) -> None:
     """summary data for compara"""
 
@@ -432,6 +485,141 @@ def compara_summary(installed: pathlib.Path) -> None:
         table.title = "Homology types"
         table.format_column("count", lambda x: f"{x:,}")
         eti_util.rich_display(table)
+
+
+@main.command(**_click_command_opts)
+@_installed
+@_outdir
+@click.option(
+    "-ht",
+    "--homology_type",
+    type=str,
+    default="ortholog_one2one",
+    help="type of homology",
+)
+@_ref
+@_coord_names
+@_nprocs
+@_limit
+@_force
+@_verbose
+def homologs(
+    installed: pathlib.Path,
+    outdir: pathlib.Path,
+    homology_type: str,
+    ref: str,
+    coord_names: str,
+    num_procs: int,
+    limit: int,
+    force_overwrite: bool,
+    verbose: bool,
+) -> None:
+    """exports CDS sequence data in fasta format for homology type relationship"""
+    from rich import progress
+
+    LOGGER = CachingLogger()
+    LOGGER.log_args()
+
+    if ref is None:
+        eti_util.print_colour(
+            text="ERROR: a reference species name is required, use --ref",
+            colour="red",
+        )
+        sys.exit(1)
+
+    if force_overwrite:
+        shutil.rmtree(outdir, ignore_errors=True)
+
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    LOGGER.log_file_path = outdir / f"homologs-{ref}-{homology_type}.log"
+
+    config = eti_config.read_installed_cfg(installed)
+    eti_species.Species.update_from_file(config.genomes_path / "species.tsv")
+    # we all the protein coding gene IDs from the reference species
+    genome = eti_genome.load_genome(config=config, species=ref)
+
+    if verbose:
+        eti_util.print_colour(text=f"Loaded genome for {ref!r}", colour="yellow")
+
+    # we don't use the limit argument for this query since we want the limit
+    # to be the number of homology matches
+    gene_ids = list(
+        genome.get_ids_for_biotype(
+            biotype="protein_coding",
+            seqid=coord_names,
+        ),
+    )
+
+    if verbose:
+        eti_util.print_colour(
+            text=f"Found {len(gene_ids):,} gene IDs for {ref!r}",
+            colour="yellow",
+        )
+
+    db = eti_homology.load_homology_db(
+        path=config.homologies_path,
+    )
+    related = []
+    with progress.Progress(
+        progress.TextColumn("[progress.description]{task.description}"),
+        progress.BarColumn(),
+        progress.TaskProgressColumn(),
+        progress.TimeRemainingColumn(),
+        progress.TimeElapsedColumn(),
+    ) as progress:
+        searching = progress.add_task(
+            total=limit or len(gene_ids),
+            description="Homolog search",
+        )
+        for gid in gene_ids:
+            if rel := db.get_related_to(gene_id=gid, relationship_type=homology_type):
+                related.append(rel)
+                progress.update(searching, advance=1)
+
+            if limit and len(related) >= limit:
+                break
+
+        progress.update(searching, advance=len(gene_ids))
+
+        if verbose:
+            eti_util.print_colour(
+                text=f"Found {len(related)} homolog groups",
+                colour="yellow",
+            )
+
+        get_seqs = eti_homology.collect_seqs(config=config)
+        out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
+
+        reading = progress.add_task(total=len(related), description="Extracting  🧬")
+        for seqs in get_seqs.as_completed(
+            related,
+            parallel=num_procs > 1,
+            show_progress=False,
+            par_kw={"max_workers": num_procs},
+        ):
+            progress.update(reading, advance=1)
+            if not seqs:
+                if verbose:
+                    eti_util.print_colour(text=f"{seqs=}", colour="yellow")
+
+                out_dstore.write_not_completed(
+                    data=seqs.to_json(),
+                    unique_id=seqs.source,
+                )
+                continue
+            if not seqs.seqs:
+                if verbose:
+                    eti_util.print_colour(text=f"{seqs.seqs=}", colour="yellow")
+                continue
+
+            txt = seqs.to_fasta()
+            out_dstore.write(data=txt, unique_id=seqs.info.source)
+
+    log_file_path = pathlib.Path(LOGGER.log_file_path)
+    LOGGER.shutdown()
+    out_dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink()
 
 
 @main.command(**_click_command_opts)
@@ -592,177 +780,6 @@ def alignments(
                 writer(aln, identifier=identifier)
 
     eti_util.print_colour(text="Done!", colour="green")
-
-
-@main.command(**_click_command_opts)
-@_installed
-@_outdir
-@click.option(
-    "-ht",
-    "--homology_type",
-    type=str,
-    default="ortholog_one2one",
-    help="type of homology",
-)
-@_ref
-@_coord_names
-@_nprocs
-@_limit
-@_force
-@_verbose
-def homologs(
-    installed: pathlib.Path,
-    outdir: pathlib.Path,
-    homology_type: str,
-    ref: str,
-    coord_names: str,
-    num_procs: int,
-    limit: int,
-    force_overwrite: bool,
-    verbose: bool,
-) -> None:
-    """exports CDS sequence data in fasta format for homology type relationship"""
-    from rich import progress
-
-    LOGGER = CachingLogger()
-    LOGGER.log_args()
-
-    if ref is None:
-        eti_util.print_colour(
-            text="ERROR: a reference species name is required, use --ref",
-            colour="red",
-        )
-        sys.exit(1)
-
-    if force_overwrite:
-        shutil.rmtree(outdir, ignore_errors=True)
-
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    LOGGER.log_file_path = outdir / f"homologs-{ref}-{homology_type}.log"
-
-    config = eti_config.read_installed_cfg(installed)
-    eti_species.Species.update_from_file(config.genomes_path / "species.tsv")
-    # we all the protein coding gene IDs from the reference species
-    genome = eti_genome.load_genome(config=config, species=ref)
-
-    if verbose:
-        eti_util.print_colour(text=f"Loaded genome for {ref!r}", colour="yellow")
-
-    # we don't use the limit argument for this query since we want the limit
-    # to be the number of homology matches
-    gene_ids = list(
-        genome.get_ids_for_biotype(
-            biotype="protein_coding",
-            seqid=coord_names,
-        ),
-    )
-
-    if verbose:
-        eti_util.print_colour(
-            text=f"Found {len(gene_ids):,} gene IDs for {ref!r}",
-            colour="yellow",
-        )
-
-    db = eti_homology.load_homology_db(
-        path=config.homologies_path,
-    )
-    related = []
-    with progress.Progress(
-        progress.TextColumn("[progress.description]{task.description}"),
-        progress.BarColumn(),
-        progress.TaskProgressColumn(),
-        progress.TimeRemainingColumn(),
-        progress.TimeElapsedColumn(),
-    ) as progress:
-        searching = progress.add_task(
-            total=limit or len(gene_ids),
-            description="Homolog search",
-        )
-        for gid in gene_ids:
-            if rel := db.get_related_to(gene_id=gid, relationship_type=homology_type):
-                related.append(rel)
-                progress.update(searching, advance=1)
-
-            if limit and len(related) >= limit:
-                break
-
-        progress.update(searching, advance=len(gene_ids))
-
-        if verbose:
-            eti_util.print_colour(
-                text=f"Found {len(related)} homolog groups",
-                colour="yellow",
-            )
-
-        get_seqs = eti_homology.collect_seqs(config=config)
-        out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
-
-        reading = progress.add_task(total=len(related), description="Extracting  🧬")
-        for seqs in get_seqs.as_completed(
-            related,
-            parallel=num_procs > 1,
-            show_progress=False,
-            par_kw={"max_workers": num_procs},
-        ):
-            progress.update(reading, advance=1)
-            if not seqs:
-                if verbose:
-                    eti_util.print_colour(text=f"{seqs=}", colour="yellow")
-
-                out_dstore.write_not_completed(
-                    data=seqs.to_json(),
-                    unique_id=seqs.source,
-                )
-                continue
-            if not seqs.seqs:
-                if verbose:
-                    eti_util.print_colour(text=f"{seqs.seqs=}", colour="yellow")
-                continue
-
-            txt = seqs.to_fasta()
-            out_dstore.write(data=txt, unique_id=seqs.info.source)
-
-    log_file_path = pathlib.Path(LOGGER.log_file_path)
-    LOGGER.shutdown()
-    out_dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
-    log_file_path.unlink()
-
-
-@main.command(**_click_command_opts)
-@_installed
-@_species
-@_outdir
-@_limit
-def dump_genes(
-    installed: pathlib.Path,
-    species: str,
-    outdir: pathlib.Path,
-    limit: int,
-) -> None:
-    """export meta-data table for genes from one species to <species>-<release>.gene_metadata.tsv"""
-
-    config = eti_config.read_installed_cfg(installed)
-    if species is None:
-        eti_util.print_colour(text="ERROR: a species name is required", colour="red")
-        sys.exit(1)
-
-    if len(species) > 1:
-        eti_util.print_colour(
-            text=f"ERROR: one species at a time, not {species!r}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    annot_db = eti_genome.load_annotations_for_species(
-        path=config.installed_genome(species=species[0]),
-    )
-    path = annot_db.source
-    table = eti_genome.get_gene_table_for_species(annot_db=annot_db, limit=limit)
-    outdir.mkdir(parents=True, exist_ok=True)
-    outpath = outdir / f"{path.stem}-{config.release}-gene_metadata.tsv"
-    table.write(outpath)
-    eti_util.print_colour(text=f"Finished: wrote {str(outpath)!r}!", colour="green")
 
 
 if __name__ == "__main__":
