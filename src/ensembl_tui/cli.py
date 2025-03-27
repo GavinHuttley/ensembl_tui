@@ -132,6 +132,11 @@ _ref_genes_file = click.option(
     type=click.Path(resolve_path=True, exists=True),
     help=".csv or .tsv file with a header containing a stableid column.",
 )
+_mask_ref = click.option(
+    "--mask_ref",
+    is_flag=True,
+    help="Masking uses features from ref species only.",
+)
 _limit = click.option(
     "--limit",
     type=int,
@@ -631,6 +636,7 @@ def homologs(
 @_ref_genes_file
 @_mask
 @_mask_shadow
+@_mask_ref
 @_limit
 @_force
 @_verbose
@@ -643,6 +649,7 @@ def alignments(
     ref_genes_file: pathlib.Path,
     mask: pathlib.Path,
     mask_shadow: pathlib.Path,
+    mask_ref: bool,
     limit: int,
     force_overwrite: bool,
     verbose: bool,
@@ -748,6 +755,7 @@ def alignments(
         genomes=genomes,
         mask_features=mask,
         shadow=shadow,
+        mask_ref=mask_ref,
     )
     output = open_data_store(outdir, mode="w", suffix="fa")
     writer = get_app("write_seqs", format="fasta", data_store=output)
