@@ -216,7 +216,7 @@ def get_alignment(
     mask_features: list[str] | None = None,
     shadow: bool = False,
 ) -> typing.Iterable[c3_align.Alignment]:
-    """yields cogent3 Alignments"""
+    """yields cogent3 new type Alignments"""
 
     if ref_species not in genomes:
         msg = f"unknown species {ref_species!r}"
@@ -319,7 +319,7 @@ def get_alignment(
                 s.name = f"{s.name}:{align_record.strand}"
 
             if s.name in seqs:
-                print(f"duplicated {s.name}")
+                eti_util.print_colour(f"duplicated {s.name}", colour="yellow")
 
             seqs[s.name] = numpy.array(s)
             gaps[s.name] = imap.array
