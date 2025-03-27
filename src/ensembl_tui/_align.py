@@ -215,8 +215,9 @@ def get_alignment(
     namer: typing.Callable | None = None,
     mask_features: list[str] | None = None,
     shadow: bool = False,
+    mask_ref: bool = False,
 ) -> typing.Iterable[c3_align.Alignment]:
-    """yields cogent3 Alignments"""
+    """yields cogent3 new type Alignments"""
 
     if ref_species not in genomes:
         msg = f"unknown species {ref_species!r}"
@@ -319,10 +320,14 @@ def get_alignment(
                 s.name = f"{s.name}:{align_record.strand}"
 
             if s.name in seqs:
-                print(f"duplicated {s.name}")
+                eti_util.print_colour(f"duplicated {s.name}", colour="yellow")
 
             seqs[s.name] = numpy.array(s)
             gaps[s.name] = imap.array
+            if mask_ref and record_species != ref_species:
+                # limit features to only those from the reference genome
+                continue
+
             offsets[s.name] = genome_start + seq_start
             seqid_species[s.name] = eti_ann.get_species_seqid(
                 species=record_species,
@@ -337,10 +342,13 @@ def get_alignment(
             offset=offsets,
         )
         aln = c3_align.Alignment(seqs_data=aln_data, moltype=DNA)
-        aln.annotation_db = eti_ann.MultispeciesAnnotations(
+
+        ann_db = eti_ann.MultispeciesAnnotations(
             name_map=seqid_species,
             species_annotations=ann_dbs,
         )
+        aln.annotation_db = ann_db
+
         if mask_features:
             aln = aln.with_masked_annotations(biotypes=mask_features, shadow=shadow)
 
@@ -361,6 +369,7 @@ class construct_alignment:  # noqa: N801
         genomes: dict[str, eti_genome.Genome],
         mask_features: list[str] | None = None,
         shadow: bool = False,
+        mask_ref: bool = False,
         sep: str = "?",
     ) -> None:
         self._align_db = align_db
@@ -368,6 +377,7 @@ class construct_alignment:  # noqa: N801
         self._mask_features = mask_features
         self._shadow = shadow
         self._sep = sep
+        self._ref_only = mask_ref
 
     def main(self, segment: eti_genome.genome_segment) -> list[c3_align.Alignment]:
         results = []
@@ -380,6 +390,7 @@ class construct_alignment:  # noqa: N801
             segment.stop,
             mask_features=self._mask_features,
             shadow=self._shadow,
+            mask_ref=self._ref_only,
         ):
             aln.info.source = segment.source
             results.append(aln)

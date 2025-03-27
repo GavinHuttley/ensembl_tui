@@ -616,7 +616,6 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
             columns=core_cols + repeat_cols,
         )
         sql += f" LIMIT {limit}" if limit else ""
-
         columns = core_cols + repeat_cols
         for record in self.conn.sql(sql).fetchall():
             data = dict(zip(columns, record, strict=True))
@@ -795,21 +794,30 @@ class MultispeciesAnnotations(AnnotationDbABC):
         return sum(len(ann) for ann in self.species_annotations.values())
 
     def get_features_matching(self, seqid: str, **kwargs):
+        if seqid not in self.name_map:
+            return ()
         sp_sid = self.name_map[seqid]
         db = self.species_annotations[sp_sid.species]
         return db.get_features_matching(seqid=sp_sid.seqid, **kwargs)
 
     def get_feature_children(self, seqid: str, **kwargs):
+        if seqid not in self.name_map:
+            return ()
         sp_sid = self.name_map[seqid]
         db = self.species_annotations[sp_sid.species]
         return db.get_feature_children(seqid=sp_sid.seqid, **kwargs)
 
     def get_feature_parent(self, seqid: str, **kwargs):
+        if seqid not in self.name_map:
+            return ()
         sp_sid = self.name_map[seqid]
         db = self.species_annotations[sp_sid.species]
         return db.get_feature_parent(seqid=sp_sid.seqid, **kwargs)
 
-    def num_matches(self, seqid: str, **kwargs):
+    def num_matches(self, seqid: str, **kwargs) -> int:
+        """number of records matching arguments in the specified seqid"""
+        if seqid not in self.name_map:
+            return 0
         sp_sid = self.name_map[seqid]
         db = self.species_annotations[sp_sid.species]
         return db.num_matches(seqid=sp_sid.seqid, **kwargs)
