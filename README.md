@@ -2,6 +2,7 @@
 [![CodeQL](https://github.com/cogent3/ensembl_tui/actions/workflows/codeql.yml/badge.svg)](https://github.com/cogent3/ensembl_tui/actions/workflows/codeql.yml)
 [![Coverage Status](https://coveralls.io/repos/github/cogent3/ensembl_tui/badge.svg?branch=develop)](https://coveralls.io/github/cogent3/ensembl_tui?branch=develop)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![DOI](https://zenodo.org/badge/664119735.svg)](https://doi.org/10.5281/zenodo.15098645)
 
 # ensembl-tui
 
