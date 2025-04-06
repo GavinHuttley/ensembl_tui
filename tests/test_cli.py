@@ -250,7 +250,7 @@ def test_compara_summary(installed):
 
 @pytest.mark.slow
 def test_compara_folder_not_created(tmp_config_no_compara):
-    # ensure 'compara' folder is not created if not specified in the config
+    # ensure compara folder is not created if not specified in the config
     r = RUNNER.invoke(
         eti_cli.install,
         [f"-d{tmp_config_no_compara}"],

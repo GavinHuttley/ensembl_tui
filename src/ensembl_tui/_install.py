@@ -92,7 +92,7 @@ def local_install_alignments(
     verbose: bool = False,
     progress: Progress | None = None,
 ) -> None:
-    # Check if alignments are specified in the config
+    # check if alignments are specified in the config
     if not config.align_names:
         if verbose:
             eti_util.print_colour(
@@ -123,7 +123,7 @@ def local_install_homology(
     verbose: bool = False,
     progress: Progress | None = None,
 ) -> None:
-    # Check if homologies are specified in the config
+    # check if homologies are specified in the config
     if not config.homologies:
         if verbose:
             eti_util.print_colour(
