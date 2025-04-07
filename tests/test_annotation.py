@@ -169,6 +169,10 @@ def test_repeat_query(worm_repeats):
         worm_repeats.get_features_matching(repeat_class="Simple_repeat", limit=10),
     )
     assert len(repeats) == 10
+    rpt = repeats[0]
+    got = dict(rpt)
+    assert got["xattr"]["repeat_class"] == "Simple_repeat"
+    assert got["xattr"]["repeat_name"] == "(TTTTGAA)n"
 
 
 def test_view_species(worm_db):

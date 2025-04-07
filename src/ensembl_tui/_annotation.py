@@ -66,14 +66,23 @@ class FeatureDataBase(FeatureDataMixin):
     def __dict__(self) -> dict:
         return dataclasses.asdict(self)
 
-    def __iter__(self):  # noqa: ANN204
+    def __iter__(
+        self,
+    ) -> typing.Iterator[tuple[str, str | int | numpy.ndarray | dict | None]]:
         feature_fields = {"seqid", "biotype", "name", "spans", "strand"}
         xattr = {}
         seen_name = False
         for field in dataclasses.fields(self):
+            if field.name in {"start", "stop"}:
+                # start and stop are not to be included
+                # as they can be derived from spans
+                continue
+
             if field.name not in feature_fields:
+                # other fields are considered xattr
                 xattr[field.name] = getattr(self, field.name)
                 continue
+
             yield field.name, getattr(self, field.name)
             if field.name == "name":
                 seen_name = True
@@ -81,9 +90,8 @@ class FeatureDataBase(FeatureDataMixin):
         if not seen_name:
             yield "name", self.name
 
-        # for now, we don't return xattr until cogent3 Feature
-        # class supports it
-        # yield "xattr", xattr
+        if xattr:
+            yield "xattr", xattr
 
 
 @dataclasses.dataclass(slots=True)
@@ -587,7 +595,7 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         repeat_type: OptStr = None,
         repeat_class: OptStr = None,
         **kwargs,  # noqa: ANN003
-    ) -> typing.Iterator[FeatureDataType]:
+    ) -> typing.Iterator[RepeatData]:
         limit = kwargs.pop("limit", None)
         repeat_type = repeat_type or biotype
         biotype = "repeat"
@@ -619,18 +627,16 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         columns = core_cols + repeat_cols
         for record in self.conn.sql(sql).fetchall():
             data = dict(zip(columns, record, strict=True))
-            rep_data = {k: data.pop(k) for k in repeat_cols}
             spans = numpy.array(
                 [(data.pop("start"), data.pop("stop"))],
                 dtype=numpy.int32,
             )
             data["spans"] = spans
             data["biotype"] = "repeat"
-            data["name"] = rep_data["repeat_name"]
+            data["name"] = data["repeat_name"]
             data["start"] = spans.min()
             data["stop"] = spans.max()
-            # data["xattr"] = rep_data
-            yield FeatureDataBase(**data)
+            yield RepeatData(**data)
 
     def get_children_matching(self, **kwargs):
         return ()
