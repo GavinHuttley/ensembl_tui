@@ -246,3 +246,15 @@ def test_compara_summary(installed):
     assert r.exit_code == 0, r.output
     assert "homology_type" in r.output
     assert "ortholog_one2many" in r.output
+
+
+@pytest.mark.slow
+def test_compara_folder_not_created(tmp_config_no_compara):
+    # ensure compara folder is not created if not specified in the config
+    r = RUNNER.invoke(
+        eti_cli.install,
+        [f"-d{tmp_config_no_compara}"],
+        catch_exceptions=False,
+    )
+    assert r.exit_code == 0, r.output
+    assert not (tmp_config_no_compara / "compara").exists()

@@ -92,6 +92,15 @@ def local_install_alignments(
     verbose: bool = False,
     progress: Progress | None = None,
 ) -> None:
+    # check if alignments are specified in the config
+    if not config.align_names:
+        if verbose:
+            eti_util.print_colour(
+                "No alignments specified in the config. Skipping alignment installation.",
+                "yellow",
+            )
+        return
+
     if force_overwrite:
         shutil.rmtree(config.install_aligns, ignore_errors=True)
 
@@ -114,6 +123,15 @@ def local_install_homology(
     verbose: bool = False,
     progress: Progress | None = None,
 ) -> None:
+    # check if homologies are specified in the config
+    if not config.homologies:
+        if verbose:
+            eti_util.print_colour(
+                "No homologies specified in the config. Skipping homology installation.",
+                "yellow",
+            )
+        return
+
     if force_overwrite:
         shutil.rmtree(config.install_homologies, ignore_errors=True)
 
