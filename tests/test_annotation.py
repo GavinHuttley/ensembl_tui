@@ -165,14 +165,19 @@ def test_get_ids_for_biotype(small_install_cfg):
 
 
 def test_repeat_query(worm_repeats):
+    import re
+
+    limit = 10
     repeats = list(
-        worm_repeats.get_features_matching(repeat_class="Simple_repeat", limit=10),
+        worm_repeats.get_features_matching(repeat_class="Simple_repeat", limit=limit),
     )
-    assert len(repeats) == 10
+    assert len(repeats) == limit
     rpt = repeats[0]
     got = dict(rpt)
     assert got["xattr"]["repeat_class"] == "Simple_repeat"
-    assert got["xattr"]["repeat_name"] == "(TTTTGAA)n"
+    # the order of returned repeats is not guaranteed, so we
+    # only check the basic structure
+    assert re.search(r"\([A-Z]+\)n", got["xattr"]["repeat_name"])
 
 
 def test_view_species(worm_db):
