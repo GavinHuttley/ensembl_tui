@@ -714,12 +714,6 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
     def __len__(self) -> int:
         return self.num_records()
 
-    def add_records(self, **kwargs):
-        raise NotImplementedError
-
-    def add_feature(self, **kwargs):
-        raise NotImplementedError
-
     def get_feature_children(self, **kwargs):
         raise NotImplementedError
 
@@ -727,36 +721,6 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         raise NotImplementedError
 
     def num_matches(self, **kwargs):
-        raise NotImplementedError
-
-    def subset(self, **kwargs):
-        # this should return a cogent3 BasicAnnotationDb
-        # or we need a AnnotationsUnion class that
-        # encloses the individual Annotations instances
-        # to avoid copying
-        raise NotImplementedError
-
-    def union(self, **kwargs):
-        # this should return a cogent3 BasicAnnotationDb
-        # or we need a AnnotationsUnion class that
-        # encloses the individual Annotations instances
-        # to avoid copying
-        raise NotImplementedError
-
-    def update(self, **kwargs):
-        # this should return a cogent3 BasicAnnotationDb
-        # or we need a AnnotationsUnion class that
-        # encloses the individual Annotations instances
-        # to avoid copying
-        raise NotImplementedError
-
-    def to_json(self) -> str:
-        raise NotImplementedError
-
-    def to_rich_dict(self) -> dict:
-        raise NotImplementedError
-
-    def from_dict(self, data: dict[str, typing.Any]) -> None:
         raise NotImplementedError
 
     def get_cds(self, **kwargs) -> CdsData:  # noqa: ANN003
@@ -827,27 +791,3 @@ class MultispeciesAnnotations(AnnotationDbABC):
         sp_sid = self.name_map[seqid]
         db = self.species_annotations[sp_sid.species]
         return db.num_matches(seqid=sp_sid.seqid, **kwargs)
-
-    def subset(self, **kwargs):
-        raise NotImplementedError
-
-    def add_feature(self, **kwargs):
-        raise NotImplementedError
-
-    def add_records(self, **kwargs):
-        raise NotImplementedError
-
-    def update(self, **kwargs):
-        raise NotImplementedError
-
-    def union(self, **kwargs):
-        raise NotImplementedError
-
-    def to_rich_dict(self) -> dict:
-        raise NotImplementedError
-
-    def to_json(self) -> str:
-        raise NotImplementedError
-
-    def from_dict(self, **kwargs) -> None:
-        raise NotImplementedError
