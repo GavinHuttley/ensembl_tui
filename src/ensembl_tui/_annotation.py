@@ -474,39 +474,6 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
     def get_by_description(self, description: str) -> typing.Iterator[GeneData]:
         yield from self.get_features_matching(description=description, biotype="gene")
 
-    def _get_cds(self, *, gene: GeneData) -> CdsData:
-        # for now, we only support getting the canonical transcript
-        transcript_id = gene["canonical_transcript_id"]
-        columns = (
-            "transcript_id",
-            "seqid",
-            "start",
-            "stop",
-            "strand",
-            "cds_spans",
-            "cds_stable_id",
-        )
-        sql = f"SELECT {','.join(columns)} FROM transcript_attr WHERE transcript_id = {transcript_id}"
-        if not (record := self.conn.sql(sql).fetchone()):
-            msg = f"No CDS spans found for {gene=}"
-            raise ValueError(msg)
-
-        transcript = dict(zip(columns, record, strict=True))
-        if not (spans := transcript.pop("cds_spans", None)):
-            msg = f"No CDS spans found for {gene=}"
-            raise ValueError(msg)
-
-        spans = eti_storage.blob_to_array(spans)
-        stable_id = transcript.pop("cds_stable_id")
-        return CdsData(
-            **{
-                **transcript,
-                "spans": spans,
-                "stable_id": stable_id,
-                "gene_stable_id": gene.stable_id,
-            },
-        )
-
     @functools.singledispatchmethod
     def get_feature_children(
         self,
@@ -861,9 +828,6 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
 
     def num_matches(self, **kwargs):
         raise NotImplementedError
-
-    def _get_cds(self, **kwargs) -> CdsData:  # noqa: ANN003
-        return self.genes.get_cds(**kwargs)
 
     def get_ids_for_biotype(self, biotype: str, limit: int | None = None) -> list[str]:
         return self.genes.get_ids_for_biotype(biotype=biotype, limit=limit)
