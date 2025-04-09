@@ -210,10 +210,15 @@ class collect_cds:
                 )
             genome = self._genomes[species]
             for name in sp_genes:
-                cds = list(genome.get_cds(stable_id=name))
+                cds = list(
+                    genome.get_features(name=name, biotype="cds", canonical=True),
+                )
                 if not cds:
                     if self._verbose:
-                        print(f"no cds for {name=} {type(name)=}")
+                        eti_util.print_colour(
+                            f"no cds for {name=} {type(name)=}",
+                            "yellow",
+                        )
                     continue
 
                 feature = cds[0]

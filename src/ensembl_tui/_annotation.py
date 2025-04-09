@@ -1,6 +1,7 @@
 import dataclasses
 import functools
 import pathlib
+import types
 import typing
 
 import cogent3
@@ -237,6 +238,86 @@ def _select_records_sql(
     return f"{sql} WHERE {conditions}" if conditions else sql
 
 
+def is_derived_biotype(biotype: str | None) -> bool:
+    """returns True if the biotype is derived from a transcript_attr record"""
+    biotype = biotype or ""
+    return biotype.lower() in _derived_biotypes
+
+
+def gene_from_gene_record(record: dict) -> GeneData:
+    """returns a GeneData record from a gene record"""
+    start, stop = (
+        record.get("start"),
+        record.get("stop"),
+    )
+    record["spans"] = numpy.array([sorted([start, stop])], dtype=numpy.int32)  # type: ignore
+    return GeneData(**record)
+
+
+def cds_from_gene_record(transcript: dict) -> CdsData:
+    """returns a cds record from a transcript_attr record"""
+    if not (spans := transcript.pop("cds_spans", None)):
+        msg = f"No CDS spans found for {transcript["cds_stable_id"]=!r}"
+        raise ValueError(msg)
+
+    spans = eti_storage.blob_to_array(spans)
+    stable_id = transcript.pop("cds_stable_id")
+    gene_stable_id = transcript.pop("gene_stable_id")
+    transcript.pop("transcript_stable_id", None)
+    transcript.pop("transcript_spans", None)
+    return CdsData(
+        **{
+            **transcript,
+            "spans": spans,
+            "stable_id": stable_id,
+            "gene_stable_id": gene_stable_id,
+        },
+    )
+
+
+def transcript_from_gene_record(transcript: dict) -> TranscriptData:
+    """returns a transcript record from a transcript_attr record"""
+    if not (spans := transcript.pop("transcript_spans", None)):
+        msg = f"No transcript spans found for {transcript["transcript_stable_id"]=!r}"
+        raise ValueError(msg)
+
+    spans = eti_storage.blob_to_array(spans)
+    stable_id = transcript.pop("transcript_stable_id")
+    gene_stable_id = transcript.pop("gene_stable_id")
+    transcript.pop("cds_stable_id", None)
+    transcript.pop("cds_spans", None)
+    return TranscriptData(
+        **{
+            **transcript,
+            "spans": spans,
+            "stable_id": stable_id,
+            "gene_stable_id": gene_stable_id,
+        },
+    )
+
+
+# make the following module level dicts immutable by using the mapping proxy
+## maps derived biotype to the ensembl biotype
+_derived_biotypes = types.MappingProxyType(
+    {
+        "gene": ("protein_coding",),
+        "cds": ("protein_coding",),
+        "mrna": ("protein_coding",),
+        "transcript": ("protein_coding",),
+    },
+)
+
+# maps derived biotype to the function for creating the derived data instance
+_derived_biotype_funcs = types.MappingProxyType(
+    {
+        "gene": gene_from_gene_record,
+        "cds": cds_from_gene_record,
+        "mrna": transcript_from_gene_record,
+        "transcript": transcript_from_gene_record,
+    },
+)
+
+
 @dataclasses.dataclass
 class BiotypeView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
     _tables: tuple[str] = ("gene_attr",)
@@ -271,7 +352,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         sql = "SELECT DISTINCT stable_id FROM gene_attr"
         return len(self.conn.sql(sql).fetchall())
 
-    def get_features_matching(
+    def _get_features_matching(
         self,
         *,
         seqid: OptStr = None,
@@ -283,7 +364,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         symbol: OptStr = None,
         description: OptStr = None,
         **kwargs,  # noqa: ANN003
-    ) -> typing.Iterator[GeneData]:
+    ) -> typing.Iterator[dict]:
         # add supoport for querying by symbol and description
         stable_id = stable_id or kwargs.pop("name", None)
         limit = kwargs.pop("limit", None)
@@ -291,8 +372,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         if kwargs := {
             k: v
             for k, v in local_vars.items()
-            if k not in ("self", "kwargs", "columns", "limit", "local_vars")
-            and v is not None
+            if k not in ("self", "kwargs", "limit") and v is not None
         }:
             like_conds = (
                 {"description": kwargs.pop("description")} if description else None
@@ -307,26 +387,94 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
             sql = f"SELECT {','.join(GENE_ATTR_COLUMNS)} FROM gene_attr"
 
         sql += f" LIMIT {limit}" if limit else ""
-
         for record in self.conn.sql(sql).fetchall():
-            data = dict(zip(GENE_ATTR_COLUMNS, record, strict=True))
-            start, stop = (
-                data.get("start"),
-                data.get("stop"),
-            )
-            data["spans"] = numpy.array([sorted([start, stop])], dtype=numpy.int32)  # type: ignore
-            yield GeneData(**data)
+            yield dict(zip(GENE_ATTR_COLUMNS, record, strict=True))
+
+    def _transcript_from_gene(
+        self,
+        *,
+        gene_field_name: str,
+        transcript_field_name: str,
+        **kwargs,
+    ) -> dict:
+        columns = (
+            "transcript_id",
+            "seqid",
+            "start",
+            "stop",
+            "strand",
+            "transcript_spans",
+            "transcript_stable_id",
+            "cds_spans",
+            "cds_stable_id",
+        )
+        sql = f"SELECT {','.join(columns)} FROM transcript_attr WHERE {transcript_field_name} = ?"
+        for record in self._get_features_matching(**kwargs):
+            field_value = record.get(gene_field_name)
+            gene_stable_id = {"gene_stable_id": record.get("stable_id")}
+            for tr_record in self.conn.sql(sql, params=(field_value,)).fetchall():
+                yield dict(zip(columns, tr_record, strict=True)) | gene_stable_id
+
+    def get_features_matching(
+        self,
+        *,
+        seqid: OptStr = None,
+        biotype: OptStr = None,
+        stable_id: OptStr = None,
+        start: OptInt = None,
+        stop: OptInt = None,
+        strand: OptStr = None,
+        symbol: OptStr = None,
+        description: OptStr = None,
+        canonical: bool = True,
+        **kwargs,  # noqa: ANN003
+    ) -> typing.Iterator[GeneData | TranscriptData | CdsData]:
+        local_vars = locals()
+        local_vars = {
+            k: v
+            for k, v in local_vars.items()
+            if k not in ("self", "kwargs", "local_vars", "canonical") and v
+        }
+        kwargs |= local_vars
+        if not is_derived_biotype(kwargs.get("biotype")):
+            for record in self._get_features_matching(**kwargs):
+                yield gene_from_gene_record(record)
+            return
+
+        if biotype == "gene":
+            for ensembl_biotype in _derived_biotypes[biotype]:
+                kwargs["biotype"] = ensembl_biotype
+                yield from self.get_features_matching(**kwargs)
+            return
+
+        if canonical:
+            gene_field_name = "canonical_transcript_id"
+            transcript_field_name = "transcript_id"
+        else:
+            gene_field_name = "gene_id"
+            transcript_field_name = "gene_id"
+
+        derived_biotype = kwargs.pop("biotype").lower()
+        func = _derived_biotype_funcs[derived_biotype]
+        for ensembl_biotype in _derived_biotypes[derived_biotype]:
+            kwargs["biotype"] = ensembl_biotype
+            for transcript in self._transcript_from_gene(
+                gene_field_name=gene_field_name,
+                transcript_field_name=transcript_field_name,
+                **kwargs,
+            ):
+                yield func(transcript)
 
     def get_by_stable_id(self, stable_id: str) -> typing.Iterator[GeneData]:
-        yield from self.get_features_matching(stable_id=stable_id)
+        yield from self.get_features_matching(stable_id=stable_id, biotype="gene")
 
     def get_by_symbol(self, symbol: str) -> typing.Iterator[GeneData]:
-        yield from self.get_features_matching(symbol=symbol)
+        yield from self.get_features_matching(symbol=symbol, biotype="gene")
 
     def get_by_description(self, description: str) -> typing.Iterator[GeneData]:
-        yield from self.get_features_matching(description=description)
+        yield from self.get_features_matching(description=description, biotype="gene")
 
-    def get_cds(self, *, gene: GeneData) -> CdsData:
+    def _get_cds(self, *, gene: GeneData) -> CdsData:
         # for now, we only support getting the canonical transcript
         transcript_id = gene["canonical_transcript_id"]
         columns = (
@@ -550,7 +698,8 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
     @property
     def conn(self) -> duckdb.DuckDBPyConnection:
         if self._conn is None:
-            super().conn
+            # trigger the creation of the view using property on super
+            super().conn  # noqa: B018
             sql = """CREATE VIEW IF NOT EXISTS repeat_view AS
                     SELECT 
                         rc.repeat_type AS repeat_type,
@@ -687,13 +836,14 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         *,
         biotype: str,
         **kwargs,
-    ) -> typing.Iterator[FeatureDataType]:
+    ) -> typing.Iterator[FeatureDataBase]:
         biotype = biotype or "protein_coding"
-        gene_biotypes = set(self.biotypes.distinct)
+        gene_biotypes = set(self.biotypes.distinct) if self.biotypes else set()
         kwargs["biotype"] = biotype
-        if biotype in gene_biotypes:
+        if biotype in gene_biotypes or is_derived_biotype(biotype):
             view = self.genes
         else:
+            kwargs.pop("canonical", None)
             view = self.repeats
         if not view:
             return
@@ -712,7 +862,7 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
     def num_matches(self, **kwargs):
         raise NotImplementedError
 
-    def get_cds(self, **kwargs) -> CdsData:  # noqa: ANN003
+    def _get_cds(self, **kwargs) -> CdsData:  # noqa: ANN003
         return self.genes.get_cds(**kwargs)
 
     def get_ids_for_biotype(self, biotype: str, limit: int | None = None) -> list[str]:
@@ -728,9 +878,12 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         return num_genes + num_repeats
 
     def close(self) -> None:
-        self.biotypes.close()
-        self.genes.close()
-        self.repeats.close()
+        if self.biotypes:
+            self.biotypes.close()
+        if self.genes:
+            self.genes.close()
+        if self.repeats:
+            self.repeats.close()
 
 
 @dataclasses.dataclass(frozen=True)
