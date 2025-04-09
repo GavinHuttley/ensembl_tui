@@ -278,7 +278,7 @@ def cds_from_gene_record(transcript: dict) -> CdsData:
 def transcript_from_gene_record(transcript: dict) -> TranscriptData:
     """returns a transcript record from a transcript_attr record"""
     if not (spans := transcript.pop("transcript_spans", None)):
-        msg = f"No transcript spans found for {transcript["transcript_stable_id"]=!r}"
+        msg = f"No transcript spans found for {transcript['transcript_stable_id']=!r}"
         raise ValueError(msg)
 
     spans = eti_storage.blob_to_array(spans)
