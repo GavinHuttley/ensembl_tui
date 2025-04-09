@@ -23,18 +23,7 @@ OptBool = bool | None
 StrOrBool = str | bool
 FeatureDictVals = str | int | numpy.ndarray
 
-GENE_ATTR_COLUMNS = (
-    "stable_id",
-    "biotype",
-    "seqid",
-    "start",
-    "stop",
-    "strand",
-    "canonical_transcript_id",
-    "symbol",
-    "gene_id",
-    "description",
-)
+GENE_ATTR_COLUMNS = core_tables.GENE_ATTR_COLUMNS
 
 
 class FeatureDataMixin:  # supports getitem as a dict on properties

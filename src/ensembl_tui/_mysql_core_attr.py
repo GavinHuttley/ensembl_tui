@@ -23,18 +23,18 @@ TRANSCRIPT_ATTR_SCHEMA = (
     "cds_stable_id TEXT",
 )
 TRANSCRIPT_ATTR_COLS = eti_util.make_column_constant(TRANSCRIPT_ATTR_SCHEMA)
-GENE_ATTR_SCHEMA = (
-    "gene_id INTEGER",
-    "stable_id TEXT",
-    "biotype TEXT",
-    "canonical_transcript_id INTEGER",
-    "seqid TEXT",
-    "start INTEGER",
-    "stop INTEGER",
-    "strand TINYINT",
-    "symbol TEXT",
+GENE_ATTR_COLUMNS = (
+    "stable_id",
+    "biotype",
+    "seqid",
+    "start",
+    "stop",
+    "strand",
+    "canonical_transcript_id",
+    "symbol",
+    "gene_id",
+    "description",
 )
-GENE_ATTR_COLS = eti_util.make_column_constant(GENE_ATTR_SCHEMA)
 
 
 # https://asia.ensembl.org/info/docs/api/core/core_schema.html
