@@ -13,9 +13,9 @@ def test_load_genome(small_install_path):
     # directly interrogate the gene view
     stable_id = "WBGene00004893"
     gene = list(
-        genome.get_cds(
-            biotype="protein_coding",
-            stable_id=stable_id,
+        genome.get_features(
+            biotype="cds",
+            name=stable_id,
         ),
     )
     assert len(gene) == 1

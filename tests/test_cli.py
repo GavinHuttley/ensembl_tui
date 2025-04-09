@@ -89,7 +89,7 @@ def test_check_one_cds_seq(installed):
         config=config,
         species="saccharomyces_cerevisiae",
     )
-    cds = next(iter(genome.get_cds(stable_id="YMR242C")))
+    cds = next(iter(genome.get_features(name="YMR242C", biotype="cds", canonical=True)))
     seq = cds.get_slice()
     expect = (
         "GCTCACTTTAAAGAATACCAAGTTATTGGCCGTCGTTTGCCAACTGAATCTGTTCCAGAA"
@@ -116,7 +116,9 @@ def test_check_multi_exon_cds_seq_plus_strand(installed):
         config=config,
         species="caenorhabditis_elegans",
     )
-    cds = next(iter(genome.get_cds(stable_id="WBGene00185002")))
+    cds = next(
+        iter(genome.get_features(name="WBGene00185002", biotype="cds", canonical=True)),
+    )
     aa = str(cds.get_slice().get_translation())
     # seq expected values from ensembl
     assert aa.startswith("MEMEDIDDDITVFYTDDRGTVQGPYGASTVLDWYQKGYFSDNHQMRFTDNGQRIGNLFTY")
@@ -135,7 +137,9 @@ def test_check_two_exon_cds_seq_rev_strand(installed):
         config=config,
         species="caenorhabditis_elegans",
     )
-    cds = next(iter(genome.get_cds(stable_id="WBGene00184990")))
+    cds = next(
+        iter(genome.get_features(name="WBGene00184990", biotype="cds", canonical=True)),
+    )
     aa = str(cds.get_slice().get_translation())
     # seq expected values from ensembl
     assert aa.startswith("MSGVYNNSGSRMRSKNFEKHQVPSDMAFFQKFRKQSHSNETVDCKKKQEE")

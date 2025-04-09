@@ -201,7 +201,7 @@ def test_get_ids_for_biotype_seqid(yeast):
 
 
 def test_get_celegans_cds(worm):
-    cds = next(iter(worm.get_cds(stable_id="WBGene00021347")))
+    cds = next(iter(worm.get_features(name="WBGene00021347", biotype="cds")))
     seq = cds.get_slice()
     aa = seq.get_translation()
     assert aa == "MIIPIRCFTCGKVIGDKWETYLGFLQSEYSEGDALDALGLRRYCCRRMLLAHVDLIEKLLNYHPLEK"

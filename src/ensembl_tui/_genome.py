@@ -371,6 +371,7 @@ class Genome:
         start: OptionalInt = None,
         stop: OptionalInt = None,
         limit: OptionalInt = None,
+        canonical: bool = True,
     ) -> typing.Iterable[Feature]:
         for ft in self.annotation_db.get_features_matching(
             biotype=biotype,
@@ -379,12 +380,15 @@ class Genome:
             start=start,
             stop=stop,
             limit=limit,
+            canonical=canonical,
         ):
             seqid = ft.seqid
             ft.spans = numpy.array(ft.spans)
             start = int(ft.spans.min())
             stop = int(ft.spans.max())
             ft.spans = ft.spans - start
+            # cogent3 only handles strand as a string
+            ft.strand = "-" if ft.strand == -1 else "+"
             seq = self.get_seq(
                 seqid=seqid,
                 start=start,
@@ -395,7 +399,7 @@ class Genome:
             seq.name = seqid
             yield seq.make_feature(ft)
 
-    def get_cds(
+    def _get_cds(
         self,
         *,
         stable_id: str,
@@ -466,9 +470,10 @@ def get_seqs_for_ids(
     # is it possible to do batch query for all names?
     for name in names:
         cds = list(
-            genome.get_cds(
-                stable_id=name,
-                biotype="protein_coding",
+            genome.get_features(
+                name=name,
+                biotype="cds",
+                canonical=True,
             ),
         )
         if not cds:

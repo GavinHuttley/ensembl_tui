@@ -112,9 +112,53 @@ def test_get_feature_by_description(genome_dir):
 
 def test_canonical_cds(genome_dir):
     g = eti_anno.GeneView(source=genome_dir)
-    gene = next(iter(g.get_features_matching(stable_id="WBGene00004893")))
-    cds = g.get_cds(gene=gene)
+    cds = next(
+        iter(
+            g.get_features_matching(
+                stable_id="WBGene00004893",
+                biotype="cds",
+                canonical=True,
+            ),
+        ),
+    )
     assert cds.stable_id == "F53H8.4.1"  # ID from ensembl.org
+    assert cds.spans.shape[1] == 2
+    assert cds.spans.shape[0] > 1
+
+
+@pytest.mark.parametrize("biotype", ["mrna", "transcript"])
+def test_canonical_transcript(genome_dir, biotype):
+    g = eti_anno.GeneView(source=genome_dir)
+    feature = next(
+        iter(g.get_features_matching(stable_id="WBGene00004893", biotype=biotype)),
+    )
+    assert feature.stable_id == "F53H8.4.1"  # ID from ensembl.org
+    assert feature.spans.shape[1] == 2
+    assert feature.spans.shape[0] > 1
+
+
+def test_canonical_transcript_cds_differ(genome_dir):
+    g = eti_anno.GeneView(source=genome_dir)
+    cds = next(
+        iter(g.get_features_matching(stable_id="WBGene00004893", biotype="cds")),
+    )
+    mrna = next(
+        iter(g.get_features_matching(stable_id="WBGene00004893", biotype="mrna")),
+    )
+    assert (cds.spans != mrna.spans).any()
+
+
+@pytest.mark.parametrize("biotype", ["mrna", "cds"])
+def test_get_features_matching_not_canonical(genome_dir, biotype):
+    g = eti_anno.GeneView(source=genome_dir)
+    features = list(
+        g.get_features_matching(
+            stable_id="WBGene00004893",
+            biotype=biotype,
+            canonical=False,
+        ),
+    )
+    assert features
 
 
 def test_featuredb(genome_dir):
