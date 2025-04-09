@@ -593,7 +593,7 @@ def homologs(
                 colour="yellow",
             )
 
-        get_seqs = eti_homology.collect_seqs(config=config)
+        get_seqs = eti_homology.collect_cds(config=config)
         out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
 
         reading = progress.add_task(total=len(related), description="Extracting  🧬")

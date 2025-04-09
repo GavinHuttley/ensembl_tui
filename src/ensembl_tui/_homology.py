@@ -184,7 +184,7 @@ def load_homology_db(
 
 
 @define_app
-class collect_seqs:
+class collect_cds:
     """given a config and homolog group, loads genome instances on demand
     and extracts sequences"""
 
