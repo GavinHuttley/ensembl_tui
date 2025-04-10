@@ -163,6 +163,7 @@ def test_species_summary(installed):
 def test_dump_genes(installed):
     species = "caenorhabditis_elegans"
     outdir = installed.parent
+    limit = 10
     args = [
         f"-i{installed}",
         "--species",
@@ -170,7 +171,7 @@ def test_dump_genes(installed):
         "--outdir",
         str(outdir),
         "--limit",
-        "10",
+        f"{limit}",
     ]
     r = RUNNER.invoke(
         eti_cli.dump_genes,
@@ -181,7 +182,10 @@ def test_dump_genes(installed):
     tsv_path = next(iter(outdir.glob("*.tsv")))
     assert tsv_path.name.startswith(species)
     table = cogent3.load_table(tsv_path)
-    assert table.shape[0] == 10
+    assert table.shape[0] == limit
+    gene_biotype = str(table.columns["biotype"][0])
+    transcript_biotype = set(table.columns["transcript_biotypes"][0].split(","))
+    assert gene_biotype in transcript_biotype
 
 
 @pytest.mark.slow

@@ -653,7 +653,46 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
             for record in self.get_features_matching()
         )
         header = ["stableid" if c == "name" else c for c in columns]
-        return cogent3.make_table(header=header, data=rows)
+        table = cogent3.make_table(header=header, data=rows)
+        # get the numbers of transcripts per gene
+        sql = """SELECT ga.stable_id, COUNT(DISTINCT ta.transcript_id) AS distinct_transcript_count
+                 FROM transcript_attr ta
+                 JOIN gene_attr ga ON ta.gene_id = ga.gene_id
+                 GROUP BY ga.stable_id
+                 """
+        transcript_counts = dict(self.conn.sql(sql).fetchall())
+        table = table.with_new_column(
+            "num_transcripts",
+            lambda x: transcript_counts.get(x, 0),
+            columns="stableid",
+        )
+        # get the transcript biotypes
+        sql = """SELECT ga.stable_id, STRING_AGG(DISTINCT ta.transcript_biotype, ',') AS transcript_biotypes
+                 FROM transcript_attr ta
+                 JOIN gene_attr ga ON ta.gene_id = ga.gene_id
+                 GROUP BY ga.stable_id
+                 """
+        transcript_biotypes = dict(self.conn.sql(sql).fetchall())
+        table = table.with_new_column(
+            "transcript_biotypes",
+            lambda x: transcript_biotypes.get(x, ""),
+            columns="stableid",
+        )
+        columns = (
+            "species",
+            "seqid",
+            "seqid",
+            "source",
+            "biotype",
+            "transcript_biotypes",
+            "num_transcripts",
+            "start",
+            "stop",
+            "strand",
+            "symbol",
+            "description",
+        )
+        return table.get_columns(columns=columns)
 
 
 @dataclasses.dataclass

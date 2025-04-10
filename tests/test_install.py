@@ -33,6 +33,7 @@ EXON_VIEW_SCHEMA = (
     "cds_stable_id TEXT",
     "phase TINYINT",
     "end_phase TINYINT",
+    "transcript_biotype TEXT",
 )
 
 EXON_VIEW_COLS = [c.split()[0] for c in EXON_VIEW_SCHEMA]
@@ -69,6 +70,7 @@ TRANSCRIPT_SCHEMA = (
     "transcript_id INTEGER",
     "gene_id INTEGER",
     "stable_id TEXT",
+    "biotype TEXT",
 )
 
 TRANSCRIPT_COLS = [c.split()[0] for c in TRANSCRIPT_SCHEMA]
@@ -341,7 +343,7 @@ def four_exons(empty_ev_tr):
     value_placeholder = "?, " * len(EXON_VIEW_COLS)
     conn.executemany(
         f"INSERT INTO exon_view VALUES ({value_placeholder})",
-        parameters=[[r[c] for c in EXON_VIEW_COLS] for r in exon_view_data],
+        parameters=[[r.get(c) for c in EXON_VIEW_COLS] for r in exon_view_data],
     )
     return conn
 
@@ -471,7 +473,7 @@ def two_exons_minus_strand(empty_ev_tr):
 
     conn.executemany(
         f"INSERT INTO exon_view VALUES ({value_placeholder})",
-        [[r[c] for c in EXON_VIEW_COLS] for r in exon_view_data],
+        [[r.get(c) for c in EXON_VIEW_COLS] for r in exon_view_data],
     )
     return conn
 
@@ -511,8 +513,8 @@ def test_no_cds_spans(four_exons):
     tr = next(iter(eti_tables.get_transcript_attr_records(four_exons)))
     assert tr.cds_spans is None
     record = tr.to_record(eti_tables.TRANSCRIPT_ATTR_COLS)
-    assert record[-3] is None
-    assert len(record) == 10
+    assert record[-4] is None
+    assert len(record) == 11
 
 
 def single_tables_db():
@@ -635,8 +637,8 @@ def mixed_data():
         {"transcript_id": 12, "gene_id": 43, "stable_id": "tr-02"},
     ]
     conn.executemany(
-        "INSERT INTO transcript VALUES (?, ?, ?)",
-        parameters=[[r[c] for c in TRANSCRIPT_COLS] for r in tr_data],
+        "INSERT INTO transcript VALUES (?, ?, ?, ?)",
+        parameters=[[r.get(c) for c in TRANSCRIPT_COLS] for r in tr_data],
     )
 
     tl_data = [

@@ -28,9 +28,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-data-v2-${{ hashFiles('tests/data/small-113.zip') }}
+          key: ${{ runner.os }}-data-v3-${{ hashFiles('tests/data/small-113.zip') }}
           restore-keys: |
-            ${{ runner.os }}-data-v2-
+            ${{ runner.os }}-data-v3-
 
       - name: Check cache status
         run: |
