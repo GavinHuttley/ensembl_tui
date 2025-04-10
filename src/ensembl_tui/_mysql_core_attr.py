@@ -20,6 +20,7 @@ TRANSCRIPT_ATTR_SCHEMA = (
     "transcript_spans BLOB",
     "cds_spans BLOB",
     "transcript_stable_id TEXT",
+    "transcript_biotype TEXT",
     "cds_stable_id TEXT",
 )
 TRANSCRIPT_ATTR_COLS = eti_util.make_column_constant(TRANSCRIPT_ATTR_SCHEMA)
@@ -220,6 +221,7 @@ class TranscriptAttrRecord:
     transcript_spans: numpy.ndarray
     cds_spans: numpy.ndarray | None
     transcript_stable_id: str
+    transcript_biotype: str
     cds_stable_id: str
 
     @property
@@ -246,6 +248,7 @@ class TranscriptAttrRecord:
             "transcript_spans": eti_storage.array_to_blob(self.transcript_spans),
             "cds_spans": cds_blob,
             "transcript_stable_id": self.transcript_stable_id,
+            "transcript_biotype": self.transcript_biotype,
             "cds_stable_id": self.cds_stable_id,
         }
         return tuple(mapping[c] for c in columns)
@@ -265,14 +268,17 @@ def get_transcript_attr_records(
     # we use SQL aggregate functions followed by numpy.fromstring to
     # greatly speedup extraction of all exon coords
     sql = """SELECT
-    transcript_id, gene_id, strand, seqid, transcript_stable_id, cds_stable_id,
+    transcript_id, gene_id, strand, seqid,
+    transcript_stable_id, cds_stable_id,
+    transcript_biotype,
     STRING_AGG(CAST(start AS VARCHAR), ' ') AS agg_start,
     STRING_AGG(CAST(stop AS VARCHAR), ' ') AS agg_stop,
     STRING_AGG(CAST(rank AS VARCHAR), ' ') AS agg_rank,
     STRING_AGG(CAST(phase AS VARCHAR), ' ') AS agg_phase,
     STRING_AGG(CAST(end_phase AS VARCHAR), ' ') AS agg_end_phase
     FROM exon_view
-    GROUP BY transcript_id, gene_id, strand, seqid, transcript_stable_id, cds_stable_id
+    GROUP BY transcript_id, gene_id, strand, seqid,
+    transcript_stable_id, cds_stable_id, transcript_biotype
     """
     limit_exons = get_all_limit_exons(conn)
     for (
@@ -282,6 +288,7 @@ def get_transcript_attr_records(
         seqid,
         transcript_stable_id,
         cds_stable_id,
+        transcript_biotype,
         agg_start,
         agg_stop,
         agg_rank,
@@ -316,6 +323,7 @@ def get_transcript_attr_records(
                 cds_spans=None,
                 transcript_stable_id=transcript_stable_id,
                 cds_stable_id=cds_stable_id,
+                transcript_biotype=transcript_biotype,
             )
             continue
 
@@ -341,6 +349,7 @@ def get_transcript_attr_records(
                 cds_spans=cds_spans,
                 transcript_stable_id=transcript_stable_id,
                 cds_stable_id=cds_stable_id,
+                transcript_biotype=transcript_biotype,
             )
             continue
 
@@ -383,6 +392,7 @@ def get_transcript_attr_records(
             cds_spans=cds_spans,
             transcript_stable_id=transcript_stable_id,
             cds_stable_id=cds_stable_id,
+            transcript_biotype=transcript_biotype,
         )
 
     return
@@ -403,6 +413,7 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
             et.rank AS rank,
             tr.gene_id as gene_id,
             tr.stable_id as transcript_stable_id,
+            tr.biotype as transcript_biotype,
             tl.stable_id as cds_stable_id,
         FROM exon ex
         JOIN seq_region sr ON ex.seq_region_id = sr.seq_region_id
