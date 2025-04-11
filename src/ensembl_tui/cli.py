@@ -790,5 +790,69 @@ def alignments(
     eti_util.print_colour(text="Done!", colour="green")
 
 
+def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_segment]:
+    """reads a tsv file containing genomic coordinates and converts each
+    line into a genome segment instance
+
+    Notes
+    ----------
+    the tsv file with the following structure:
+    species\tseqid\tstart\tstop\tstrand\n
+    """
+
+    from cogent3 import load_delimited
+
+    if not tsv_file.exists():
+        eti_util.print_colour(
+            text=f"ERROR: file {str(tsv_file)!r} does not exist",
+            colour="red",
+        )
+        sys.exit(1)
+
+    segments = []
+    try:
+        loaded = load_delimited(tsv_file, header=True, sep="\t")
+
+    except Exception as e:
+        eti_util.print_colour(
+            text=f"ERROR: failed to load file {str(tsv_file)!r}: {e}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    header = loaded[0]  # the first row is the header
+    segments = []
+    # iterate over the records
+    for row in loaded[1]:
+        # skip empty rows
+        if row:
+            record = {header[i]: value for i, value in enumerate(row)}
+            try:
+                species = record["species"]
+                seqid = record["seqid"]
+                start = int(record["start"])
+                stop = int(record["stop"])
+                strand = int(record["strand"])
+            except KeyError as e:
+                eti_util.print_colour(
+                    text=f"ERROR: missing key {e} in row {row}",
+                    colour="red",
+                )
+                sys.exit(1)
+
+            # create a genome segment instance
+            segment = eti_genome.genome_segment(
+                species=species,
+                start=start,
+                stop=stop,
+                strand=strand,
+                seqid=seqid,
+            )
+
+            segments.append(segment)
+
+    return segments
+
+
 if __name__ == "__main__":
     main()
