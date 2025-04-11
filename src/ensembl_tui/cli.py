@@ -807,7 +807,6 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         )
         sys.exit(1)
 
-    segments = []
     try:
         table = load_table(tsv_file, sep="\t")
 
@@ -820,9 +819,10 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
 
     species, seqid, start, stop, strand = "species", "seqid", "start", "stop", "strand"
     required_columns = {species, seqid, start, stop, strand}
-    if set(table.header) <= required_columns:
+    header = set(table.header)
+    if header < required_columns:
         eti_util.print_colour(
-            text=f"ERROR: missing required columns in header: {required_columns-table.header}",
+            text=f"ERROR: missing required columns in header: {required_columns-header}",
             colour="red",
         )
         sys.exit(1)
