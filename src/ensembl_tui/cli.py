@@ -7,7 +7,7 @@ from collections.abc import Mapping
 
 import click
 import trogon
-from cogent3 import get_app, open_data_store
+from cogent3 import get_app, load_table, open_data_store
 from scitrack import CachingLogger
 
 from ensembl_tui import __version__
@@ -800,8 +800,6 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
     species\tseqid\tstart\tstop\tstrand\n
     """
 
-    from cogent3 import load_delimited
-
     if not tsv_file.exists():
         eti_util.print_colour(
             text=f"ERROR: file {str(tsv_file)!r} does not exist",
@@ -811,7 +809,7 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
 
     segments = []
     try:
-        loaded = load_delimited(tsv_file, header=True, sep="\t")
+        table = load_table(tsv_file, sep="\t")
 
     except Exception as e:
         eti_util.print_colour(
@@ -820,37 +818,46 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         )
         sys.exit(1)
 
-    header = loaded[0]  # the first row is the header
-    required_columns = {"species", "seqid", "start", "stop", "strand"}
-    if not required_columns.issubset(header):
+    species, seqid, start, stop, strand = "species", "seqid", "start", "stop", "strand"
+    required_columns = {species, seqid, start, stop, strand}
+    if set(table.header) <= required_columns:
         eti_util.print_colour(
-            text="ERROR: missing required columns in header",
+            text=f"ERROR: missing required columns in header: {required_columns-table.header}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    if not table.to_list():
+        eti_util.print_colour(
+            text="ERROR: no data in file",
             colour="red",
         )
         sys.exit(1)
 
     segments = []
+    species, seqid, start, stop, strand = table.columns.values()
+
     # iterate over the records
-    for row in loaded[1]:
-        # skip empty rows
-        if row:
-            record = {header[i]: value for i, value in enumerate(row)}
-            try:
-                # create a genome segment instance
-                segment = eti_genome.genome_segment(
-                    species=record["species"],
-                    start=int(record["start"]),
-                    stop=int(record["stop"]),
-                    strand=int(record["strand"]),
-                    seqid=record["seqid"],
-                )
-            except ValueError as e:
-                eti_util.print_colour(
-                    text=f"ERROR: failed to create genome segment: {e}",
-                    colour="red",
-                )
-                sys.exit(1)
-            segments.append(segment)
+    for sp, seq, st, en, strand in zip(species, seqid, start, stop, strand):
+        try:
+            # create a genome segment instance
+            segment = eti_genome.genome_segment(
+                species=sp,
+                seqid=seq,
+                start=int(st),
+                stop=int(en),
+                strand=int(strand),
+            )
+        except ValueError as e:
+            eti_util.print_colour(
+                text=(
+                    f"ERROR: failed to create genome segment for record "
+                    f"(species={sp}, seqid={seq}, start={st}, stop={en}, strand={strand}): {e}"
+                ),
+                colour="red",
+            )
+            sys.exit(1)
+        segments.append(segment)
 
     return segments
 
