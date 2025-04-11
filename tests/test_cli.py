@@ -275,11 +275,11 @@ def test_genome_coords_from_tsv(tmp_dir):
     coords = eti_cli._genome_coords_from_tsv(species_tsv)
     assert len(coords) == 1
     got = coords[0]
-    assert got["species"] == "homo_sapiens"
-    assert got["seqid"] == "1"
-    assert got["start"] == 3000
-    assert got["stop"] == 4000
-    assert got["strand"] == 1
+    assert got.species == "homo_sapiens"
+    assert got.seqid == "1"
+    assert got.start == 3000
+    assert got.stop == 4000
+    assert got.strand == "1"
 
 
 def test_genome_coords_from_tsv_noheader(tmp_dir, capsys):

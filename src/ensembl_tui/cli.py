@@ -849,11 +849,11 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         try:
             # create a genome segment instance
             segment = eti_genome.genome_segment(
-                species=sp,
-                seqid=seq,
+                species=str(sp),
+                seqid=str(seq),
                 start=int(st),
                 stop=int(en),
-                strand=int(strand),
+                strand=str(strand),
             )
         except ValueError:
             eti_util.print_colour(
