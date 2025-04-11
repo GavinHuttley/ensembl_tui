@@ -821,6 +821,14 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         sys.exit(1)
 
     header = loaded[0]  # the first row is the header
+    required_columns = {"species", "seqid", "start", "stop", "strand"}
+    if not required_columns.issubset(header):
+        eti_util.print_colour(
+            text="ERROR: missing required columns in header",
+            colour="red",
+        )
+        sys.exit(1)
+
     segments = []
     # iterate over the records
     for row in loaded[1]:
@@ -828,27 +836,20 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         if row:
             record = {header[i]: value for i, value in enumerate(row)}
             try:
-                species = record["species"]
-                seqid = record["seqid"]
-                start = int(record["start"])
-                stop = int(record["stop"])
-                strand = int(record["strand"])
-            except KeyError as e:
+                # create a genome segment instance
+                segment = eti_genome.genome_segment(
+                    species=record["species"],
+                    start=int(record["start"]),
+                    stop=int(record["stop"]),
+                    strand=int(record["strand"]),
+                    seqid=record["seqid"],
+                )
+            except ValueError as e:
                 eti_util.print_colour(
-                    text=f"ERROR: missing key {e} in row {row}",
+                    text=f"ERROR: failed to create genome segment: {e}",
                     colour="red",
                 )
                 sys.exit(1)
-
-            # create a genome segment instance
-            segment = eti_genome.genome_segment(
-                species=species,
-                start=start,
-                stop=stop,
-                strand=strand,
-                seqid=seqid,
-            )
-
             segments.append(segment)
 
     return segments
