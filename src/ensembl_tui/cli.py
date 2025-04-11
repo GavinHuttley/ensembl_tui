@@ -810,9 +810,9 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
     try:
         table = load_table(tsv_file, sep="\t")
 
-    except Exception as e:
+    except Exception:
         eti_util.print_colour(
-            text=f"ERROR: failed to load file {str(tsv_file)!r}: {e}",
+            text=f"ERROR: failed to load file {str(tsv_file)!r}",
             colour="red",
         )
         sys.exit(1)
@@ -822,7 +822,7 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
     header = set(table.header)
     if header < required_columns:
         eti_util.print_colour(
-            text=f"ERROR: missing required columns in header: {required_columns-header}",
+            text=f"ERROR: missing required columns in header: {required_columns - header}",
             colour="red",
         )
         sys.exit(1)
@@ -838,7 +838,14 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
     species, seqid, start, stop, strand = table.columns.values()
 
     # iterate over the records
-    for sp, seq, st, en, strand in zip(species, seqid, start, stop, strand):
+    for sp, seq, st, en, strand in zip(
+        species,
+        seqid,
+        start,
+        stop,
+        strand,
+        strict=False,
+    ):
         try:
             # create a genome segment instance
             segment = eti_genome.genome_segment(
@@ -848,11 +855,11 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
                 stop=int(en),
                 strand=int(strand),
             )
-        except ValueError as e:
+        except ValueError:
             eti_util.print_colour(
                 text=(
                     f"ERROR: failed to create genome segment for record "
-                    f"(species={sp}, seqid={seq}, start={st}, stop={en}, strand={strand}): {e}"
+                    f"(species={sp}, seqid={seq}, start={st}, stop={en}, strand={strand})"
                 ),
                 colour="red",
             )
