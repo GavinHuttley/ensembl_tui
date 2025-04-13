@@ -7,7 +7,7 @@ from collections.abc import Mapping
 
 import click
 import trogon
-from cogent3 import get_app, open_data_store
+from cogent3 import get_app, load_table, open_data_store
 from scitrack import CachingLogger
 
 from ensembl_tui import __version__
@@ -788,6 +788,61 @@ def alignments(
                 writer(aln, identifier=identifier)
 
     eti_util.print_colour(text="Done!", colour="green")
+
+
+def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_segment]:
+    """reads a tsv file containing genomic coordinates and converts each
+    line into a genome segment instance
+
+    Notes
+    -----
+    A tsv file with the following column headings
+    species seqid start stop strand
+    """
+
+    if not tsv_file.exists():
+        eti_util.print_colour(
+            text=f"ERROR: file {str(tsv_file)!r} does not exist",
+            colour="red",
+        )
+        sys.exit(1)
+
+    try:
+        table = load_table(tsv_file, sep="\t")
+
+    except Exception:
+        eti_util.print_colour(
+            text=f"ERROR: failed to load file {str(tsv_file)!r}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    columns = "species", "seqid", "start", "stop", "strand"
+    required_columns = set(columns)
+    header = set(table.header)
+    if header < required_columns:
+        eti_util.print_colour(
+            text=f"ERROR: missing required columns in header: {required_columns - header}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    if not table.shape[0]:
+        eti_util.print_colour(
+            text="ERROR: no data in file",
+            colour="red",
+        )
+        sys.exit(1)
+
+    segments = [eti_genome.genome_segment(
+                species=str(sp),
+                seqid=str(seqid),
+                start=int(start),
+                stop=int(stop),
+                strand=str(strand)
+            ) for sp, seqid, start, stop, strand in table.to_list(columns=columns)]
+
+    return segments
 
 
 if __name__ == "__main__":

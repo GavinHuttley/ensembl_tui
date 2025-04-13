@@ -266,3 +266,41 @@ def test_compara_folder_not_created(tmp_config_no_compara):
     )
     assert r.exit_code == 0, r.output
     assert not (tmp_config_no_compara / "compara").exists()
+
+
+def test_genome_coords_from_tsv(tmp_dir):
+    species_tsv = tmp_dir / "genome_coords.tsv"
+    with open(species_tsv, "w") as f:
+        f.write("species\tseqid\tstart\tstop\tstrand\nhomo_sapiens\t1\t3000\t4000\t1\n")
+    coords = eti_cli._genome_coords_from_tsv(species_tsv)
+    assert len(coords) == 1
+    got = coords[0]
+    assert got.species == "homo_sapiens"
+    assert got.seqid == "1"
+    assert got.start == 3000
+    assert got.stop == 4000
+    assert got.strand == "1"
+
+
+def test_genome_coords_from_tsv_noheader(tmp_dir, capsys):
+    invalid = tmp_dir / "invalid.tsv"
+    with open(invalid, "w") as f:
+        f.write("homo_sapiens\t1\t3000\t4000\t1\n")
+    with pytest.raises(SystemExit) as excinfo:
+        eti_cli._genome_coords_from_tsv(invalid)
+
+    captured = capsys.readouterr()
+    assert "ERROR: failed to load file" in captured.out
+    assert excinfo.value.code == 1
+
+
+def test_genome_coords_from_tsv_lackedentry(tmp_dir, capsys):
+    invalid = tmp_dir / "invalid.tsv"
+    with open(invalid, "w") as f:
+        f.write("species\tseqid\tstart\tstop\tstrand\nhomo_sapiens\t1\t3000\t\t1\n")
+    with pytest.raises(SystemExit) as excinfo:
+        eti_cli._genome_coords_from_tsv(invalid)
+
+    captured = capsys.readouterr()
+    assert "ERROR: failed to create genome segment" in captured.out
+    assert excinfo.value.code == 1
