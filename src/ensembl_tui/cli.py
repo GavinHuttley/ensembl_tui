@@ -115,7 +115,7 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
     header = set(table.header)
     if header < required_columns:
         eti_util.print_colour(
-            text=f"ERROR: missing required columns in header: {required_columns - header}",
+            text=f"ERROR: genome coord tsv missing required columns {required_columns - header}",
             colour="red",
         )
         sys.exit(1)
