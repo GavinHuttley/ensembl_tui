@@ -294,7 +294,7 @@ def test_genome_coords_from_tsv_noheader(tmp_dir, capsys):
     assert excinfo.value.code == 1
 
 
-def test_genome_coords_from_tsv_lackedentry(tmp_dir, capsys):
+def test_genome_coords_from_tsv_missing_value(tmp_dir, capsys):
     invalid = tmp_dir / "invalid.tsv"
     with open(invalid, "w") as f:
         f.write("species\tseqid\tstart\tstop\tstrand\nhomo_sapiens\t1\t3000\t\t1\n")
@@ -302,5 +302,5 @@ def test_genome_coords_from_tsv_lackedentry(tmp_dir, capsys):
         eti_cli._genome_coords_from_tsv(invalid)
 
     captured = capsys.readouterr()
-    assert "ERROR: failed to create genome segment" in captured.out
+    assert "ERROR: all values of 'stop' must be integers" in captured.out
     assert excinfo.value.code == 1
