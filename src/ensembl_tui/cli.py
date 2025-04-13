@@ -84,6 +84,69 @@ def _species_names_from_csv(
     return db_names
 
 
+def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_segment]:
+    """reads a tsv file containing genomic coordinates and converts each
+    line into a genome segment instance
+
+    Notes
+    -----
+    A tsv file with the following column headings
+    species seqid start stop strand
+    """
+
+    if not tsv_file.exists():
+        eti_util.print_colour(
+            text=f"ERROR: file {str(tsv_file)!r} does not exist",
+            colour="red",
+        )
+        sys.exit(1)
+
+    try:
+        table = load_table(tsv_file, sep="\t")
+    except Exception as e:  # noqa: BLE001
+        eti_util.print_colour(
+            text=f"ERROR: failed to load file {str(tsv_file)!r}\n{e}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    columns = "species", "seqid", "start", "stop", "strand"
+    required_columns = set(columns)
+    header = set(table.header)
+    if header < required_columns:
+        eti_util.print_colour(
+            text=f"ERROR: missing required columns in header: {required_columns - header}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    if not table.shape[0]:
+        eti_util.print_colour(
+            text="ERROR: no data in file",
+            colour="red",
+        )
+        sys.exit(1)
+
+    for col in ["start", "stop"]:
+        if not table.columns[col].dtype.name.startswith("int"):
+            eti_util.print_colour(
+                text=f"ERROR: all values of {col!r} must be integers",
+                colour="red",
+            )
+            sys.exit(1)
+
+    return [
+        eti_genome.genome_segment(
+            species=str(sp),
+            seqid=str(seqid),
+            start=int(start),
+            stop=int(stop),
+            strand=str(strand),
+        )
+        for sp, seqid, start, stop, strand in table.to_list(columns=columns)
+    ]
+
+
 _csv_or_file_help = "(comma separated or a path to file of names, one per line)"
 
 _click_command_opts = {
@@ -788,64 +851,6 @@ def alignments(
                 writer(aln, identifier=identifier)
 
     eti_util.print_colour(text="Done!", colour="green")
-
-
-def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_segment]:
-    """reads a tsv file containing genomic coordinates and converts each
-    line into a genome segment instance
-
-    Notes
-    -----
-    A tsv file with the following column headings
-    species seqid start stop strand
-    """
-
-    if not tsv_file.exists():
-        eti_util.print_colour(
-            text=f"ERROR: file {str(tsv_file)!r} does not exist",
-            colour="red",
-        )
-        sys.exit(1)
-
-    try:
-        table = load_table(tsv_file, sep="\t")
-
-    except Exception:
-        eti_util.print_colour(
-            text=f"ERROR: failed to load file {str(tsv_file)!r}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    columns = "species", "seqid", "start", "stop", "strand"
-    required_columns = set(columns)
-    header = set(table.header)
-    if header < required_columns:
-        eti_util.print_colour(
-            text=f"ERROR: missing required columns in header: {required_columns - header}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    if not table.shape[0]:
-        eti_util.print_colour(
-            text="ERROR: no data in file",
-            colour="red",
-        )
-        sys.exit(1)
-
-    segments = [
-        eti_genome.genome_segment(
-            species=str(sp),
-            seqid=str(seqid),
-            start=int(start),
-            stop=int(stop),
-            strand=str(strand),
-        )
-        for sp, seqid, start, stop, strand in table.to_list(columns=columns)
-    ]
-
-    return segments
 
 
 if __name__ == "__main__":
