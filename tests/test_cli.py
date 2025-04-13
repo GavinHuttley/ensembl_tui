@@ -5,6 +5,7 @@ import cogent3
 import pytest
 from click.testing import CliRunner
 
+from ensembl_tui import _cli_option as cli_opt
 from ensembl_tui import _config as eti_config
 from ensembl_tui import cli as eti_cli
 
@@ -272,7 +273,7 @@ def test_genome_coords_from_tsv(tmp_dir):
     species_tsv = tmp_dir / "genome_coords.tsv"
     with open(species_tsv, "w") as f:
         f.write("species\tseqid\tstart\tstop\tstrand\nhomo_sapiens\t1\t3000\t4000\t1\n")
-    coords = eti_cli._genome_coords_from_tsv(species_tsv)
+    coords = cli_opt.genome_coords_from_tsv(species_tsv)
     assert len(coords) == 1
     got = coords[0]
     assert got.species == "homo_sapiens"
@@ -287,7 +288,7 @@ def test_genome_coords_from_tsv_noheader(tmp_dir, capsys):
     with open(invalid, "w") as f:
         f.write("homo_sapiens\t1\t3000\t4000\t1\n")
     with pytest.raises(SystemExit) as excinfo:
-        eti_cli._genome_coords_from_tsv(invalid)
+        cli_opt.genome_coords_from_tsv(invalid)
 
     captured = capsys.readouterr()
     assert "ERROR: failed to load file" in captured.out
@@ -299,7 +300,7 @@ def test_genome_coords_from_tsv_missing_value(tmp_dir, capsys):
     with open(invalid, "w") as f:
         f.write("species\tseqid\tstart\tstop\tstrand\nhomo_sapiens\t1\t3000\t\t1\n")
     with pytest.raises(SystemExit) as excinfo:
-        eti_cli._genome_coords_from_tsv(invalid)
+        cli_opt.genome_coords_from_tsv(invalid)
 
     captured = capsys.readouterr()
     assert "ERROR: all values of 'stop' must be integers" in captured.out
