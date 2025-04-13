@@ -834,13 +834,16 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         )
         sys.exit(1)
 
-    segments = [eti_genome.genome_segment(
-                species=str(sp),
-                seqid=str(seqid),
-                start=int(start),
-                stop=int(stop),
-                strand=str(strand)
-            ) for sp, seqid, start, stop, strand in table.to_list(columns=columns)]
+    segments = [
+        eti_genome.genome_segment(
+            species=str(sp),
+            seqid=str(seqid),
+            start=int(start),
+            stop=int(stop),
+            strand=str(strand),
+        )
+        for sp, seqid, start, stop, strand in table.to_list(columns=columns)
+    ]
 
     return segments
 
