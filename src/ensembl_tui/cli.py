@@ -795,9 +795,9 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
     line into a genome segment instance
 
     Notes
-    ----------
-    the tsv file with the following structure:
-    species\tseqid\tstart\tstop\tstrand\n
+    -----
+    A tsv file with the following column headings
+    species seqid start stop strand
     """
 
     if not tsv_file.exists():
@@ -817,8 +817,8 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         )
         sys.exit(1)
 
-    species, seqid, start, stop, strand = "species", "seqid", "start", "stop", "strand"
-    required_columns = {species, seqid, start, stop, strand}
+    columns = "species", "seqid", "start", "stop", "strand"
+    required_columns = set(columns)
     header = set(table.header)
     if header < required_columns:
         eti_util.print_colour(
@@ -827,44 +827,20 @@ def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_se
         )
         sys.exit(1)
 
-    if not table.to_list():
+    if not table.shape[0]:
         eti_util.print_colour(
             text="ERROR: no data in file",
             colour="red",
         )
         sys.exit(1)
 
-    segments = []
-    species, seqid, start, stop, strand = table.columns.values()
-
-    # iterate over the records
-    for sp, seq, st, en, strand in zip(
-        species,
-        seqid,
-        start,
-        stop,
-        strand,
-        strict=False,
-    ):
-        try:
-            # create a genome segment instance
-            segment = eti_genome.genome_segment(
+    segments = [eti_genome.genome_segment(
                 species=str(sp),
-                seqid=str(seq),
-                start=int(st),
-                stop=int(en),
-                strand=str(strand),
-            )
-        except ValueError:
-            eti_util.print_colour(
-                text=(
-                    f"ERROR: failed to create genome segment for record "
-                    f"(species={sp}, seqid={seq}, start={st}, stop={en}, strand={strand})"
-                ),
-                colour="red",
-            )
-            sys.exit(1)
-        segments.append(segment)
+                seqid=str(seqid),
+                start=int(start),
+                stop=int(stop),
+                strand=str(strand)
+            ) for sp, seqid, start, stop, strand in table.to_list(columns=columns)]
 
     return segments
 
