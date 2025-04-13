@@ -1,7 +1,6 @@
 import pathlib
 import shutil
 import sys
-import typing
 from collections import OrderedDict
 from collections.abc import Mapping
 
@@ -12,261 +11,16 @@ from scitrack import CachingLogger
 
 from ensembl_tui import __version__
 from ensembl_tui import _config as eti_config
-from ensembl_tui import _download as eti_download
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _homology as eti_homology
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
-
-if typing.TYPE_CHECKING:
-    from click.core import Context, Option
-
-
-def _values_from_csv_or_file(
-    ctx: "Context",  # noqa: ARG001
-    param: "Option",  # noqa: ARG001
-    value: str | None,
-) -> list[str] | None:
-    """extract values from command line or a file
-
-    Notes
-    -----
-    converts either comma separated values or a file with one value per line
-    into values
-    """
-    if not value:
-        return None
-
-    path = pathlib.Path(value)
-    if path.is_file():
-        return [l.strip() for l in path.read_text().splitlines()]
-
-    return [f.strip() for f in value.split(",")]
-
-
-def _get_installed_config_path(
-    ctx: "Context",  # noqa: ARG001
-    param: "Option",  # noqa: ARG001
-    path: pathlib.Path | str | None,
-) -> pathlib.Path:
-    """path to installed.cfg"""
-    path = pathlib.Path(path or ".")
-    if path.name == eti_config.INSTALLED_CONFIG_NAME:
-        return path
-
-    path = path / eti_config.INSTALLED_CONFIG_NAME
-    if not path.exists():
-        eti_util.print_colour(text=f"{path!s} missing", colour="red")
-        sys.exit(1)
-    return path
-
-
-def _species_names_from_csv(
-    ctx: "Context",
-    param: "Option",
-    species: str,
-) -> list[str] | None:
-    """returns species names"""
-    species_names = _values_from_csv_or_file(ctx, param, species)
-    if species_names is None:
-        return None
-
-    db_names = []
-    for name in species_names:
-        try:
-            db_name = eti_species.Species.get_ensembl_db_prefix(name)
-        except ValueError:
-            eti_util.print_colour(text=f"ERROR: unknown species {name!r}", colour="red")
-            sys.exit(1)
-
-        db_names.append(db_name)
-
-    return db_names
-
-
-def _genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_segment]:
-    """reads a tsv file containing genomic coordinates and converts each
-    line into a genome segment instance
-
-    Notes
-    -----
-    A tsv file with the following column headings
-    species seqid start stop strand
-    """
-
-    if not tsv_file.exists():
-        eti_util.print_colour(
-            text=f"ERROR: file {str(tsv_file)!r} does not exist",
-            colour="red",
-        )
-        sys.exit(1)
-
-    try:
-        table = load_table(tsv_file, sep="\t")
-    except Exception as e:  # noqa: BLE001
-        eti_util.print_colour(
-            text=f"ERROR: failed to load file {str(tsv_file)!r}\n{e}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    columns = "species", "seqid", "start", "stop", "strand"
-    required_columns = set(columns)
-    header = set(table.header)
-    if header < required_columns:
-        eti_util.print_colour(
-            text=f"ERROR: genome coord tsv missing required columns {required_columns - header}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    if not table.shape[0]:
-        eti_util.print_colour(
-            text="ERROR: no data in file",
-            colour="red",
-        )
-        sys.exit(1)
-
-    for col in ["start", "stop"]:
-        if not table.columns[col].dtype.name.startswith("int"):
-            eti_util.print_colour(
-                text=f"ERROR: all values of {col!r} must be integers",
-                colour="red",
-            )
-            sys.exit(1)
-
-    return [
-        eti_genome.genome_segment(
-            species=str(sp),
-            seqid=str(seqid),
-            start=int(start),
-            stop=int(stop),
-            strand=str(strand),
-        )
-        for sp, seqid, start, stop, strand in table.to_list(columns=columns)
-    ]
-
-
-_csv_or_file_help = "(comma separated or a path to file of names, one per line)"
+from src.ensembl_tui import _cli_option as cli_opt
 
 _click_command_opts = {
     "no_args_is_help": True,
     "context_settings": {"show_default": True},
 }
-
-# defining some of the options
-_cfgpath = click.option(
-    "-c",
-    "--configpath",
-    type=pathlib.Path,
-    help="Path to config file specifying databases, (only "
-    "species or compara at present).",
-)
-_download = click.option(
-    "-d",
-    "--download",
-    type=pathlib.Path,
-    help="Path to local download directory containing a cfg file.",
-)
-_installed = click.option(
-    "-i",
-    "--installed",
-    required=True,
-    callback=_get_installed_config_path,
-    help="Path to root directory of an installation.",
-)
-_outdir = click.option(
-    "-od",
-    "--outdir",
-    required=True,
-    type=pathlib.Path,
-    help="Path to write files",
-)
-_align_name = click.option(
-    "--align_name",
-    default=None,
-    required=True,
-    help="Ensembl alignment name or a glob pattern, e.g. '*primates*'.",
-)
-_ref = click.option("--ref", default=None, help="Reference species.")
-_ref_genes_file = click.option(
-    "--ref_genes_file",
-    default=None,
-    type=click.Path(resolve_path=True, exists=True),
-    help=".csv or .tsv file with a header containing a stableid column.",
-)
-_mask_ref = click.option(
-    "--mask_ref",
-    is_flag=True,
-    help="Masking uses features from ref species only.",
-)
-_limit = click.option(
-    "--limit",
-    type=int,
-    default=None,
-    help="Limit to this number of genes.",
-    show_default=True,
-)
-_verbose = click.option(
-    "-v",
-    "--verbose",
-    is_flag=True,
-)
-_force = click.option(
-    "-f",
-    "--force_overwrite",
-    is_flag=True,
-    help="Overwrite existing data.",
-)
-_debug = click.option(
-    "-d",
-    "--debug",
-    is_flag=True,
-    help="Maximum verbosity, and reduces number of downloads, etc...",
-)
-_dbrc_out = click.option(
-    "-o",
-    "--outpath",
-    type=pathlib.Path,
-    help="Path to directory to export all rc contents.",
-)
-_nprocs = click.option(
-    "-np",
-    "--num_procs",
-    type=int,
-    default=1,
-    help="Number of procs to use.",
-    show_default=True,
-)
-_outdir = click.option(
-    "--outdir",
-    type=pathlib.Path,
-    default=".",
-    help="Output directory name.",
-    show_default=True,
-)
-_species = click.option(
-    "--species",
-    required=True,
-    callback=_species_names_from_csv,
-    help="Single species name or multiple (comma separated).",
-)
-_mask = click.option(
-    "--mask",
-    callback=_values_from_csv_or_file,
-    help=f"mask the specified biotypes {_csv_or_file_help}.",
-)
-_mask_shadow = click.option(
-    "--mask_shadow",
-    callback=_values_from_csv_or_file,
-    help=f"mask everything but the specified biotypes {_csv_or_file_help}.",
-)
-_coord_names = click.option(
-    "--coord_names",
-    default=None,
-    callback=_values_from_csv_or_file,
-    help=f"list of ref species chrom/coord names {_csv_or_file_help}.",
-)
 
 
 class OrderedGroup(click.Group):
@@ -274,7 +28,7 @@ class OrderedGroup(click.Group):
         self,
         name: str | None = None,
         commands: Mapping[str, click.Command] | None = None,
-        **kwargs,
+        **kwargs,  # noqa: ANN003
     ) -> None:
         super().__init__(name, commands, **kwargs)
         #: the registered subcommands by their exported names.
@@ -292,7 +46,7 @@ def main() -> None:
 
 
 @main.command(**_click_command_opts)
-@_dbrc_out
+@cli_opt.dbrc_out
 def exportrc(outpath: pathlib.Path) -> None:
     """exports sample config and species table to the nominated path"""
 
@@ -311,12 +65,14 @@ def exportrc(outpath: pathlib.Path) -> None:
 
 
 @main.command(**_click_command_opts)
-@_cfgpath
-@_debug
-@_verbose
+@cli_opt.cfgpath
+@cli_opt.debug
+@cli_opt.verbose
 def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
     """download data from Ensembl's ftp site"""
     from rich import progress
+
+    from ensembl_tui import _download as eti_download
 
     if not configpath:
         eti_util.print_colour(
@@ -366,10 +122,10 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
 
 
 @main.command(**_click_command_opts)
-@_download
-@_nprocs
-@_force
-@_verbose
+@cli_opt.download
+@cli_opt.nprocs
+@cli_opt.force
+@cli_opt.verbose
 def install(
     download: pathlib.Path,
     num_procs: int,
@@ -434,7 +190,7 @@ def install(
 
 
 @main.command(**_click_command_opts)
-@_installed
+@cli_opt.installed
 def installed(installed: pathlib.Path) -> None:
     """show what is installed"""
     from cogent3 import make_table
@@ -476,8 +232,8 @@ def installed(installed: pathlib.Path) -> None:
 
 
 @main.command(**_click_command_opts)
-@_installed
-@_species
+@cli_opt.installed
+@cli_opt.species
 def species_summary(installed: pathlib.Path, species: str) -> None:
     """genome summary data for a species"""
 
@@ -504,10 +260,10 @@ def species_summary(installed: pathlib.Path, species: str) -> None:
 
 
 @main.command(**_click_command_opts)
-@_installed
-@_species
-@_outdir
-@_limit
+@cli_opt.installed
+@cli_opt.species
+@cli_opt.outdir
+@cli_opt.limit
 def dump_genes(
     installed: pathlib.Path,
     species: str,
@@ -540,7 +296,7 @@ def dump_genes(
 
 
 @main.command(**_click_command_opts)
-@_installed
+@cli_opt.installed
 def compara_summary(installed: pathlib.Path) -> None:
     """summary data for compara"""
 
@@ -556,8 +312,8 @@ def compara_summary(installed: pathlib.Path) -> None:
 
 
 @main.command(**_click_command_opts)
-@_installed
-@_outdir
+@cli_opt.installed
+@cli_opt.outdir
 @click.option(
     "-ht",
     "--homology_type",
@@ -565,12 +321,12 @@ def compara_summary(installed: pathlib.Path) -> None:
     default="ortholog_one2one",
     help="type of homology",
 )
-@_ref
-@_coord_names
-@_nprocs
-@_limit
-@_force
-@_verbose
+@cli_opt.ref
+@cli_opt.coord_names
+@cli_opt.nprocs
+@cli_opt.limit
+@cli_opt.force
+@cli_opt.verbose
 def homologs(
     installed: pathlib.Path,
     outdir: pathlib.Path,
@@ -659,7 +415,7 @@ def homologs(
         get_seqs = eti_homology.collect_cds(config=config)
         out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
 
-        reading = progress.add_task(total=len(related), description="Extracting  🧬")
+        reading = progress.add_task(total=len(related), description="Extracting 🧬")
         for seqs in get_seqs.as_completed(
             related,
             parallel=num_procs > 1,
@@ -691,18 +447,18 @@ def homologs(
 
 
 @main.command(**_click_command_opts)
-@_installed
-@_outdir
-@_align_name
-@_ref
-@_coord_names
-@_ref_genes_file
-@_mask
-@_mask_shadow
-@_mask_ref
-@_limit
-@_force
-@_verbose
+@cli_opt.installed
+@cli_opt.outdir
+@cli_opt.align_name
+@cli_opt.ref
+@cli_opt.coord_names
+@cli_opt.ref_genes_file
+@cli_opt.mask
+@cli_opt.mask_shadow
+@cli_opt.mask_ref
+@cli_opt.limit
+@cli_opt.force
+@cli_opt.verbose
 def alignments(
     installed: pathlib.Path,
     outdir: pathlib.Path,
@@ -718,7 +474,6 @@ def alignments(
     verbose: bool,
 ) -> None:
     """export multiple alignments in fasta format for named genes"""
-    from cogent3 import load_table
     from rich import progress
 
     from ensembl_tui import _align as eti_align
