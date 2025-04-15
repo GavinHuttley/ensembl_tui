@@ -10,12 +10,12 @@ from cogent3 import get_app, load_table, open_data_store
 from scitrack import CachingLogger
 
 from ensembl_tui import __version__
+from ensembl_tui import _cli_option as cli_opt
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _homology as eti_homology
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
-from src.ensembl_tui import _cli_option as cli_opt
 
 _click_command_opts = {
     "no_args_is_help": True,
@@ -456,6 +456,7 @@ def homologs(
 @cli_opt.mask
 @cli_opt.mask_shadow
 @cli_opt.mask_ref
+@cli_opt.ref_coords
 @cli_opt.limit
 @cli_opt.force
 @cli_opt.verbose
@@ -469,6 +470,7 @@ def alignments(
     mask: pathlib.Path,
     mask_shadow: pathlib.Path,
     mask_ref: bool,
+    ref_coords: list[eti_genome.genome_segment],
     limit: int,
     force_overwrite: bool,
     verbose: bool,
@@ -537,6 +539,13 @@ def alignments(
         for sp in align_db.get_species_names()
     }
 
+    if ref_genes_file and ref_coords:
+        eti_util.print_colour(
+            text="ERROR: cannot specify both ref_genes_file and ref_coords",
+            colour="red",
+        )
+        sys.exit(1)
+
     # load the gene stable ID's
     if ref_genes_file:
         table = load_table(ref_genes_file)
@@ -559,12 +568,15 @@ def alignments(
     else:
         stableids = None
 
-    locations = eti_genome.get_gene_segments(
-        annot_db=genomes[ref_species].annotation_db,
-        species=ref_species,
-        limit=limit,
-        stableids=stableids,
-    )
+    if ref_coords:
+        locations = ref_coords
+    else:
+        locations = eti_genome.get_gene_segments(
+            annot_db=genomes[ref_species].annotation_db,
+            species=ref_species,
+            limit=limit,
+            stableids=stableids,
+        )
 
     mask = mask_shadow or mask
     shadow = bool(mask_shadow)
