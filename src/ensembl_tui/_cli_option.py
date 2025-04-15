@@ -73,7 +73,11 @@ def species_names_from_csv(
     return db_names
 
 
-def genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_segment]:
+def genome_coords_from_tsv(
+    ctx: "Context",  # noqa: ARG001
+    param: "Option",  # noqa: ARG001
+    tsv_file: pathlib.Path,
+) -> list[eti_genome.genome_segment]:
     """reads a tsv file containing genomic coordinates and converts each
     line into a genome segment instance
 
@@ -126,7 +130,7 @@ def genome_coords_from_tsv(tsv_file: pathlib.Path) -> list[eti_genome.genome_seg
 
     return [
         eti_genome.genome_segment(
-            species=str(sp),
+            species=str(eti_species.Species.get_ensembl_db_prefix(sp)),
             seqid=str(seqid),
             start=int(start),
             stop=int(stop),
@@ -197,7 +201,7 @@ ref = click.option("--ref", default=None, help="Reference species.")
 ref_genes_file = click.option(
     "--ref_genes_file",
     default=None,
-    type=click.Path(resolve_path=True, exists=True),
+    type=pathlib.Path,
     help=".csv or .tsv file with a header containing a stableid column.",
 )
 mask_ref = click.option(
