@@ -204,6 +204,13 @@ ref_genes_file = click.option(
     type=pathlib.Path,
     help=".csv or .tsv file with a header containing a stableid column.",
 )
+ref_coords = click.option(
+    "--ref_coords",
+    type=pathlib.Path,
+    default=None,
+    callback=genome_coords_from_tsv,
+    help="Path to tsv file with genomic coordinates in ref species.",
+)
 mask_ref = click.option(
     "--mask_ref",
     is_flag=True,
