@@ -452,7 +452,7 @@ def homologs(
 @cli_opt.align_name
 @cli_opt.ref
 @cli_opt.coord_names
-@cli_opt.ref_genes_file
+@cli_opt.ref_genes
 @cli_opt.mask
 @cli_opt.mask_shadow
 @cli_opt.mask_ref
@@ -466,7 +466,7 @@ def alignments(
     align_name: str,
     ref: str,
     coord_names: str,
-    ref_genes_file: pathlib.Path,
+    ref_genes: list[str] | None,
     mask: pathlib.Path,
     mask_shadow: pathlib.Path,
     mask_ref: bool,
@@ -539,23 +539,16 @@ def alignments(
         for sp in align_db.get_species_names()
     }
 
-    if ref_genes_file and ref_coords:
+    if ref_genes and ref_coords:
         eti_util.print_colour(
-            text="ERROR: cannot specify both ref_genes_file and ref_coords",
+            text="ERROR: cannot specify both ref_genes and ref_coords",
             colour="red",
         )
         sys.exit(1)
 
     # load the gene stable ID's
-    if ref_genes_file:
-        table = load_table(ref_genes_file)
-        if "stableid" not in table.columns:
-            eti_util.print_colour(
-                text=f"'stableid' column missing from {str(ref_genes_file)!r}",
-                colour="red",
-            )
-            sys.exit(1)
-        stableids = table.columns["stableid"]
+    if ref_genes:
+        stableids = ref_genes
     elif coord_names:
         genome = genomes[ref_species]
         stableids = list(
