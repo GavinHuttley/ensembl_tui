@@ -6,7 +6,7 @@ from collections.abc import Mapping
 
 import click
 import trogon
-from cogent3 import get_app, load_table, open_data_store
+from cogent3 import get_app, open_data_store
 from scitrack import CachingLogger
 
 from ensembl_tui import __version__
@@ -322,6 +322,7 @@ def compara_summary(installed: pathlib.Path) -> None:
     help="type of homology",
 )
 @cli_opt.ref
+@cli_opt.ref_genes
 @cli_opt.coord_names
 @cli_opt.nprocs
 @cli_opt.limit
@@ -332,6 +333,7 @@ def homologs(
     outdir: pathlib.Path,
     homology_type: str,
     ref: str,
+    ref_genes: list[str] | None,
     coord_names: str,
     num_procs: int,
     limit: int,
@@ -347,6 +349,13 @@ def homologs(
     if ref is None:
         eti_util.print_colour(
             text="ERROR: a reference species name is required, use --ref",
+            colour="red",
+        )
+        sys.exit(1)
+
+    if ref_genes and coord_names:
+        eti_util.print_colour(
+            text="ERROR: cannot specify both ref_genes and coord_names",
             colour="red",
         )
         sys.exit(1)
@@ -368,16 +377,17 @@ def homologs(
 
     # we don't use the limit argument for this query since we want the limit
     # to be the number of homology matches
-    gene_ids = list(
-        genome.get_ids_for_biotype(
-            biotype="protein_coding",
-            seqid=coord_names,
-        ),
-    )
+    if not ref_genes:
+        ref_genes = list(
+            genome.get_ids_for_biotype(
+                biotype="protein_coding",
+                seqid=coord_names,
+            ),
+        )
 
     if verbose:
         eti_util.print_colour(
-            text=f"Found {len(gene_ids):,} gene IDs for {ref!r}",
+            text=f"Found {len(ref_genes):,} gene IDs for {ref!r}",
             colour="yellow",
         )
 
@@ -393,10 +403,10 @@ def homologs(
         progress.TimeElapsedColumn(),
     ) as progress:
         searching = progress.add_task(
-            total=limit or len(gene_ids),
+            total=limit or len(ref_genes),
             description="Homolog search",
         )
-        for gid in gene_ids:
+        for gid in ref_genes:
             if rel := db.get_related_to(gene_id=gid, relationship_type=homology_type):
                 related.append(rel)
                 progress.update(searching, advance=1)
@@ -404,7 +414,7 @@ def homologs(
             if limit and len(related) >= limit:
                 break
 
-        progress.update(searching, advance=len(gene_ids))
+        progress.update(searching, advance=len(ref_genes))
 
         if verbose:
             eti_util.print_colour(
@@ -452,7 +462,7 @@ def homologs(
 @cli_opt.align_name
 @cli_opt.ref
 @cli_opt.coord_names
-@cli_opt.ref_genes_file
+@cli_opt.ref_genes
 @cli_opt.mask
 @cli_opt.mask_shadow
 @cli_opt.mask_ref
@@ -466,7 +476,7 @@ def alignments(
     align_name: str,
     ref: str,
     coord_names: str,
-    ref_genes_file: pathlib.Path,
+    ref_genes: list[str] | None,
     mask: pathlib.Path,
     mask_shadow: pathlib.Path,
     mask_ref: bool,
@@ -539,23 +549,16 @@ def alignments(
         for sp in align_db.get_species_names()
     }
 
-    if ref_genes_file and ref_coords:
+    if ref_genes and ref_coords:
         eti_util.print_colour(
-            text="ERROR: cannot specify both ref_genes_file and ref_coords",
+            text="ERROR: cannot specify both ref_genes and ref_coords",
             colour="red",
         )
         sys.exit(1)
 
     # load the gene stable ID's
-    if ref_genes_file:
-        table = load_table(ref_genes_file)
-        if "stableid" not in table.columns:
-            eti_util.print_colour(
-                text=f"'stableid' column missing from {str(ref_genes_file)!r}",
-                colour="red",
-            )
-            sys.exit(1)
-        stableids = table.columns["stableid"]
+    if ref_genes:
+        stableids = ref_genes
     elif coord_names:
         genome = genomes[ref_species]
         stableids = list(

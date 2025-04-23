@@ -11,6 +11,23 @@ from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
 
+def stableids_from_tsv(
+    ctx: "Context",
+    param: "Option",
+    tsv_file: pathlib.Path,
+) -> list[str] | None:
+    if not tsv_file:
+        return None
+    table = load_table(tsv_file)
+    if "stableid" not in table.columns:
+        eti_util.print_colour(
+            text=f"'stableid' column missing from {str(tsv_file)!r}",
+            colour="red",
+        )
+        sys.exit(1)
+    return table.columns["stableid"].to_list()
+
+
 def values_from_csv_or_file(
     ctx: "Context",  # noqa: ARG001
     param: "Option",  # noqa: ARG001
@@ -198,10 +215,11 @@ align_name = click.option(
     help="Ensembl alignment name or a glob pattern, e.g. '*primates*'.",
 )
 ref = click.option("--ref", default=None, help="Reference species.")
-ref_genes_file = click.option(
-    "--ref_genes_file",
+ref_genes = click.option(
+    "--ref_genes",
     default=None,
     type=pathlib.Path,
+    callback=stableids_from_tsv,
     help=".csv or .tsv file with a header containing a stableid column.",
 )
 ref_coords = click.option(
