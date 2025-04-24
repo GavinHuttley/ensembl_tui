@@ -93,7 +93,7 @@ def species_names_from_csv(
 def genome_coords_from_tsv(
     ctx: "Context",  # noqa: ARG001
     param: "Option",  # noqa: ARG001
-    tsv_file: pathlib.Path,
+    tsv_file: pathlib.Path | None,
 ) -> list[eti_genome.genome_segment]:
     """reads a tsv file containing genomic coordinates and converts each
     line into a genome segment instance
@@ -103,6 +103,8 @@ def genome_coords_from_tsv(
     A tsv file with the following column headings
     species seqid start stop strand
     """
+    if not tsv_file:
+        return None
 
     if not tsv_file.exists():
         eti_util.print_colour(
