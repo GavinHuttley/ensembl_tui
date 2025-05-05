@@ -16,7 +16,7 @@ import ensembl_tui._mysql_core_attr as core_tables
 from ensembl_tui import _storage_mixin as eti_storage
 
 if typing.TYPE_CHECKING:
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
 OptInt = int | None
 OptStr = str | None

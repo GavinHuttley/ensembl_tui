@@ -15,7 +15,7 @@ from ensembl_tui import _storage_mixin as eti_storage
 from ensembl_tui import _util as eti_util
 
 if typing.TYPE_CHECKING:
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
 HOMOLOGY_ATTR_SCHEMA = (
     "rowid INTEGER PRIMARY KEY DEFAULT nextval('rowid_seq')",

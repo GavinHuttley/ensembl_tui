@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import pytest
-from cogent3.util.table import Table
+from cogent3.core.table import Table
 
 from ensembl_tui._species import Species
 

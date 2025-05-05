@@ -20,9 +20,12 @@ import numba
 import numpy
 import typing_extensions
 from cogent3.app.composable import define_app
-from cogent3.util import table as c3_table
 from cogent3.util.parallel import as_completed
 from rich import text as rich_text
+
+if typing.TYPE_CHECKING:
+    from cogent3.core.table import Table
+
 
 PathType = str | pathlib.Path | os.PathLike
 
@@ -314,7 +317,7 @@ def get_signature_data(path: pathlib.Path) -> dict:
     return _sig_load_funcs[path.name](path)
 
 
-def rich_display(c3t: c3_table.Table, title_justify: str = "left") -> None:
+def rich_display(c3t: "Table", title_justify: str = "left") -> None:
     """converts a cogent3 Table to a Rich Table and displays it"""
     from rich.console import Console
     from rich.table import Table

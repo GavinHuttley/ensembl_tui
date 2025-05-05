@@ -29,7 +29,7 @@ def test_get_seq_feature_seq_correct_name(yeast):
 
 
 def test_get_gene_table_for_species(yeast_db):
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     # we do not check values here, only the Type and that we have > 0 records
     got = eti_genome.get_gene_table_for_species(annot_db=yeast_db)
@@ -38,7 +38,7 @@ def test_get_gene_table_for_species(yeast_db):
 
 
 def test_get_species_gene_summary(yeast_db):
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     got = eti_genome.get_species_gene_summary(annot_db=yeast_db)
     # we do not check values here, only the Type and that we have > 0 records
@@ -48,7 +48,7 @@ def test_get_species_gene_summary(yeast_db):
 
 
 def test_get_species_repeat_summary(yeast_db):
-    from cogent3.util.table import Table
+    from cogent3.core.table import Table
 
     got = eti_genome.get_species_repeat_summary(annot_db=yeast_db)
     # we do not check values here, only the Type and that we have > 0 records

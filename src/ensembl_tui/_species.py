@@ -2,9 +2,8 @@ import os
 import pathlib
 import typing
 
-from cogent3 import load_table
+from cogent3 import load_table, make_table
 from cogent3.core.tree import TreeNode
-from cogent3.util.table import Table
 
 from ensembl_tui import _util as eti_util
 
@@ -175,8 +174,8 @@ class SpeciesNameMap:
                 [k for k, v in self._stableid_species.items() if v == ensembl],
             )
             rows += [[species, common, stableids]]
-        return Table(
-            [
+        return make_table(
+            header=[
                 "Species name",
                 "Common name",
                 "Ensembl stableid Prefix",

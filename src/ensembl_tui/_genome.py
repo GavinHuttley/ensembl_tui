@@ -19,8 +19,8 @@ from cogent3.core.annotation_db import (
     OptionalStr,
 )
 from cogent3.core.new_sequence import Sequence
+from cogent3.core.table import Table
 from cogent3.parse.fasta import iter_fasta_records
-from cogent3.util.table import Table
 from numpy.typing import NDArray
 
 import ensembl_tui._annotation as eti_annots
