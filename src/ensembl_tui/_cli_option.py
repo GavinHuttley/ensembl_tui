@@ -25,7 +25,7 @@ def stableids_from_tsv(
             colour="red",
         )
         sys.exit(1)
-    return table.columns["stableid"].to_list()
+    return table.columns["stableid"].tolist()
 
 
 def values_from_csv_or_file(
