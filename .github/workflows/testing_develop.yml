@@ -28,9 +28,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-data-v3-${{ hashFiles('tests/data/small-113.zip') }}
+          key: ${{ runner.os }}-data-v4-${{ hashFiles('tests/data/small-114.zip') }}
           restore-keys: |
-            ${{ runner.os }}-data-v3-
+            ${{ runner.os }}-data-v4-
 
       - name: Check cache status
         run: |
@@ -39,12 +39,12 @@ jobs:
       - name: Download data file
         if: steps.cache-data.outputs.cache-hit != 'true'
         run: |
-          curl -L -o tests/data/small-113.zip "https://www.dropbox.com/scl/fi/pfmwzz96gusdeqi0a9wax/small-113.zip?rlkey=r60l1eq9jk6p440tkqslmqihi&st=ud49fits&dl=1"
+          curl -L -o tests/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
 
       - name: Unzip data file
         run: |
           cd tests/data
-          unzip -o -q small-113.zip
+          unzip -o -q small-114.zip
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
