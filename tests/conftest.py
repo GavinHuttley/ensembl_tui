@@ -16,7 +16,7 @@ def DATA_DIR():
 
 @pytest.fixture(scope="session")
 def ENSEMBL_RELEASE_VERSION() -> str:
-    return "113"
+    return "114"
 
 
 @pytest.fixture
@@ -50,8 +50,8 @@ def namer():
     return name_as_seqid
 
 
-TEST_DATA_URL = "https://www.dropbox.com/scl/fi/pfmwzz96gusdeqi0a9wax/small-113.zip?rlkey=r60l1eq9jk6p440tkqslmqihi&st=ud49fits&dl=1"
-SMALL_DATA_DIRNAME = "small-113"
+TEST_DATA_URL = "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
+SMALL_DATA_DIRNAME = "small-114"
 
 
 @pytest.fixture(scope="session")

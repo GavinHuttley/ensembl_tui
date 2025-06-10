@@ -24,6 +24,7 @@ EXON_VIEW_SCHEMA = (
     "transcript_id INTEGER",
     "exon_id INTEGER",
     "seqid TEXT",
+    "coord_system_name TEXT",
     "start INTEGER",
     "stop INTEGER",
     "strand TINYINT",
@@ -40,10 +41,19 @@ EXON_VIEW_COLS = [c.split()[0] for c in EXON_VIEW_SCHEMA]
 
 SEQ_REGION_SCHEMA = (
     "seq_region_id INTEGER",
+    "coord_system_id INTEGER",
     "name TEXT",
 )
 
 SEQ_REGION_COLS = [c.split()[0] for c in SEQ_REGION_SCHEMA]
+
+COORD_SYSTEM_SCHEMA = (
+    "coord_system_id INTEGER",
+    "name TEXT",
+    "rank INTEGER",
+)
+
+COORD_SYSTEM_COLS = [c.split()[0] for c in COORD_SYSTEM_SCHEMA]
 
 EXON_SCHEMA = (
     "exon_id INTEGER",
@@ -172,8 +182,9 @@ def test_install_features(yeast_db):
     # this is a check on expectations rather than execution
     source = yeast_db.source
     pqts = list(source.glob("*.parquet"))
-    # tables are seq_region, repeat, repeat_consensus, gene_attr, transcript_attr
-    assert len(pqts) == 5
+    # tables are coord_system, seq_region, repeat, repeat_consensus,
+    # gene_attr, transcript_attr
+    assert len(pqts) == 6
 
 
 # fail to import if directories or files are missing
@@ -287,6 +298,7 @@ def four_exons(empty_ev_tr):
             "transcript_id": 11,
             "exon_id": 1,
             "seqid": "2",
+            "coord_system_name": "chromosome",
             "start": 100,
             "stop": 200,
             "strand": 1,
@@ -301,6 +313,7 @@ def four_exons(empty_ev_tr):
             "transcript_id": 11,
             "exon_id": 2,
             "seqid": "2",
+            "coord_system_name": "chromosome",
             "start": 300,
             "stop": 400,
             "strand": 1,
@@ -315,6 +328,7 @@ def four_exons(empty_ev_tr):
             "transcript_id": 11,
             "exon_id": 3,
             "seqid": "2",
+            "coord_system_name": "chromosome",
             "start": 500,
             "stop": 600,
             "strand": 1,
@@ -329,6 +343,7 @@ def four_exons(empty_ev_tr):
             "transcript_id": 11,
             "exon_id": 4,
             "seqid": "2",
+            "coord_system_name": "chromosome",
             "start": 700,
             "stop": 800,
             "strand": 1,
@@ -514,12 +529,14 @@ def test_no_cds_spans(four_exons):
     assert tr.cds_spans is None
     record = tr.to_record(eti_tables.TRANSCRIPT_ATTR_COLS)
     assert record[-4] is None
-    assert len(record) == 11
+    assert len(record) == len(eti_tables.TRANSCRIPT_ATTR_COLS)
 
 
 def single_tables_db():
     conn = duckdb.connect()
     sql = f"CREATE TABLE seq_region ({', '.join(SEQ_REGION_SCHEMA)})"
+    conn.execute(sql)
+    sql = f"CREATE TABLE coord_system ({', '.join(COORD_SYSTEM_SCHEMA)})"
     conn.execute(sql)
     sql = f"CREATE TABLE exon ({', '.join(EXON_SCHEMA)})"
     conn.execute(sql)
@@ -536,10 +553,17 @@ def single_tables_db():
 def mixed_data():
     conn = single_tables_db()
     # seq_region: seq_region_id, name
-    sr_data = [{"seq_region_id": i, "name": str(i)} for i in range(1, 3)]
+    sr_data = [
+        {"seq_region_id": i, "name": str(i), "coord_system_id": 1} for i in range(1, 3)
+    ]
     conn.executemany(
-        "INSERT INTO seq_region VALUES (?, ?)",
+        "INSERT INTO seq_region VALUES (?, ?, ?)",
         parameters=[[r[c] for c in SEQ_REGION_COLS] for r in sr_data],
+    )
+    # coordinate system: coord_system_id, name, rank
+    conn.execute(
+        "INSERT INTO coord_system VALUES (?, ?, ?)",
+        (1, "chromosome", 1),
     )
     exon_data = [
         {

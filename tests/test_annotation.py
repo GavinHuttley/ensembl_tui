@@ -173,6 +173,7 @@ def test_convert_to_dict():
 
     raw = {
         "seqid": "I",
+        "coord_system_name": "chromosome",
         "start": 11701629,
         "stop": 11703698,
         "spans": numpy.array(

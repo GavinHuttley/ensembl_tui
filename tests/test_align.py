@@ -16,6 +16,7 @@ def make_gene_attr(records: list[dict]) -> eti_annots.GeneView:
         "stable_id TEXT",
         "biotype TEXT",
         "seqid TEXT",
+        "coord_system_name TEXT",
         "start INTEGER",
         "stop INTEGER",
         "strand TINYINT",
@@ -28,7 +29,7 @@ def make_gene_attr(records: list[dict]) -> eti_annots.GeneView:
     sql = f"""CREATE TABLE IF NOT EXISTS gene_attr ({",".join(schema)})"""
     conn = duckdb.connect(":memory:")
     conn.sql(sql)
-    sql = "INSERT INTO gene_attr VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    sql = "INSERT INTO gene_attr VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     rows = [[r.get(c) for c in columns] for r in records]
     conn.executemany(sql, parameters=rows)
     return eti_annots.GeneView(source=":memory:", db=conn)
@@ -40,6 +41,7 @@ def get_annotation_db() -> dict[str, eti_annots.Annotations]:
             [
                 {
                     "seqid": "s1",
+                    "coord_system_name": "chromosome",
                     "biotype": "protein_coding",
                     "stable_id": "not-on-s2",
                     "start": 4,
@@ -51,6 +53,7 @@ def get_annotation_db() -> dict[str, eti_annots.Annotations]:
             [
                 {
                     "seqid": "s2",
+                    "coord_system_name": "chromosome",
                     "biotype": "protein_coding",
                     "stable_id": "includes-s2-gap",
                     "start": 2,
@@ -62,6 +65,7 @@ def get_annotation_db() -> dict[str, eti_annots.Annotations]:
             [
                 {
                     "seqid": "s3",
+                    "coord_system_name": "chromosome",
                     "biotype": "protein_coding",
                     "stable_id": "includes-s3-gap",
                     "start": 22,

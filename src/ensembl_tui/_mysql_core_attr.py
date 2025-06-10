@@ -14,6 +14,7 @@ TRANSCRIPT_ATTR_SCHEMA = (
     "gene_id INTEGER",
     "transcript_id INTEGER",
     "seqid TEXT",
+    "coord_system_name TEXT",
     "start INTEGER",
     "stop INTEGER",
     "strand TINYINT",
@@ -28,6 +29,7 @@ GENE_ATTR_COLUMNS = (
     "stable_id",
     "biotype",
     "seqid",
+    "coord_system_name",
     "start",
     "stop",
     "strand",
@@ -75,7 +77,9 @@ def load_db(db_name: pathlib.Path, table_names: set[str]) -> duckdb.DuckDBPyConn
 
 location_attrs = {
     "location": "seq_region",
+    "coord_system": "coord_system",
 }
+
 gene_attrs = {
     "stableid": "gene",
     "symbol": "xref",
@@ -217,6 +221,7 @@ class TranscriptAttrRecord:
     transcript_id: int
     gene_id: int
     seqid: str
+    coord_system_name: str
     strand: int
     transcript_spans: numpy.ndarray
     cds_spans: numpy.ndarray | None
@@ -242,6 +247,7 @@ class TranscriptAttrRecord:
             "transcript_id": self.transcript_id,
             "gene_id": self.gene_id,
             "seqid": self.seqid,
+            "coord_system_name": self.coord_system_name,
             "start": int(self.start),
             "stop": int(self.stop),
             "strand": int(self.strand),
@@ -268,7 +274,7 @@ def get_transcript_attr_records(
     # we use SQL aggregate functions followed by numpy.fromstring to
     # greatly speedup extraction of all exon coords
     sql = """SELECT
-    transcript_id, gene_id, strand, seqid,
+    transcript_id, gene_id, strand, seqid, coord_system_name,
     transcript_stable_id, cds_stable_id,
     transcript_biotype,
     STRING_AGG(CAST(start AS VARCHAR), ' ') AS agg_start,
@@ -278,7 +284,7 @@ def get_transcript_attr_records(
     STRING_AGG(CAST(end_phase AS VARCHAR), ' ') AS agg_end_phase
     FROM exon_view
     GROUP BY transcript_id, gene_id, strand, seqid,
-    transcript_stable_id, cds_stable_id, transcript_biotype
+    coord_system_name, transcript_stable_id, cds_stable_id, transcript_biotype
     """
     limit_exons = get_all_limit_exons(conn)
     for (
@@ -286,6 +292,7 @@ def get_transcript_attr_records(
         gene_id,
         strand,
         seqid,
+        coord_system_name,
         transcript_stable_id,
         cds_stable_id,
         transcript_biotype,
@@ -316,6 +323,7 @@ def get_transcript_attr_records(
             # no translated exons
             yield TranscriptAttrRecord(
                 seqid=seqid,
+                coord_system_name=coord_system_name,
                 transcript_id=transcript_id,
                 gene_id=gene_id,
                 strand=strand,
@@ -342,6 +350,7 @@ def get_transcript_attr_records(
 
             yield TranscriptAttrRecord(
                 seqid=seqid,
+                coord_system_name=coord_system_name,
                 transcript_id=transcript_id,
                 gene_id=gene_id,
                 strand=strand,
@@ -385,6 +394,7 @@ def get_transcript_attr_records(
 
         yield TranscriptAttrRecord(
             seqid=seqid,
+            coord_system_name=coord_system_name,
             transcript_id=transcript_id,
             gene_id=gene_id,
             strand=strand,
@@ -405,6 +415,7 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
             et.transcript_id AS transcript_id,
             ex.exon_id AS exon_id,
             sr.name AS seqid,
+            cs.name AS coord_system_name,
             ex.seq_region_start AS start,
             ex.seq_region_end AS stop,
             ex.seq_region_strand AS strand,
@@ -417,6 +428,7 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
             tl.stable_id as cds_stable_id,
         FROM exon ex
         JOIN seq_region sr ON ex.seq_region_id = sr.seq_region_id
+        JOIN coord_system cs ON sr.coord_system_id = cs.coord_system_id
         JOIN exon_transcript et ON ex.exon_id = et.exon_id
         JOIN transcript tr ON et.transcript_id = tr.transcript_id
         LEFT JOIN translation tl ON tr.transcript_id = tl.transcript_id
@@ -439,13 +451,15 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
 
 def make_gene_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConnection:
     """creates a gene_attr 'table' from several other tables"""
+    # need to also add coord_system_name to the gene_attr table
     sql = """CREATE VIEW IF NOT EXISTS gene_attr AS
-        SELECT 
+        SELECT
             g.gene_id AS gene_id,
             g.stable_id AS stable_id,
             g.biotype AS biotype,
             g.canonical_transcript_id AS canonical_transcript_id,
             sr.name AS seqid,
+            cs.name AS coord_system_name,
             g.seq_region_start AS start,
             g.seq_region_end AS stop,
             g.seq_region_strand AS strand,
@@ -453,6 +467,7 @@ def make_gene_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConnection:
             g.description as description,
         FROM gene g
         JOIN seq_region sr ON g.seq_region_id = sr.seq_region_id
+        JOIN coord_system cs ON sr.coord_system_id = cs.coord_system_id
         LEFT JOIN xref x ON g.display_xref_id = x.xref_id
         """
     con.sql(sql)
