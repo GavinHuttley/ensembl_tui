@@ -308,7 +308,8 @@ def make_combined_tables(
     )
     preserve = (
         "seq_region",
-    )  # keep this one separate as we need to keep it for repeats
+        "coord_system",
+    )  # keep these one separate as we need them for repeats
     # checks these tables already exist in parquet format, fails otherwise
     conn = _make_db(config, db_name, transcribed_tables + preserve)
     _ = make_transcript_attr(con=conn)

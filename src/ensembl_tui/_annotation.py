@@ -46,6 +46,7 @@ class FeatureDataMixin:  # supports getitem as a dict on properties
 @dataclasses.dataclass(slots=True)
 class FeatureDataBase(FeatureDataMixin):
     seqid: str = dataclasses.field(kw_only=True)
+    coord_system_name: str = dataclasses.field(kw_only=True)
     start: int = dataclasses.field(kw_only=True)
     stop: int = dataclasses.field(kw_only=True)
     spans: numpy.ndarray[numpy.int32] = dataclasses.field(kw_only=True)
@@ -400,6 +401,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         columns = (
             "transcript_id",
             "seqid",
+            "coord_system_name",
             "start",
             "stop",
             "strand",
@@ -487,6 +489,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         columns = (
             "transcript_id",
             "seqid",
+            "coord_system_name",
             "start",
             "stop",
             "strand",
@@ -516,6 +519,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         columns = (
             "transcript_id",
             "seqid",
+            "coord_system_name",
             "start",
             "stop",
             "strand",
@@ -565,6 +569,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         columns = (
             "transcript_id",
             "seqid",
+            "coord_system_name",
             "start",
             "stop",
             "strand",
@@ -710,6 +715,7 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
                     SELECT 
                         rc.repeat_type AS repeat_type,
                         sr.name AS seqid,
+                        cs.name AS coord_system_name,
                         rc.repeat_class AS repeat_class,
                         rc.repeat_name AS repeat_name,
                         rf.seq_region_start AS start,
@@ -718,6 +724,7 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
                     FROM repeat_consensus rc
                     JOIN repeat_feature rf ON rc.repeat_consensus_id = rf.repeat_consensus_id
                     JOIN seq_region sr ON rf.seq_region_id = sr.seq_region_id
+                    JOIN coord_system cs ON sr.coord_system_id = cs.coord_system_id
                     """
             self._conn.sql(sql)
         return self._conn
@@ -752,7 +759,7 @@ class RepeatView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
             if k not in ("self", "kwargs", "limit", "local_vars", "name", "biotype")
             and v is not None
         }
-        core_cols = "seqid", "start", "stop", "strand"
+        core_cols = "seqid", "start", "stop", "strand", "coord_system_name"
         repeat_cols = "repeat_type", "repeat_class", "repeat_name"
         if kwargs := {k: v for k, v in local_vars.items() if v is not None}:
             like_conds = {k: v for k, v in kwargs.items() if k in repeat_cols}
