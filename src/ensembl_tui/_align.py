@@ -207,12 +207,12 @@ class AlignDb(eti_storage.DuckdbParquetBase):
 
 def get_alignment(
     align_db: AlignDb,
-    genomes: dict[str, eti_genome.Genome],
+    genomes: dict[str, c3_align.SequenceCollection],
     ref_species: str,
     seqid: str,
     ref_start: int | None = None,
     ref_end: int | None = None,
-    namer: typing.Callable | None = None,
+    namer: typing.Callable[[str, str, int, int], str] | None = None,
     mask_features: list[str] | None = None,
     shadow: bool = False,
     mask_ref: bool = False,
@@ -303,13 +303,17 @@ def get_alignment(
                 # if it's neg strand, the alignment start is the genome stop
                 seq_start = imap.parent_length - seq_end
 
-            s = genome.get_seq(
-                seqid=align_record.seqid,
-                start=genome_start + seq_start,
-                stop=genome_start + seq_start + seq_length,
-                namer=namer,
-                with_annotations=False,
-            )
+            start = genome_start + seq_start
+            stop = genome_start + seq_start + seq_length
+            s = genome.seqs[align_record.seqid][start:stop]
+
+            if namer:
+                name = namer(align_record.species, align_record.seqid, start, stop)
+            else:
+                name = f"{align_record.species}:{align_record.seqid}:{start}-{stop}"
+
+            s.name = name
+            s.replace_annotation_db(None)
             # we now trim the gaps for this sequence to the sub-alignment
             imap = imap[align_start:align_end]
 
@@ -366,7 +370,7 @@ class construct_alignment:  # noqa: N801
     def __init__(
         self,
         align_db: AlignDb,
-        genomes: dict[str, eti_genome.Genome],
+        genomes: dict[str, c3_align.SequenceCollection],
         mask_features: list[str] | None = None,
         shadow: bool = False,
         mask_ref: bool = False,

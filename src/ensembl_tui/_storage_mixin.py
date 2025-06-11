@@ -1,16 +1,11 @@
-import contextlib
 import dataclasses
 import functools
 import io
-import os
 import pathlib
 
 import duckdb
-import h5py
 import numpy
 import typing_extensions
-
-from ensembl_tui import _util as eti_util
 
 ReturnType = tuple[str, tuple]  # the sql statement and corresponding values
 
@@ -39,59 +34,6 @@ def blob_to_array(data: bytes) -> numpy.ndarray:
 @blob_to_array.register
 def _(data: numpy.ndarray) -> numpy.ndarray:
     return data
-
-
-# HDF5 base class
-@dataclasses.dataclass
-class Hdf5Mixin(eti_util.SerialisableMixin):
-    """HDF5 sequence data storage"""
-
-    _file: h5py.File | None = None
-    _is_open: bool = False
-    mode: str = "r"
-
-    def __getstate__(self) -> dict:
-        if set(self.mode) & {"w", "a"}:
-            raise NotImplementedError(f"pickling not supported for mode={self.mode!r}")
-        return self._init_vals.copy()  # type: ignore
-
-    def __setstate__(self, state: dict) -> None:
-        obj = self.__class__(**state)
-        self.__dict__.update(obj.__dict__)
-        # because we have a __del__ method, and self attributes point to
-        # attributes on obj, we need to modify obj state so that garbage
-        # collection does not screw up self
-        obj._is_open = False
-        obj._file = None
-
-    def __del__(self) -> None:
-        self.close()
-
-    def close(self) -> None:
-        """closes the hdf5 file"""
-        # during garbage collection at shutdown, the open function is
-        # not available
-        try:
-            open  # noqa: B018
-        except NameError:
-            return
-
-        # hdf5 dumps content to stdout if resource already closed, so
-        # we trap that here, and capture expected exceptions raised in the process
-        with (
-            open(os.devnull, "w") as devnull,
-            contextlib.redirect_stderr(devnull),
-            contextlib.redirect_stdout(devnull),
-        ):
-            with contextlib.suppress(ValueError, AttributeError):
-                if self._is_open and self._file:
-                    self._file.flush()
-
-            with contextlib.suppress(AttributeError):
-                if self._file:
-                    self._file.close()
-
-        self._is_open = False
 
 
 class ViewMixin:

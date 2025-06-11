@@ -1,5 +1,7 @@
 import pickle
 
+import cogent3
+import cogent3_h5seqs as c3h5
 import duckdb
 import numpy
 import pytest
@@ -155,7 +157,7 @@ def test_aligndb_records_skip_duplicated_block_ids(small_records):
     assert agg.sql(sql).fetchone()[0] == count
 
 
-# fixture to make synthetic GenomeSeqsDb and alignment db
+# fixture to make synthetic genome and alignment db
 # based on a given alignment
 @pytest.fixture
 def genomedbs_aligndb(small_records):
@@ -167,17 +169,19 @@ def genomedbs_aligndb(small_records):
     data = seqs.to_dict()
     genomes = {}
     for name, seq in data.items():
-        genome = eti_genome.SeqsDataHdf5(
-            source=f"{name}",
-            species=species[name],
-            mode="w",
+        genome = c3h5.make_unaligned(
+            "memory",
             in_memory=True,
+            mode="w",
+            alphabet=eti_genome.alphabet,
         )
-        genome.add_records(records=[(name, seq)])
-        genomes[species[name]] = eti_genome.Genome(
-            seqs=genome,
-            annots=None,
-            species=species[name],
+        genome.add_seqs(seqs={name: seq})
+        genomes[species[name]] = cogent3.make_unaligned_seqs(
+            genome,
+            annotation_db=None,
+            info={"species": species[name]},
+            new_type=True,
+            moltype="dna",
         )
 
     return genomes, align_db
@@ -226,17 +230,20 @@ def make_sample(two_aligns=False):
         if seq.name == "s2":
             seq = seq.rc()
             s2_genome = str(seq)
-        genome = eti_genome.SeqsDataHdf5(
-            source=f"{name}",
-            mode="w",
+        genome = c3h5.make_unaligned(
+            "memory",
             in_memory=True,
-            species=species[seq.name],
+            mode="w",
+            alphabet=eti_genome.alphabet,
         )
-        genome.add_records(records=[(name, str(seq))])
-        genomes[species[name]] = eti_genome.Genome(
-            seqs=genome,
-            annots=annot_dbs[name],
-            species=species[name],
+        genome.add_seqs(seqs={name: str(seq)})
+
+        genomes[species[name]] = cogent3.make_unaligned_seqs(
+            genome,
+            annotation_db=annot_dbs[name],
+            info={"species": species[name]},
+            new_type=True,
+            moltype="dna",
         )
 
     # define two alignment blocks that incorporate features
