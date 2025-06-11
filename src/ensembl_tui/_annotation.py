@@ -895,6 +895,24 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
         if self.repeats:
             self.repeats.close()
 
+    def get_ids_for_biotype(
+        self,
+        *,
+        biotype: str,
+        seqid: str | list[str] | None = None,
+        limit: int | None = None,
+    ) -> typing.Iterable[str]:
+        if self.genes is None:
+            msg = f"no gene data for {self.species}"
+            raise ValueError(msg)
+        seqids = [seqid] if isinstance(seqid, str | type(None)) else seqid
+        for seqid in seqids:
+            yield from self.genes.get_ids_for_biotype(
+                biotype=biotype,
+                seqid=seqid,
+                limit=limit,
+            )
+
 
 @dataclasses.dataclass(frozen=True)
 class species_seqid:

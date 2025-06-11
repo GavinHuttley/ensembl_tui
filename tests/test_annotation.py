@@ -268,3 +268,25 @@ def test_multi_species(multi_species_db):
     expect = dict(expect)
     expect["spans"] = expect["spans"].tolist()
     assert got == expect
+
+
+def test_get_ids_for_biotype2(yeast_db):
+    features = list(yeast_db.get_ids_for_biotype(biotype="rRNA", limit=10))
+    assert len(features) == 10
+
+
+def test_get_ids_for_biotype_seqid(yeast_db, yeast):
+    stable_ids = list(
+        yeast_db.get_ids_for_biotype(biotype="protein_coding", seqid="III"),
+    )
+    assert len(stable_ids) == 184  # from direct inspection of sql count distinct
+    stable_ids = list(
+        yeast_db.get_ids_for_biotype(biotype="protein_coding", seqid=["III", "XVI"]),
+    )
+    assert len(stable_ids) == 184 + 511  # from direct inspection of sql count distinct
+    # make sure the seqid match the input
+    seqids = {"III", "XVI"}
+    got = {
+        r.seqid for stable_id in stable_ids for r in yeast.get_features(name=stable_id)
+    }
+    assert got == seqids

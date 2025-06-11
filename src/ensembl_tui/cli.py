@@ -379,7 +379,7 @@ def homologs(
     # to be the number of homology matches
     if not ref_genes:
         ref_genes = list(
-            genome.get_ids_for_biotype(
+            genome.annotation_db.get_ids_for_biotype(
                 biotype="protein_coding",
                 seqid=coord_names,
             ),
@@ -562,7 +562,7 @@ def alignments(
     elif coord_names:
         genome = genomes[ref_species]
         stableids = list(
-            genome.get_ids_for_biotype(
+            genome.annotation_db.get_ids_for_biotype(
                 biotype="protein_coding",
                 seqid=coord_names,
                 limit=limit,
