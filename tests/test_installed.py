@@ -9,7 +9,7 @@ def test_load_genome(small_install_path):
     config = eti_config.read_installed_cfg(small_install_path)
     species = "caenorhabditis_elegans"
     genome = eti_genome.load_genome(config=config, species=species)
-    assert genome.species == species
+    assert genome.info.species == species
     # directly interrogate the gene view
     stable_id = "WBGene00004893"
     gene = list(

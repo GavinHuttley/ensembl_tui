@@ -1,5 +1,3 @@
-import pytest
-
 from ensembl_tui import _genome as eti_genome
 
 
@@ -13,7 +11,7 @@ def test_get_gene_segments_limit(yeast_db):
 
 
 def test_get_seq_feature_seq_correct(yeast):
-    seq = yeast.get_seq(seqid="III", start=309069, stop=310155)
+    seq = yeast.seqs["III"][309069:310155]
     raw_seq = str(seq)
     assert raw_seq.startswith("ATGCTTTACCCAGAAAAATTTCA")  # expected from ensembl.org
     assert raw_seq.endswith("ATAAGAAATTCCATAAATAG")
@@ -22,7 +20,7 @@ def test_get_seq_feature_seq_correct(yeast):
 def test_get_seq_feature_seq_correct_name(yeast):
     # need to modify cogent3 so it applies the feature name
     # to the new sequence
-    seq = yeast.get_seq(seqid="III", start=309069, stop=310155)
+    seq = yeast.seqs["III"][309069:310155]
     got = next(iter(seq.get_features()))
     feat_seq = got.get_slice()
     assert feat_seq.name == "YCR105W"
@@ -62,39 +60,14 @@ def test_genome_coord_names(yeast_db):
     assert counts.shape[0] == 17
 
 
-def test_empty_hdf5_genome_coord_names(yeast_seqs):
-    assert yeast_seqs.get_coord_names()
-    assert "III" in yeast_seqs.get_coord_names()
-
-
-def test_get_seq(yeast_seqs):
-    mt = yeast_seqs.get_seq_str(seqid="Mito")
+def test_get_seq(yeast):
+    mt = yeast.seqs["Mito"]
     assert len(mt) == 85779  # number for ensembl.org
 
 
-def test_pickling_round_trip(yeast_seqs):
-    import pickle  # nosec B403
-
-    ro = yeast_seqs
-    kwargs = {"seqid": "Mito", "start": 200, "stop": 220}
-    small_seq = yeast_seqs.get_seq_str(**kwargs)
-    # expected value from one run
-    assert small_seq == "AAAGATAAAAAAAATAATGT"
-
-    unpkl = pickle.loads(pickle.dumps(ro))  # nosec B301  # noqa: S301
-    got = unpkl.get_seq_str(**kwargs)
-    assert got == small_seq
-
-
-def test_species_setting(yeast_seqs):
+def test_species_setting(yeast):
     # note that species are converted into the Ensembl db prefix
-    assert yeast_seqs.species == "saccharomyces_cerevisiae"
-    with pytest.raises(ValueError):  # noqa: PT011
-        _ = eti_genome.SeqsDataHdf5(mode="r", source=yeast_seqs.source, species="cat")
-
-
-def test_hash_of_seqs_data(yeast_seqs):
-    assert hash(yeast_seqs) == id(yeast_seqs)
+    assert yeast.info.species == "saccharomyces_cerevisiae"
 
 
 def test_gene_description(worm_db):
@@ -178,26 +151,6 @@ def test_get_gene_segments_stableids(worm_db):
 def test_get_features(yeast):
     features = list(yeast.get_features(biotype="rRNA", limit=10))
     assert len(features) == 10
-
-
-def test_get_ids_for_biotype(yeast):
-    features = list(yeast.get_ids_for_biotype(biotype="rRNA", limit=10))
-    assert len(features) == 10
-
-
-def test_get_ids_for_biotype_seqid(yeast):
-    stable_ids = list(yeast.get_ids_for_biotype(biotype="protein_coding", seqid="III"))
-    assert len(stable_ids) == 184  # from direct inspection of sql count distinct
-    stable_ids = list(
-        yeast.get_ids_for_biotype(biotype="protein_coding", seqid=["III", "XVI"]),
-    )
-    assert len(stable_ids) == 184 + 511  # from direct inspection of sql count distinct
-    # make sure the seqid match the input
-    seqids = {"III", "XVI"}
-    got = {
-        r.seqid for stable_id in stable_ids for r in yeast.get_features(name=stable_id)
-    }
-    assert got == seqids
 
 
 def test_get_celegans_cds(worm):

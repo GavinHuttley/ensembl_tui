@@ -4,7 +4,6 @@ import shutil
 from collections.abc import Generator
 
 import duckdb
-import rich.progress as rich_progress
 from cogent3.app.composable import LOADER, define_app
 
 from ensembl_tui import _config as eti_config
@@ -32,7 +31,7 @@ def show_some_data(
     con: duckdb.DuckDBPyConnection,
     table_name: str,
     limit: int = 5,
-) -> None:
+) -> None:  # pragma: no cover
     # this is a useful function for debugging
     sql = f"SELECT * FROM {table_name} LIMIT {limit}"
     print(table_name, con.sql(sql), sep="\n")  # noqa: T201
@@ -334,75 +333,6 @@ def make_combined_tables(
             (config.install_genomes / db_name / f"{table_name}.parquet").unlink(
                 missing_ok=True,
             )
-
-
-def install_parquet_tables(
-    config: eti_config.Config,
-    progress: rich_progress.Progress | None = None,
-    make_combined: bool = True,
-) -> pathlib.Path:
-    """installs annotation data as parquet files
-
-    Parameters
-    ----------
-    config
-        a config instance from a downloaded.cfg file
-    progress
-        rich Progress instance
-    make_combined
-        makes the combined attr tables, for testing purposes only!
-
-    Returns
-    -------
-    The path to the installed genomes directory.
-    """
-    template_dir = config.staging_template_path
-    if not template_dir.exists():
-        msg = f"no mysql dump dir for {template_dir}"
-        raise FileNotFoundError(msg)
-
-    dump_root = config.staging_genomes
-    genome_root = config.install_genomes
-    genome_root.mkdir(parents=True, exist_ok=True)
-    table_names = [fn.stem for fn in template_dir.glob("*.duckdb")]
-    if progress is not None:
-        msg = "Installing features 📚"
-        num_genomes = len(config.species_dbs)
-        num_tables = len(table_names)
-        writing = progress.add_task(total=num_genomes * num_tables, description=msg)
-
-    for db_name in config.db_names:
-        dump_dir = dump_root / db_name / "mysql"
-        if not dump_dir.exists():
-            msg = f"no mysql dump dir for {db_name}"
-            raise FileNotFoundError(msg)
-
-        dest_dir = genome_root / db_name
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        for table_name in table_names:
-            dump_path = dump_dir / f"{table_name}.txt.gz"
-            if not dump_path.exists():
-                msg = f"no mysqldump file for {table_name}"
-                raise FileNotFoundError(msg)
-
-            write_parquet(
-                db_templates=template_dir,
-                dump_path=dump_path,
-                table_name=table_name,
-                dest_dir=dest_dir,
-                # the translation table has 2 columns that need the
-                # correction to 0-based, that coercion will be done in the
-                # merging tables function
-                fix_start=table_name != "translation",
-            )
-            if progress is not None:
-                progress.update(writing, advance=1)
-
-        # and now we construct the combined attr tables
-        if make_combined:
-            make_combined_tables(config=config, db_name=db_name, cleanup=True)
-
-    return genome_root
 
 
 @define_app(app_type=LOADER)

@@ -1,38 +1,27 @@
 import dataclasses
-import functools
 import pathlib
 import sys
 import typing
-import uuid
-from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import Any
 
 import cogent3
-import h5py
+import cogent3_h5seqs as c3h5
 import numpy
 from cogent3.app.composable import define_app
 from cogent3.core import new_alphabet
-from cogent3.core.annotation import Feature
-from cogent3.core.annotation_db import (
-    OptionalInt,
-    OptionalStr,
-)
 from cogent3.core.new_sequence import Sequence
 from cogent3.core.table import Table
 from cogent3.parse.fasta import iter_fasta_records
-from numpy.typing import NDArray
 
 import ensembl_tui._annotation as eti_annots
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _species as eti_species
-from ensembl_tui import _storage_mixin as eti_storage
 from ensembl_tui import _util as eti_util
 
-SEQ_STORE_NAME = "genome.seqs-hdf5_blosc2"
+SEQ_STORE_NAME = f"genome-seqs.{c3h5.UNALIGNED_SUFFIX}"
 
 DNA = cogent3.get_moltype("dna", new_type=True)
-alphabet = DNA.most_degen_alphabet()
+alphabet = DNA.most_degen_alphabet()  # type: ignore  # noqa: PGH003
 bytes_to_array = new_alphabet.bytes_to_array(
     chars=alphabet.as_bytes(),
     dtype=numpy.uint8,
@@ -57,13 +46,20 @@ class fasta_to_hdf5:  # noqa: N801
     def main(self, db_name: str) -> bool:
         src_dir = self.config.staging_genomes / db_name
         dest_dir = self.config.install_genomes / db_name
-
-        seq_store = SeqsDataHdf5(
-            source=dest_dir / SEQ_STORE_NAME,
-            species=eti_species.Species.get_species_name(db_name),
-            mode="w",
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        out_path = dest_dir / SEQ_STORE_NAME
+        # we directly use the cogent3_h5seqs library to create the
+        # unaligned hdf5 file. This library is valid storage for
+        # cogent3 collections
+        alpha = cogent3.get_moltype("dna", new_type=True).most_degen_alphabet()
+        seq_store = c3h5.make_unaligned(out_path, alphabet=alpha, mode="w")
+        seq_store.set_attr(
+            "species",
+            # we have to coerce the species name from a case insensitive string
+            # to a standard python string
+            str(eti_species.Species.get_species_name(db_name)),
+            force=True,
         )
-
         src_dir = src_dir / "fasta"
         for path in src_dir.glob("*.fa.gz"):
             for seqid, seq in iter_fasta_records(
@@ -71,200 +67,12 @@ class fasta_to_hdf5:  # noqa: N801
                 converter=bytes_to_array,
                 label_to_name=self.label_to_name,
             ):
-                seq_store.add_record(seq, seqid)
+                seq_store.add_seqs({seqid: seq}, force_unique_keys=False)
                 del seq
 
         seq_store.close()
 
         return True
-
-
-T = tuple[eti_util.PathType, list[tuple[str, str]]]
-
-
-class SeqsDataABC(ABC):
-    """interface for genome sequence storage"""
-
-    # the storage reference, e.g. path to file
-    source: eti_util.PathType
-    species: str
-    mode: str  # as per standard file opening modes, r, w, a
-    _is_open = False
-    _file: Any | None = None
-
-    @abstractmethod
-    def __hash__(self) -> int: ...
-
-    @abstractmethod
-    def add_record(self, seq: str, seqid: str) -> None: ...
-
-    @abstractmethod
-    def add_records(self, *, records: typing.Iterable[list[str, str]]) -> None: ...
-
-    @abstractmethod
-    def get_seq_str(
-        self,
-        *,
-        seqid: str,
-        start: int | None = None,
-        stop: int | None = None,
-    ) -> str: ...
-
-    @abstractmethod
-    def get_seq_arr(
-        self,
-        *,
-        seqid: str,
-        start: int | None = None,
-        stop: int | None = None,
-    ) -> NDArray[numpy.uint8]: ...
-
-    @abstractmethod
-    def get_coord_names(self) -> tuple[str]: ...
-
-    @abstractmethod
-    def close(self) -> None: ...
-
-
-@define_app
-class str2arr:  # noqa: N801
-    """convert string to array of uint8"""
-
-    def __init__(self, moltype: str = "dna", max_length: int | None = None) -> None:
-        mt = cogent3.get_moltype(moltype, new_type=True)
-        self.alphabet = mt.most_degen_alphabet()
-        self.max_length = max_length
-
-    def main(self, data: str) -> numpy.ndarray:
-        if self.max_length:
-            data = data[: self.max_length]
-
-        return self.alphabet.to_indices(data)
-
-
-@define_app
-class arr2str:  # noqa: N801
-    """convert array of uint8 to str"""
-
-    def __init__(self, moltype: str = "dna", max_length: int | None = None) -> None:
-        mt = cogent3.get_moltype(moltype, new_type=True)
-        self.alphabet = mt.most_degen_alphabet()
-        self.max_length = max_length
-
-    def main(self, data: numpy.ndarray) -> str:
-        if self.max_length:
-            data = data[: self.max_length]
-        return self.alphabet.from_indices(data)
-
-
-@dataclasses.dataclass
-class SeqsDataHdf5(eti_storage.Hdf5Mixin, SeqsDataABC):
-    """HDF5 sequence data storage"""
-
-    def __init__(
-        self,
-        source: eti_util.PathType,
-        species: str | None = None,
-        mode: str = "r",
-        in_memory: bool = False,
-    ) -> None:
-        # note that species are converted into the Ensembl db prefix
-        in_memory = in_memory or "memory" in str(source)
-        source = uuid.uuid4().hex if in_memory else source
-        self.source = pathlib.Path(source)
-
-        if not in_memory and mode == "r" and not self.source.exists():
-            msg = f"{self.source!s} not found"
-            raise OSError(msg)
-
-        species = (
-            eti_species.Species.get_ensembl_db_prefix(species) if species else None
-        )
-        self.mode = "w-" if mode == "w" else mode
-        h5_kwargs = (
-            {
-                "driver": "core",
-                "backing_store": False,
-            }
-            if in_memory
-            else {}
-        )
-        try:
-            self._file: h5py.File = h5py.File(source, mode=self.mode, **h5_kwargs)
-        except OSError:
-            print(source)
-            raise
-        self._str2arr = str2arr(moltype="dna")
-        self._arr2str = arr2str(moltype="dna")
-        self._is_open = True
-        if "r" not in self.mode and "species" not in self._file.attrs:
-            assert species
-            self._file.attrs["species"] = species
-
-        if (
-            species
-            and (file_species := self._file.attrs.get("species", None)) != species
-        ):
-            msg = f"{self.source.name!r} {file_species!r} != {species}"
-            raise ValueError(msg)
-        self.species = self._file.attrs["species"]
-
-    def __hash__(self) -> int:
-        return id(self)
-
-    @functools.singledispatchmethod
-    def add_record(self, seq: str, seqid: str) -> None:
-        seq = self._str2arr(seq)
-        self.add_record(seq, seqid)
-
-    @add_record.register
-    def _(self, seq: numpy.ndarray, seqid: str) -> None:
-        if seqid in self._file:
-            stored = self._file[seqid]
-            if (seq == stored).all():
-                # already seen this seq
-                return
-            # but it's different, which is a problem
-            num_diffs = (seq != stored).sum()
-            msg = f"{seqid!r} already present but with different seq {num_diffs=}"
-            raise ValueError(msg)
-
-        self._file.create_dataset(
-            name=seqid,
-            data=seq,
-            chunks=True,
-            **eti_util.HDF5_BLOSC2_KWARGS,
-        )
-
-    def add_records(self, *, records: typing.Iterable[list[str, str]]) -> None:
-        for seqid, seq in records:
-            self.add_record(seq, seqid)
-
-    def get_seq_str(
-        self,
-        *,
-        seqid: str,
-        start: int | None = None,
-        stop: int | None = None,
-    ) -> str:
-        return self._arr2str(self.get_seq_arr(seqid=seqid, start=start, stop=stop))
-
-    def get_seq_arr(
-        self,
-        *,
-        seqid: str,
-        start: int | None = None,
-        stop: int | None = None,
-    ) -> NDArray[numpy.uint8]:
-        if not self._is_open:
-            msg = f"{self.source.name!r} is closed"
-            raise OSError(msg)
-
-        return self._file[seqid][start:stop]
-
-    def get_coord_names(self) -> tuple[str]:
-        """names of chromosomes / contig"""
-        return tuple(self._file)
 
 
 @dataclasses.dataclass(slots=True)
@@ -288,175 +96,19 @@ class genome_segment:  # noqa: N801
         return self.unique_id
 
 
-# TODO: this wrapping class is required for memory efficiency because
-#  the cogent3 SequenceCollection class is not designed for large sequence
-#  collections, either large sequences or large numbers of sequences. The
-#  longer term solution is improving SequenceCollections,
-#  which is underway 🎉
-class Genome:
-    """class to be replaced by cogent3 sequence collection when that
-    has been modernised"""
-
-    def __init__(
-        self,
-        *,
-        species: str,
-        seqs: SeqsDataABC,
-        annots: eti_annots.Annotations,
-    ) -> None:
-        self.species = species
-        self._seqs = seqs
-        self.annotation_db = annots
-
-    @property
-    def seqs(self) -> SeqsDataABC:
-        return self._seqs
-
-    def get_seq(
-        self,
-        *,
-        seqid: str,
-        start: int | None = None,
-        stop: int | None = None,
-        namer: typing.Callable | None = None,
-        with_annotations: bool = True,
-    ) -> Sequence:
-        """returns annotated sequence
-
-        Parameters
-        ----------
-        seqid
-            name of chromosome etc..
-        start
-            starting position of slice in python coordinates, defaults
-            to 0
-        stop
-            ending position of slice in python coordinates, defaults
-            to length of coordinate
-        namer
-            callback for naming the sequence. Callback must take four
-            arguments: species, seqid,start, stop. Default is
-            species:seqid:start-stop.
-        with_annotations
-            assign annotation_db to seq
-
-        Notes
-        -----
-        Full annotations are bound to the instance.
-        """
-        seq = self._seqs.get_seq_arr(seqid=seqid, start=start, stop=stop)
-        if namer:
-            name = namer(self.species, seqid, start, stop)
-        else:
-            name = f"{self.species}:{seqid}:{start}-{stop}"
-        # we use seqid to make the sequence here because that identifies the
-        # parent seq identity, required for querying annotations
-        seq = cogent3.make_seq(
-            seq,
-            name=seqid,
-            moltype="dna",
-            annotation_offset=start or 0,
-            new_type=True,
-        )
-        seq.name = name
-        seq.annotation_db = self.annotation_db if with_annotations else None
-        return seq
-
-    def get_features(
-        self,
-        *,
-        biotype: OptionalStr = None,
-        seqid: OptionalStr = None,
-        name: OptionalStr = None,
-        start: OptionalInt = None,
-        stop: OptionalInt = None,
-        limit: OptionalInt = None,
-        canonical: bool = True,
-    ) -> typing.Iterable[Feature]:
-        for ft in self.annotation_db.get_features_matching(
-            biotype=biotype,
-            seqid=seqid,
-            stable_id=name,
-            start=start,
-            stop=stop,
-            limit=limit,
-            canonical=canonical,
-        ):
-            seqid = ft.seqid
-            ft.spans = numpy.array(ft.spans)
-            start = int(ft.spans.min())
-            stop = int(ft.spans.max())
-            ft.spans = ft.spans - start
-            # cogent3 only handles strand as a string
-            ft.strand = "-" if ft.strand == -1 else "+"
-            seq = self.get_seq(
-                seqid=seqid,
-                start=start,
-                stop=stop,
-                with_annotations=True,
-            )
-            # because self.get_seq() automatically names seqs differently
-            seq.name = seqid
-            yield seq.make_feature(ft)
-
-    def _get_cds(
-        self,
-        *,
-        stable_id: str,
-        biotype: str = "protein_coding",
-    ) -> typing.Iterable[Feature]:
-        gene = next(
-            iter(
-                self.annotation_db.get_features_matching(
-                    stable_id=stable_id,
-                    biotype=biotype,
-                ),
-            ),
-        )
-        cds = self.annotation_db.get_cds(gene=gene)
-        seq = self.get_seq(seqid=cds.seqid, start=cds.start, stop=cds.stop)
-        cds["spans"] = cds["spans"] - cds.start
-        data = dict(cds)
-        data.pop("xattr", None)
-        # cogent3 currently only handles character data for strand
-        data["strand"] = "-" if data.get("strand") == -1 else "+"
-
-        try:
-            yield seq.make_feature(feature=data)
-        except ValueError:
-            msg = f"invalid location data for {cds!r}"
-            raise ValueError(msg)
-
-    def get_ids_for_biotype(
-        self,
-        *,
-        biotype: str,
-        seqid: str | list[str] | None = None,
-        limit: OptionalInt = None,
-    ) -> typing.Iterable[str]:
-        genes = self.annotation_db.genes
-        if genes is None:
-            msg = f"no gene data for {self.species}"
-            raise ValueError(msg)
-        seqids = [seqid] if isinstance(seqid, str | type(None)) else seqid
-        for seqid in seqids:
-            yield from genes.get_ids_for_biotype(
-                biotype=biotype,
-                seqid=seqid,
-                limit=limit,
-            )
-
-    def close(self) -> None:
-        self._seqs.close()
-        self.annotation_db.close()
-
-
-def load_genome(*, config: eti_config.InstalledConfig, species: str) -> Genome:
-    """returns the Genome with bound seqs and features"""
+def load_genome(*, config: eti_config.InstalledConfig, species: str):
+    """returns the genome with annotations"""
     genome_path = config.installed_genome(species) / SEQ_STORE_NAME
-    seqs = SeqsDataHdf5(source=genome_path, species=species, mode="r")
+    storage = c3h5.load_seqs_data_unaligned(genome_path)
+    dna = cogent3.get_moltype("dna", new_type=True)
     ann = eti_annots.Annotations(source=config.installed_genome(species))
-    return Genome(species=species, seqs=seqs, annots=ann)
+    return cogent3.make_unaligned_seqs(
+        storage,
+        moltype=dna,
+        annotation_db=ann,
+        info={"species": species},
+        new_type=True,
+    )
 
 
 def get_seqs_for_ids(
@@ -468,9 +120,11 @@ def get_seqs_for_ids(
 ) -> typing.Iterable[Sequence]:
     genome = load_genome(config=config, species=species)
     # is it possible to do batch query for all names?
+    ann_db = genome.annotation_db
+
     for name in names:
         cds = list(
-            genome.get_features(
+            ann_db.get_features_matching(
                 name=name,
                 biotype="cds",
                 canonical=True,
@@ -479,7 +133,7 @@ def get_seqs_for_ids(
         if not cds:
             continue
 
-        feature = cds[0]
+        feature = genome.make_feature(feature=cds[0])
         seq = feature.get_slice()
         if callable(make_seq_name):
             seq.name = make_seq_name(feature)
@@ -492,7 +146,6 @@ def get_seqs_for_ids(
         seq.annotation_db = None
         yield seq
 
-    genome.close()
     del genome
 
 
