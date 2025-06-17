@@ -305,3 +305,29 @@ def test_genome_coords_from_tsv_missing_value(tmp_dir, capsys):
     captured = capsys.readouterr()
     assert "ERROR: all values of 'stop' must be integers" in captured.out
     assert excinfo.value.code == 1
+
+
+def test_alignment(apes_install_path, tmp_dir):
+    outdir = tmp_dir / "output"
+    args = [
+        f"-i{apes_install_path}",
+        "--outdir",
+        f"{outdir}",
+        "--align_name",
+        "*primate*",
+        "--ref",
+        "Human",
+        "--coord_names",
+        "22",
+        "--limit",
+        "2",
+    ]
+
+    r = RUNNER.invoke(
+        eti_cli.alignments,
+        args,
+        catch_exceptions=False,
+    )
+    assert r.exit_code == 0, r.output
+    dstore = cogent3.open_data_store(outdir, suffix="fa", mode="r")
+    assert len(dstore.completed)
