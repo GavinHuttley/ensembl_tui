@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up small cache
-        id: cache-data
+        id: cache-small-data
         uses: actions/cache@v3
         with:
           path: tests/data
@@ -42,7 +42,7 @@ jobs:
           curl -L -o tests/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
 
       - name: Set up apes cache
-        id: cache-data
+        id: cache-apes-data
         uses: actions/cache@v3
         with:
           path: tests/data
