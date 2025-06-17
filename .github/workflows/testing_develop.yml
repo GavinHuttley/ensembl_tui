@@ -23,28 +23,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up cache
-        id: cache-data
+      - name: Set up small cache
+        id: cache-small-data
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-data-v5-${{ hashFiles('tests/data/small-114.zip') }}
+          key: ${{ runner.os }}-small-v1-${{ hashFiles('tests/data/small-114.zip') }}
           restore-keys: |
-            ${{ runner.os }}-data-v5-
+            ${{ runner.os }}-small-v1-
 
       - name: Check cache status
         run: |
           echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
 
-      - name: Download data file
+      - name: Download small data file
         if: steps.cache-data.outputs.cache-hit != 'true'
         run: |
           curl -L -o tests/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
 
-      - name: Unzip data file
+      - name: Set up apes cache
+        id: cache-apes-data
+        uses: actions/cache@v3
+        with:
+          path: tests/data
+          key: ${{ runner.os }}-apes-v1-${{ hashFiles('tests/data/apes-114.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-apes-v1-
+
+      - name: Check cache status
+        run: |
+          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
+
+      - name: Download apes data file
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o tests/data/apes-114.zip "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+
+      - name: Unzip data files
         run: |
           cd tests/data
           unzip -o -q small-114.zip
+          unzip -o -q apes-114.zip
 
       - uses: "actions/setup-python@v5"
         with:

@@ -182,3 +182,21 @@ def tmp_config_no_compara(tmp_path_factory, small_download_path):
         parser.write(out)
 
     return dest
+
+
+TEST_APES_DATA_URL = "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+APES_DATA_DIRNAME = "apes-114"
+
+
+@pytest.fixture(scope="session")
+def apes_install_path(DATA_DIR):
+    import urllib
+    import zipfile
+
+    apes_data_path = DATA_DIR / APES_DATA_DIRNAME
+    if not apes_data_path.exists():
+        dest = DATA_DIR / f"{APES_DATA_DIRNAME}.zip"
+        urllib.request.urlretrieve(TEST_APES_DATA_URL, dest)
+        with zipfile.ZipFile(dest, "r") as zip_ref:
+            zip_ref.extractall(DATA_DIR)
+    return apes_data_path
