@@ -23,7 +23,7 @@ def test_download(tmp_config):
     assert r.exit_code == 0, r.output
     # make sure the download checkpoint file exists
     genome_dir = tmp_dir / "staging" / "genomes"
-    dirnames = [dn for dn in genome_dir.iterdir() if dn.is_dir()]
+    dirnames = [dn.name for dn in genome_dir.iterdir() if dn.is_dir()]
     assert "saccharomyces_cerevisiae" in dirnames
 
     # make sure file sizes > 0
