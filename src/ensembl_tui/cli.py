@@ -47,7 +47,7 @@ def main() -> None:
 
 @main.command(**_click_command_opts)
 @cli_opt.dbrc_out
-def exportrc(outpath: pathlib.Path) -> None:
+def demo_config(outpath: pathlib.Path) -> None:
     """exports sample config and species table to the nominated path"""
 
     outpath = outpath.expanduser()

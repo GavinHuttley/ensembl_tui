@@ -48,21 +48,21 @@ Some commands can be run in parallel but have moderate memory requirements. If y
 <details>
   <summary>Specifying what data you want to download and where to put it</summary>
 
-  We use a plain text file to indicate the Ensembl domain, release and types of genomic data to download. Start by using the `exportrc` subcommand.
+  We use a plain text file to indicate the Ensembl domain, release and types of genomic data to download. Start by using the `demo-config` subcommand.
 
   <!-- [[[cog
   import cog
   from ensembl_tui import cli
   from click.testing import CliRunner
   runner = CliRunner()
-  result = runner.invoke(cli.main, ["exportrc", "--help"])
+  result = runner.invoke(cli.main, ["demo-config", "--help"])
   help = result.output.replace("Usage: main", "Usage: eti")
   cog.out(
       "```\n{}\n```".format(help)
   )
   ]]] -->
   ```
-  Usage: eti exportrc [OPTIONS]
+  Usage: eti demo-config [OPTIONS]
 
     exports sample config and species table to the nominated path
 
@@ -74,7 +74,7 @@ Some commands can be run in parallel but have moderate memory requirements. If y
   <!-- [[[end]]] -->
 
   ```shell
-  $ eti exportrc -o ~/Desktop/Outbox/ensembl_download
+  $ eti demo-config -o ~/Desktop/Outbox/ensembl_download
   ```
   This command creates a `ensembl_download` download directory and writes two plain text files into it:
 
@@ -234,7 +234,7 @@ We provide a conventional command line interface for querying the data with subc
 
   Commands:
     tui              Open Textual TUI.
-    exportrc         exports sample config and species table to the nominated...
+    demo-config      exports sample config and species table to the nominated...
     download         download data from Ensembl's ftp site
     install          create the local representations of the data
     installed        show what is installed
