@@ -448,7 +448,7 @@ def homologs(
                 continue
 
             txt = seqs.to_fasta()
-            out_dstore.write(data=txt, unique_id=seqs.info.source)
+            out_dstore.write(data=txt, unique_id=seqs.source)
 
     log_file_path = pathlib.Path(LOGGER.log_file_path)
     LOGGER.shutdown()
