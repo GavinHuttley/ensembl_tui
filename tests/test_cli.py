@@ -1,4 +1,3 @@
-import os
 import shutil
 
 import cogent3
@@ -24,7 +23,7 @@ def test_download(tmp_config):
     assert r.exit_code == 0, r.output
     # make sure the download checkpoint file exists
     genome_dir = tmp_dir / "staging" / "genomes"
-    dirnames = [dn for dn in os.listdir(genome_dir) if (genome_dir / dn).is_dir()]
+    dirnames = [dn for dn in genome_dir.iterdir() if dn.is_dir()]
     assert "saccharomyces_cerevisiae" in dirnames
 
     # make sure file sizes > 0
@@ -41,12 +40,12 @@ def test_download_no_config():
     assert "No config" in r.output
 
 
-def test_exportrc(tmp_dir):
+def test_demo_config(tmp_dir):
     """demo_config works correctly"""
     outdir = tmp_dir / "exported"
     r = RUNNER.invoke(eti_cli.demo_config, [f"-o{outdir}"])
     assert r.exit_code == 0, r.output
-    fnames = os.listdir(outdir)
+    fnames = {f.name for f in outdir.iterdir()}
     assert "species.tsv" in fnames
     assert len(fnames) == 2
     shutil.rmtree(tmp_dir)
