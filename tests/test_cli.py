@@ -42,9 +42,9 @@ def test_download_no_config():
 
 
 def test_exportrc(tmp_dir):
-    """exportrc works correctly"""
+    """demo_config works correctly"""
     outdir = tmp_dir / "exported"
-    r = RUNNER.invoke(eti_cli.exportrc, [f"-o{outdir}"])
+    r = RUNNER.invoke(eti_cli.demo_config, [f"-o{outdir}"])
     assert r.exit_code == 0, r.output
     fnames = os.listdir(outdir)
     assert "species.tsv" in fnames
