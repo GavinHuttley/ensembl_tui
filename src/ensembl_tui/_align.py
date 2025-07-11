@@ -6,7 +6,7 @@ import cogent3
 import numpy
 import typing_extensions
 from cogent3.app.composable import define_app
-from cogent3.core import new_alignment as c3_align
+from cogent3.core import alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
 
 from ensembl_tui import _annotation as eti_ann
@@ -14,7 +14,7 @@ from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _storage_mixin as eti_storage
 from ensembl_tui import _util as eti_util
 
-DNA = cogent3.get_moltype("dna", new_type=True)
+DNA = cogent3.get_moltype("dna")
 
 _no_gaps = numpy.array([], dtype=_DEFAULT_GAP_DTYPE)
 

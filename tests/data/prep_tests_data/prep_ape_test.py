@@ -66,7 +66,7 @@ def drop_annotations(genome_dir: pathlib.Path, seqid: str = "22"):
 
 def drop_chrom(genome_dir: pathlib.Path, seqid: str = "22", check: bool = True):
     src = genome_dir / eti_genome.SEQ_STORE_NAME
-    seqs = cogent3.load_unaligned_seqs(src, moltype="dna", new_type=True)
+    seqs = cogent3.load_unaligned_seqs(src, moltype="dna")
     if check:
         print(f"{genome_dir.name=}  {seqs.names}")
         return

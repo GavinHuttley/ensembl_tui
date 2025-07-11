@@ -240,8 +240,7 @@ class collect_cds:
             )
 
         return make_unaligned_seqs(
-            data=seqs,
+            seqs,
             moltype="dna",
-            info={"source": homologs.source},
-            new_type=True,
+            source=homologs.source,
         )
