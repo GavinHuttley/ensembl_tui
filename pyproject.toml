@@ -20,9 +20,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10,<3.14"
 dependencies = ["blosc2",
         "click",
-        # following needs to be replaced by cogent3>=version when
-        # cogent3 annotation db API changes are released
-        "cogent3",
+        "cogent3>=2025.7.10a1",
         "cogent3-h5seqs",
         "duckdb",
         "numba",
@@ -67,26 +65,14 @@ test = [
     "pytest-xdist",
     "ruff==0.10.0",
     "nox"]
-doc  = ["click",
-        "sphinx",
-        "sphinx-autobuild",
-        "sphinx_book_theme",
-        "sphinx_design",
-        "sphinxcontrib-bibtex",
-        "ipykernel",
-        "ipython",
-        "ipywidgets",
-        "jupyter-sphinx",
-        "jupyter_client",
-        "jupyterlab",
-        "jupytext",
-        "kaleido",
-        "nbconvert>5.4",
-        "nbformat",
-        "nbsphinx",
-        "pillow",
-        "plotly",
-        ]
+doc  = [
+    "ensembl-tui",
+    "diverse_seq[extra]",
+    "mkdocs>=1.6.1",
+    "markdown-exec[ansi]>=1.10.0",
+    "mkdocs-jupyter>=0.25.1",
+    "markdown>=3.7",
+]
 dev = ["click",
        "cogapp",
        "flit",

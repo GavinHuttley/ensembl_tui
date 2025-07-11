@@ -51,8 +51,10 @@ def demo_config(outpath: pathlib.Path) -> None:
     """exports sample config and species table to the nominated path"""
 
     outpath = outpath.expanduser()
-
-    shutil.copytree(eti_util.ENSEMBLDBRC, outpath)
+    if outpath.exists():
+        shutil.rmtree(outpath)
+    outpath.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(eti_util.ENSEMBLDBRC, outpath, dirs_exist_ok=True)
     # we assume all files starting with alphabetical characters are valid
     for fn in pathlib.Path(outpath).glob("*"):
         if not fn.stem.isalpha():
@@ -112,11 +114,11 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
             progress.TaskProgressColumn(),
             progress.TimeRemainingColumn(),
             progress.TimeElapsedColumn(),
-        ) as progress,
+        ) as prog_bar,
     ):
-        eti_download.download_species(config, debug, verbose, progress=progress)
-        eti_download.download_homology(config, debug, verbose, progress=progress)
-        eti_download.download_aligns(config, debug, verbose, progress=progress)
+        eti_download.download_species(config, debug, verbose, progress=prog_bar)
+        eti_download.download_homology(config, debug, verbose, progress=prog_bar)
+        eti_download.download_aligns(config, debug, verbose, progress=prog_bar)
 
     eti_util.print_colour(text=f"Downloaded to {config.staging_path}", colour="green")
 
@@ -159,28 +161,28 @@ def install(
             progress.TaskProgressColumn(),
             progress.TimeRemainingColumn(),
             progress.TimeElapsedColumn(),
-        ) as progress,
+        ) as progress_bar,
     ):
         local_install_genomes(
             config,
             force_overwrite=force_overwrite,
             max_workers=num_procs,
             verbose=verbose,
-            progress=progress,
+            progress=progress_bar,
         )
         local_install_homology(
             config,
             force_overwrite=force_overwrite,
             max_workers=num_procs,
             verbose=verbose,
-            progress=progress,
+            progress=progress_bar,
         )
         local_install_alignments(
             config,
             force_overwrite=force_overwrite,
             max_workers=num_procs,
             verbose=verbose,
-            progress=progress,
+            progress=progress_bar,
         )
 
     eti_util.print_colour(
@@ -401,20 +403,20 @@ def homologs(
         progress.TaskProgressColumn(),
         progress.TimeRemainingColumn(),
         progress.TimeElapsedColumn(),
-    ) as progress:
-        searching = progress.add_task(
+    ) as progress_bar:
+        searching = progress_bar.add_task(
             total=limit or len(ref_genes),
             description="Homolog search",
         )
         for gid in ref_genes:
             if rel := db.get_related_to(gene_id=gid, relationship_type=homology_type):
                 related.append(rel)
-                progress.update(searching, advance=1)
+                progress_bar.update(searching, advance=1)
 
             if limit and len(related) >= limit:
                 break
 
-        progress.update(searching, advance=len(ref_genes))
+        progress_bar.update(searching, advance=len(ref_genes))
 
         if verbose:
             eti_util.print_colour(
@@ -425,14 +427,14 @@ def homologs(
         get_seqs = eti_homology.collect_cds(config=config)
         out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
 
-        reading = progress.add_task(total=len(related), description="Extracting 🧬")
+        reading = progress_bar.add_task(total=len(related), description="Extracting 🧬")
         for seqs in get_seqs.as_completed(
             related,
             parallel=num_procs > 1,
             show_progress=False,
             par_kw={"max_workers": num_procs},
         ):
-            progress.update(reading, advance=1)
+            progress_bar.update(reading, advance=1)
             if not seqs:
                 if verbose:
                     eti_util.print_colour(text=f"{seqs=}", colour="yellow")
@@ -477,8 +479,8 @@ def alignments(
     ref: str,
     coord_names: str,
     ref_genes: list[str] | None,
-    mask: pathlib.Path,
-    mask_shadow: pathlib.Path,
+    mask: list[str] | None,
+    mask_shadow: list[str] | None,
     mask_ref: bool,
     ref_coords: list[eti_genome.genome_segment],
     limit: int,
@@ -591,7 +593,7 @@ def alignments(
         mask_ref=mask_ref,
     )
     output = open_data_store(outdir, mode="w", suffix="fa")
-    writer = get_app("write_seqs", format="fasta", data_store=output)
+    writer = get_app("write_seqs", format_name="fasta", data_store=output)
     with (
         eti_util.keep_running(),
         progress.Progress(
@@ -600,14 +602,14 @@ def alignments(
             progress.TaskProgressColumn(),
             progress.TimeRemainingColumn(),
             progress.TimeElapsedColumn(),
-        ) as progress,
+        ) as progress_bar,
     ):
-        task = progress.add_task(
+        task = progress_bar.add_task(
             total=limit or len(locations),
             description="Getting alignment data",
         )
         for alignments in maker.as_completed(locations, show_progress=False):
-            progress.update(task, advance=1)
+            progress_bar.update(task, advance=1)
             if not alignments:
                 eti_util.print_colour(str(alignments), colour="red")
                 continue

@@ -11,7 +11,7 @@ def test_get_db_names(tmp_config):
     cfg = eti_config.read_config(tmp_config)
     db_names = eti_download.get_core_db_dirnames(cfg)
     assert db_names == {
-        "saccharomyces_cerevisiae": "pub/release-112/mysql/saccharomyces_cerevisiae_core_112_4",
+        "saccharomyces_cerevisiae": "pub/release-114/mysql/saccharomyces_cerevisiae_core_114_4",
     }
 
 

@@ -91,11 +91,9 @@ def small_seqs():
         "s3": "GCTGAAGTAGTGGAAGTTGCAAAT---GAA",
     }
     return make_aligned_seqs(
-        data=seqs,
+        seqs,
         moltype="dna",
-        array_align=False,
         info={"species": {"s1": "human", "s2": "mouse", "s3": "dog"}},
-        new_type=True,
     )
 
 
@@ -180,7 +178,6 @@ def genomedbs_aligndb(small_records):
             genome,
             annotation_db=None,
             info={"species": species[name]},
-            new_type=True,
             moltype="dna",
         )
 
@@ -242,7 +239,6 @@ def make_sample(two_aligns=False):
             genome,
             annotation_db=annot_dbs[name],
             info={"species": species[name]},
-            new_type=True,
             moltype="dna",
         )
 

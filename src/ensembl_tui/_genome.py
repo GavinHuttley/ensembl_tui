@@ -8,8 +8,8 @@ import cogent3
 import cogent3_h5seqs as c3h5
 import numpy
 from cogent3.app.composable import define_app
-from cogent3.core import new_alphabet
-from cogent3.core.new_sequence import Sequence
+from cogent3.core import alphabet as c3alpha
+from cogent3.core.sequence import Sequence
 from cogent3.core.table import Table
 from cogent3.parse.fasta import iter_fasta_records
 
@@ -20,9 +20,9 @@ from ensembl_tui import _util as eti_util
 
 SEQ_STORE_NAME = f"genome-seqs.{c3h5.UNALIGNED_SUFFIX}"
 
-DNA = cogent3.get_moltype("dna", new_type=True)
+DNA = cogent3.get_moltype("dna")
 alphabet = DNA.most_degen_alphabet()  # type: ignore  # noqa: PGH003
-bytes_to_array = new_alphabet.bytes_to_array(
+bytes_to_array = c3alpha.bytes_to_array(
     chars=alphabet.as_bytes(),
     dtype=numpy.uint8,
     delete=b" \n\r\t",
@@ -51,7 +51,7 @@ class fasta_to_hdf5:  # noqa: N801
         # we directly use the cogent3_h5seqs library to create the
         # unaligned hdf5 file. This library is valid storage for
         # cogent3 collections
-        alpha = cogent3.get_moltype("dna", new_type=True).most_degen_alphabet()
+        alpha = cogent3.get_moltype("dna").most_degen_alphabet()
         seq_store = c3h5.make_unaligned(out_path, alphabet=alpha, mode="w")
         seq_store.set_attr(
             "species",
@@ -100,14 +100,13 @@ def load_genome(*, config: eti_config.InstalledConfig, species: str):
     """returns the genome with annotations"""
     genome_path = config.installed_genome(species) / SEQ_STORE_NAME
     storage = c3h5.load_seqs_data_unaligned(genome_path)
-    dna = cogent3.get_moltype("dna", new_type=True)
+    dna = cogent3.get_moltype("dna")
     ann = eti_annots.Annotations(source=config.installed_genome(species))
     return cogent3.make_unaligned_seqs(
         storage,
         moltype=dna,
         annotation_db=ann,
         info={"species": species},
-        new_type=True,
     )
 
 
