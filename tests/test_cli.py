@@ -51,6 +51,15 @@ def test_demo_config(tmp_dir):
     shutil.rmtree(tmp_dir)
 
 
+def test_demo_config_exists(tmp_dir):
+    outdir = tmp_dir / "exported"
+    outdir.mkdir(parents=True, exist_ok=True)
+    r = RUNNER.invoke(eti_cli.demo_config, [f"-o{outdir}"])
+    assert r.exit_code == 1
+    r = RUNNER.invoke(eti_cli.demo_config, [f"-o{outdir}", "--force_overwrite"])
+    assert r.exit_code == 0
+
+
 @pytest.fixture(scope="module")
 def installed(tmp_downloaded):
     # tmp_downloaded is a temp copy of the download folder

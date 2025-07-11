@@ -47,10 +47,19 @@ def main() -> None:
 
 @main.command(**_click_command_opts)
 @cli_opt.dbrc_out
-def demo_config(outpath: pathlib.Path) -> None:
+@cli_opt.force
+def demo_config(outpath: pathlib.Path, force_overwrite: bool) -> None:
     """exports sample config and species table to the nominated path"""
 
     outpath = outpath.expanduser()
+    if outpath.exists() and not force_overwrite:
+        eti_util.print_colour(
+            text=f"{outpath} exists, use --force_overwrite to overwrite",
+            colour="blue",
+            style="bold",
+        )
+        sys.exit(1)
+
     if outpath.exists():
         shutil.rmtree(outpath)
     outpath.mkdir(parents=True, exist_ok=True)
