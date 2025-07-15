@@ -1,0 +1,87 @@
+name: Build Docs
+
+concurrency:
+  group: docs-build-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.readthedocs.yaml'
+      - 'mkdocs.yml'
+      - 'rtd_get_docs.py'
+
+permissions:
+  contents: read
+
+jobs:          
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+                - name: Set up small cache
+        id: cache-small-data
+        uses: actions/cache@v3
+        with:
+          path: docs/data
+          key: ${{ runner.os }}-small-v1-${{ hashFiles('docs/data/small-114.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-small-v1-
+
+      - name: Check cache status
+        run: |
+          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
+
+      - name: Download small data file
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o docs/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
+
+      - name: Set up apes cache
+        id: cache-apes-data
+        uses: actions/cache@v3
+        with:
+          path: docs/data
+          key: ${{ runner.os }}-apes-v1-${{ hashFiles('docs/data/apes-114.zip') }}
+          restore-keys: |
+            ${{ runner.os }}-apes-v1-
+
+      - name: Check cache status
+        run: |
+          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
+
+      - name: Download apes data file
+        if: steps.cache-data.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o docs/data/apes-114.zip "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install Docs Dependencies
+        run: |
+          uv venv venv -p python${{ matrix.python-version }}
+          uv pip install -p .[doc]
+
+      - name: Build Documentation
+        run: |
+          source venv/bin/activate
+          mkdocs build
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload Documentation Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ensembl_tui-docs-html
+          path: site
