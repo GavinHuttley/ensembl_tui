@@ -28,12 +28,22 @@ def get_github_token() -> str:
 
 
 def get_latest_run(workflow_filename: str, headers: dict) -> dict:
-    url = f"https://github.com/cogent3/ensembl_tui/actions/workflows/{workflow_filename}/runs"
+    url = f"https://api.github.com/repos/cogent3/ensembl_tui/actions/workflows/{workflow_filename}/runs"
 
     response = requests.get(url, headers=headers, timeout=10)
-    response.raise_for_status()
 
-    runs = response.json()["workflow_runs"]
+    # Check if we got a successful response before trying to parse JSON
+    if not response.ok:
+        msg = f"GitHub API request failed with status {response.status_code}: {response.text[:200]}"
+        raise RuntimeError(msg)
+
+    try:
+        data = response.json()
+    except requests.exceptions.JSONDecodeError as e:
+        msg = f"Failed to parse JSON response. Status: {response.status_code}, Content: {response.text[:200]}"
+        raise RuntimeError(msg) from e
+
+    runs = data.get("workflow_runs", [])
     if not runs:
         msg = f"No workflow runs found for: '{workflow_filename}'"
         raise ValueError(msg)
@@ -48,8 +58,16 @@ def wait_for_run_completion(run: dict, headers: dict) -> dict:
     waited = 0
     while waited < MAX_WAIT_TIME:
         response = requests.get(run_url, headers=headers, timeout=10)
-        response.raise_for_status()
-        run_status = response.json()
+
+        if not response.ok:
+            msg = f"GitHub API request failed with status {response.status_code}: {response.text[:200]}"
+            raise RuntimeError(msg)
+
+        try:
+            run_status = response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            msg = f"Failed to parse JSON response. Status: {response.status_code}, Content: {response.text[:200]}"
+            raise RuntimeError(msg) from e
 
         status = run_status["status"]
         if status == "completed":
@@ -72,9 +90,18 @@ def download_and_extract_artifact(run: dict, headers: dict) -> None:
     artifacts_url = run["artifacts_url"]
 
     response = requests.get(artifacts_url, headers=headers, timeout=10)
-    response.raise_for_status()
 
-    artifacts = response.json()["artifacts"]
+    if not response.ok:
+        msg = f"GitHub API request failed with status {response.status_code}: {response.text[:200]}"
+        raise RuntimeError(msg)
+
+    try:
+        artifacts_data = response.json()
+    except requests.exceptions.JSONDecodeError as e:
+        msg = f"Failed to parse JSON response. Status: {response.status_code}, Content: {response.text[:200]}"
+        raise RuntimeError(msg) from e
+
+    artifacts = artifacts_data.get("artifacts", [])
 
     artifact = next((a for a in artifacts if a["name"] == artifact_name), None)
     if artifact is None:
@@ -83,7 +110,10 @@ def download_and_extract_artifact(run: dict, headers: dict) -> None:
 
     download_url = artifact["archive_download_url"]
     response = requests.get(download_url, headers=headers, timeout=10)
-    response.raise_for_status()
+
+    if not response.ok:
+        msg = f"Artifact download failed with status {response.status_code}: {response.text[:200]}"
+        raise RuntimeError(msg)
 
     out = pathlib.Path(f"{artifact_name}.zip")
     out.write_bytes(response.content)
