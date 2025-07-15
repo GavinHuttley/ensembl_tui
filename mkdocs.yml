@@ -1,0 +1,54 @@
+site_name: ensembl-tui
+site_url: "https://github.com/cogent3/ensembl_tui"
+site_author: "Gavin Huttley"
+repo_url: "https://github.com/cogent3/ensembl_tui"
+repo_name: 'GitHub'
+
+theme:
+    name: material
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - python
+        - text
+        - bash
+    features:
+        - navigation.sections
+        - toc.follow
+        - toc.integrate
+
+plugins:
+    - mkdocs-jupyter:
+        allow_errors: false
+        remove_tag_config:
+            remove_input_tags:
+              - hide_code
+        include_requirejs: true
+        execute: true
+        ignore:
+            - "scripts/**"
+    - markdown-exec:
+        ansi: required
+
+hooks:
+    - docs/scripts/setup_data.py
+
+markdown_extensions:
+- pymdownx.superfences
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg
+- toc:
+    toc_depth: 3
+
+nav:
+    - Introduction: index.md
+    - Quick Start: quickstart.md
+    - Usage:
+        - config.md
+        - download.md
+        - install.md
+        - genome.md
+        - summary-compara.md
+        - sample-homologs.md
+        - sample-alignments.md
