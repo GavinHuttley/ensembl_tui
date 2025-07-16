@@ -522,24 +522,7 @@ def alignments(
         shutil.rmtree(outdir, ignore_errors=True)
 
     config = eti_config.read_installed_cfg(installed)
-    align_name = eti_util.strip_quotes(align_name)
-    align_path = config.path_to_alignment(align_name, eti_align.ALIGN_STORE_SUFFIX)
-    if align_path is None:
-        eti_util.print_colour(
-            text=f"{align_name!r} does not match any alignments under '{config.aligns_path}'",
-            colour="red",
-        )
-        available = "\n".join(
-            [
-                fn.stem
-                for fn in config.aligns_path.glob("*")
-                if not fn.name.startswith(".") and fn.is_dir()
-            ],
-        )
-        eti_util.print_colour(text=f"Available alignments:\n{available}", colour="red")
-        sys.exit(1)
-
-    align_db = eti_align.AlignDb(source=align_path)
+    align_db = eti_align.load_aligndb(config=config, align_name=align_name)
     ref_species = eti_species.Species.get_ensembl_db_prefix(ref)
     if ref_species not in align_db.get_species_names():
         eti_util.print_colour(
@@ -591,7 +574,6 @@ def alignments(
             limit=limit,
             stableids=stableids,
         )
-
     mask = mask_shadow or mask
     shadow = bool(mask_shadow)
     maker = eti_align.construct_alignment(

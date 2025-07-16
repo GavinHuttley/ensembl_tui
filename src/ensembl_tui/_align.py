@@ -1,4 +1,5 @@
 import dataclasses
+import sys
 import typing
 from collections import defaultdict
 
@@ -10,6 +11,7 @@ from cogent3.core import alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
 
 from ensembl_tui import _annotation as eti_ann
+from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _storage_mixin as eti_storage
 from ensembl_tui import _util as eti_util
@@ -400,3 +402,25 @@ class construct_alignment:  # noqa: N801
             results.append(aln)
 
         return results
+
+
+def load_aligndb(config: eti_config.InstalledConfig, align_name: str) -> AlignDb:
+    """returns an AlignDb instance for the given config"""
+    align_name = eti_util.strip_quotes(align_name)
+    align_path = config.path_to_alignment(align_name, ALIGN_STORE_SUFFIX)
+    if align_path is None:
+        eti_util.print_colour(
+            text=f"{align_name!r} does not match any alignments under '{config.aligns_path}'",
+            colour="red",
+        )
+        available = "\n".join(
+            [
+                fn.stem
+                for fn in config.aligns_path.glob("*")
+                if not fn.name.startswith(".") and fn.is_dir()
+            ],
+        )
+        eti_util.print_colour(text=f"Available alignments:\n{available}", colour="red")
+        sys.exit(1)
+
+    return AlignDb(source=align_path)
