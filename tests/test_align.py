@@ -561,3 +561,32 @@ def test_load_align_records():
     }
     got = eti_ingest_align.seq2gaps(maf_record)
     assert (got.gap_spans == numpy.array([[0, 1]], dtype=numpy.int32)).all()
+
+
+def test_aln_annotation_db_querying(apes_install_path):
+    config = eti_config.read_installed_cfg(apes_install_path)
+    align_db = eti_align.load_aligndb(config=config, align_name="primate")
+    genomes = {
+        sp: eti_genome.load_genome(config=config, species=sp)
+        for sp in align_db.get_species_names()
+    }
+    locus = eti_genome.genome_segment(
+        species="homo_sapiens",
+        seqid="22",
+        start=39504230,
+        stop=39504443,
+        strand=1,
+        unique_id="ENSG00000285025",
+    )
+    maker = eti_align.construct_alignment(
+        align_db=align_db,
+        genomes=genomes,
+        mask_features=None,
+        shadow=None,
+        mask_ref=None,
+    )
+    aln = maker(locus)[0]
+    features = list(
+        aln.get_features(seqid="homo_sapiens:22:39504230-39504443:1", biotype="cds"),
+    )
+    assert features

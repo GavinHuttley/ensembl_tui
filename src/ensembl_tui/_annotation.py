@@ -933,7 +933,7 @@ class MultispeciesAnnotations(AnnotationDbABC):
     def __len__(self) -> int:
         return sum(len(ann) for ann in self.species_annotations.values())
 
-    def get_features_matching(self, seqid: str, **kwargs):
+    def get_features_matching(self, *, seqid: str | None = None, **kwargs):
         if seqid not in self.name_map:
             return ()
         sp_sid = self.name_map[seqid]
