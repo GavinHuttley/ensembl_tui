@@ -4,38 +4,58 @@ import urllib.request
 import zipfile
 
 root_dir = pathlib.Path(__file__)
-while not (root_dir / "data").exists():
+while not (root_dir / "docs").exists():
     root_dir = root_dir.parent
 
-DATA_DIR = root_dir / "data"
+ROOT_DIR = root_dir / "docs"
 
-SMALL_DATA_URL = "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
-SMALL_DATA_DIRNAME = "small-114"
-
-APES_DATA_URL = "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
-APES_DATA_DIRNAME = "apes-114"
+DATA_URL = "https://www.dropbox.com/scl/fi/pr5y1r3abi8mam26rasg3/ensembl_tui_data.zip?rlkey=jvke75kupiugs47zjhisans38&dl=1"
 
 
-def setup_installed(url: str, dest: str) -> str:
-    zip_dest = DATA_DIR / f"{dest}.zip"
-    expected = DATA_DIR / dest
+def cleanup_data() -> None:
+    for dirname in (
+        "demo",
+        "apes-114",
+        "small-download",
+        "human_data",
+        "apes_homologs",
+        "apes_aligns",
+        "worm_yeast",
+        "worm",
+        "yeast",
+    ):
+        temp_dir = ROOT_DIR / dirname
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+def setup_installed(url: str, dest_zip: str, dest: str) -> str:
+    zip_dest = ROOT_DIR / dest_zip
+    unzipped_dest = ROOT_DIR / zip_dest.stem
+    expected = ROOT_DIR / dest
     if zip_dest.exists() and expected.exists():
+        # we will inflate zip archive each time
         shutil.rmtree(expected)
     elif not zip_dest.exists():
         urllib.request.urlretrieve(url, filename=zip_dest)  # noqa: S310
 
     with zipfile.ZipFile(zip_dest, "r") as zip_ref:
-        zip_ref.extractall(DATA_DIR)
+        zip_ref.extractall(ROOT_DIR)
 
+    unzipped_dest.rename(expected)
     return dest
 
 
 def on_pre_build(*args, **kwargs) -> None:
-    for url, dirname in [
-        (SMALL_DATA_URL, SMALL_DATA_DIRNAME),
-        (APES_DATA_URL, APES_DATA_DIRNAME),
-    ]:
-        setup_installed(url, dirname)
+    cleanup_data()
+    demo = ROOT_DIR / "demo"
+    shutil.rmtree(demo, ignore_errors=True)
+
+    setup_installed(DATA_URL, "ensembl_tui_data.zip", "data")
+
+
+def on_post_build(*args, **kwargs) -> None:
+    """Clean up temporary data files after build."""
+    cleanup_data()
 
 
 if __name__ == "__main__":
