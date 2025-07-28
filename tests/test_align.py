@@ -563,29 +563,37 @@ def test_load_align_records():
     assert (got.gap_spans == numpy.array([[0, 1]], dtype=numpy.int32)).all()
 
 
-def test_aln_annotation_db_querying(apes_install_path):
-    config = eti_config.read_installed_cfg(apes_install_path)
-    align_db = eti_align.load_aligndb(config=config, align_name="primate")
-    genomes = {
-        sp: eti_genome.load_genome(config=config, species=sp)
-        for sp in align_db.get_species_names()
-    }
+def test_aln_seq_matches_genome(apes, apes_aligndb):
+    genomes, align_db = apes, apes_aligndb
+    hsap = genomes["homo_sapiens"]
+    # now get an alignment for just 40 nucleotides, around the gene_name
+    start = 37823381
+    stop = start + 40
+    gene_name = "ENSG00000128310"
+    raw_seq_rc = str(hsap.seqs["22"][start:stop].rc())
     locus = eti_genome.genome_segment(
         species="homo_sapiens",
         seqid="22",
-        start=39504230,
-        stop=39504443,
+        start=start,
+        stop=stop,
         strand=1,
-        unique_id="ENSG00000285025",
+        unique_id=gene_name,
     )
     maker = eti_align.construct_alignment(
         align_db=align_db,
         genomes=genomes,
         mask_features=None,
         shadow=None,
-        mask_ref=None,
+        mask_ref=True,
     )
-    aln = maker(locus)[0]
+    alns = maker.main(locus)
+    assert len(alns) == 1
+    aln = alns[0]
+    expect_name = f"homo_sapiens:22:{start}-{stop}:-1"
+    got = aln.get_seq(expect_name)
+    assert str(got) == raw_seq_rc
+
+
     features = list(
         aln.get_features(seqid="homo_sapiens:22:39504230-39504443:1", biotype="cds"),
     )

@@ -33,7 +33,7 @@ def seq2gaps(record: dict) -> eti_align.AlignRecord:
 @define_app(app_type=LOADER)
 class load_align_records:  # noqa: N801
     def __init__(self, species: set[str] | None = None) -> None:
-        self.species = species or {}
+        self.species: set[str] = species or set()
 
     def main(self, path: IdentifierType) -> list[eti_align.AlignRecord]:
         records = []
