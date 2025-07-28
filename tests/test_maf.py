@@ -44,7 +44,7 @@ def test_process_maf_line_minus():
     maf_start = 6
     maf_size = 4
     maf_line = f"s hg38.chr22 {maf_start} {maf_size} - {len(seq_minus)} {seq_minus}"
-    n, s = eti_maf.process_maf_line(maf_line)
+    n, _ = eti_maf.process_maf_line(maf_line)
     expected_start = seq_plus.find("T")
     expected_stop = expected_start + maf_size
     assert n.start == expected_start
