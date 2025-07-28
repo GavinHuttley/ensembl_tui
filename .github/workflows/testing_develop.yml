@@ -34,10 +34,10 @@ jobs:
 
       - name: Check cache status
         run: |
-          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
+          echo "Cache hit: ${{ steps.cache-small-data.outputs.cache-hit }} ***"
 
       - name: Download small data file
-        if: steps.cache-data.outputs.cache-hit != 'true'
+        if: steps.cache-small-data.outputs.cache-hit != 'true'
         run: |
           curl -L -o tests/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
 
@@ -50,8 +50,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-apes-v1-
 
+      - name: Check apes data cache status
+        run: |
+          echo "Cache hit: ${{ steps.cache-apes-data.outputs.cache-hit }} ***"
+
+      - name: Download apes installation data file
+        if: steps.cache-apes-data.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o tests/data/apes-114.zip "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+
       - name: Set up apes maf cache
-        id: cache-apes-data
+        id: cache-apes-data-maf
         uses: actions/cache@v3
         with:
           path: tests/data
@@ -59,17 +68,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-apes-maf-v1-
 
-      - name: Check cache status
+      - name: Check apes maf cache status
         run: |
-          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
-
-      - name: Download apes installation data file
-        if: steps.cache-data.outputs.cache-hit != 'true'
-        run: |
-          curl -L -o tests/data/apes-114.zip "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+          echo "Cache hit: ${{ steps.cache-apes-data-maf.outputs.cache-hit }} ***"
 
       - name: Download apes maf data file
-        if: steps.cache-data.outputs.cache-hit != 'true'
+        if: steps.cache-apes-data-maf.outputs.cache-hit != 'true'
         run: |
           curl -L -o tests/data/apes-114-maf.zip "https://www.dropbox.com/scl/fi/9kc57hitzhwwifq35je8l/apes-114-maf.zip?rlkey=mxeytmuv672cpfar7iirh7emm&dl=1"
 
