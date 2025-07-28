@@ -33,7 +33,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: docs/ensembl_tui_data.zip
-          key: ${{ runner.os }}-small-v1-${{ hashFiles('docs/ensembl_tui_data.zip') }}
+          key: ${{ runner.os }}-data-v1-${{ hashFiles('docs/ensembl_tui_data.zip') }}
           restore-keys: |
             ${{ runner.os }}-data-v1-
 
