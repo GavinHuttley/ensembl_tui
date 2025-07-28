@@ -594,7 +594,106 @@ def test_aln_seq_matches_genome(apes, apes_aligndb):
     assert str(got) == raw_seq_rc
 
 
+def _get_annotated_align(
+    genomes,
+    align_db,
+    species: str,
+    seqid: str,
+    strand: int,
+    start: int,
+    stop: int,
+    unique_id: str,
+    biotype: str,
+    rc: bool = False,
+):
+    genome = genomes[species]
     features = list(
-        aln.get_features(seqid="homo_sapiens:22:39504230-39504443:1", biotype="cds"),
+        genome.get_features(seqid="22", biotype=biotype, start=start, stop=stop),
     )
-    assert features
+    feature = features[0].get_slice()
+    if rc:
+        feature = feature.rc()
+    ft_seq = str(feature)
+    ft_len = len(ft_seq)
+    locus = eti_genome.genome_segment(
+        species=species,
+        seqid=seqid,
+        start=start,  # repeat is 10bp from here
+        stop=stop,  # ends 5 bp from here
+        unique_id=unique_id,
+        strand=strand,
+    )
+    build_align = eti_align.construct_alignment(
+        align_db=align_db,
+        genomes=genomes,
+        mask_features=None,
+        shadow=None,
+        mask_ref=True,
+    )
+    alns = build_align.main(locus)
+    assert len(alns) == 1
+    aln = alns[0]
+
+    exp_name = f"{species}:22:{start}-{stop}:{-1 if rc else 1}"
+    unmasked = str(aln.seqs[exp_name].seq)
+    # feature present in the unmasked sequence
+    assert ft_seq in unmasked
+    ft_start = unmasked.find(ft_seq)
+    ft_end = ft_start + len(ft_seq)
+
+    build_align = eti_align.construct_alignment(
+        align_db=align_db,
+        genomes=genomes,
+        mask_features=biotype,
+        shadow=None,
+        mask_ref=True,
+    )
+    alns = build_align.main(locus)
+    assert len(alns) == 1
+    aln = alns[0]
+    masked = str(aln.seqs[exp_name].seq)
+    assert ft_seq not in masked
+    assert masked.count("?") == ft_len
+    # check masked region correct
+    assert masked[:ft_start] == unmasked[:ft_start]
+    assert masked[ft_end:] == unmasked[ft_end:]
+
+
+def test_aln_cds_masked_repeat_plus_strand(apes, apes_aligndb):
+    genomes, align_db = apes, apes_aligndb
+    species = "homo_sapiens"
+    # ENSG00000100346 has one simple repeat
+    start = 39601558 - 10  # repeat is 10bp from here
+    stop = 39601622 + 5  # ends 5 bp from here
+    _get_annotated_align(
+        genomes=genomes,
+        align_db=align_db,
+        species=species,
+        seqid="22",
+        start=start,
+        stop=stop,
+        strand=1,
+        unique_id="blah",
+        biotype="Simple_repeat",
+        rc=False,
+    )
+
+
+def test_aln_cds_masked_repeat_reverse_complemented(apes, apes_aligndb):
+    genomes, align_db = apes, apes_aligndb
+    species = "homo_sapiens"
+    # ENSG00000100412 has one simple repeat, alignment minus strand
+    start = 41472602 - 10  # repeat is 10bp from here
+    stop = 41472627 + 5  # ends 5 bp from here
+    _get_annotated_align(
+        genomes=genomes,
+        align_db=align_db,
+        species=species,
+        seqid="22",
+        start=start,
+        stop=stop,
+        strand=1,
+        unique_id="blah",
+        biotype="Simple_repeat",
+        rc=True,
+    )
