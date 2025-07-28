@@ -2,33 +2,29 @@
 
 `ensembl-tui` requires a config file to specify the data that you want to select from Ensembl.
 
-```bash exec="1"
-mkdir -p demo # markdown-exec: hide
-```
-
 ## Create a template config file to edit
 
 `eti` can write a template config file to a directory you specify.
 
-```console exec="1" source="console" result="ansi" workdir="./demo"
-$ eti demo-config --outpath example
+```console exec="1" source="console" result="ansi" workdir="./docs"
+$ eti demo-config --outpath demo
 ```
 
 The config template file is written to the specified directory along with a `species.tsv` file which includes a listing of Ensembl species.
 
-```console exec="1" source="console" result="ansi" workdir="./demo"
-$ ls example/
+```console exec="1" source="console" result="ansi" workdir="./docs"
+$ ls demo/
 ```
 
 ### The species contents
 
-```console exec="1" source="console" result="ansi" workdir="./demo"
-$ head -n 5 example/species.tsv
+```console exec="1" source="console" result="ansi" workdir="./docs"
+$ head -n 5 demo/species.tsv
 ```
 ### The config contents
 
-```console exec="1" source="console" result="ansi" workdir="./demo"
-$ head -n 15 example/sample.cfg
+```console exec="1" source="console" result="ansi" workdir="./docs"
+$ head -n 15 demo/sample.cfg
 ```
 
 ## The config format
@@ -82,6 +78,8 @@ align_names=10_primates.epo
 homologies =
 ```
 
-```bash exec="1"
-rm -rf demo # markdown-exec: hide
+```bash exec="1" workdir="./docs"
+echo `pwd`
+rm -rf demo
+ls
 ```

@@ -35,12 +35,12 @@ without having to activate a virtual environment.
 
 To see the options for `eti` or one of its subcommands, just enter the expression in the terminal and press return. For example,
 
-```console exec="1" source="console" result="ansi" workdir="./docs"
+```console exec="1" source="console" result="ansi" workdir="./docs" returncode="2"
 $ eti
 ```
 lists all of the subcommands. While
 
-```console exec="1" source="console" result="ansi" workdir="./docs"
+```console exec="1" source="console" result="ansi" workdir="./docs" returncode="2"
 $ eti download
 ```
 shows the options for the download command.

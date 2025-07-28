@@ -28,41 +28,23 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Set up small cache
-        id: cache-small-data
+      - name: Set up data cache
+        id: cache-data
         uses: actions/cache@v3
         with:
-          path: docs/data
-          key: ${{ runner.os }}-small-v1-${{ hashFiles('docs/data/small-114.zip') }}
+          path: docs/ensembl_tui_data.zip
+          key: ${{ runner.os }}-data-v1-${{ hashFiles('docs/ensembl_tui_data.zip') }}
           restore-keys: |
-            ${{ runner.os }}-small-v1-
+            ${{ runner.os }}-data-v1-
 
       - name: Check cache status
         run: |
-          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
+          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ****"
 
-      - name: Download small data file
+      - name: Download data file
         if: steps.cache-data.outputs.cache-hit != 'true'
         run: |
-          curl -L -o docs/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
-
-      - name: Set up apes cache
-        id: cache-apes-data
-        uses: actions/cache@v3
-        with:
-          path: docs/data
-          key: ${{ runner.os }}-apes-v1-${{ hashFiles('docs/data/apes-114.zip') }}
-          restore-keys: |
-            ${{ runner.os }}-apes-v1-
-
-      - name: Check cache status
-        run: |
-          echo "Cache hit: ${{ steps.cache-data.outputs.cache-hit }} ***"
-
-      - name: Download apes data file
-        if: steps.cache-data.outputs.cache-hit != 'true'
-        run: |
-          curl -L -o docs/data/apes-114.zip "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+          curl -L -o docs/ensembl_tui_data.zip "https://www.dropbox.com/scl/fi/pr5y1r3abi8mam26rasg3/ensembl_tui_data.zip?rlkey=jvke75kupiugs47zjhisans38&dl=1"
 
       - uses: "actions/setup-python@v5"
         with:

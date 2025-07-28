@@ -44,3 +44,5 @@ tests/data/*-114/*
 tests/data/prep_tests_data/*-114*
 docs/data/*114*
 tests/data/*114*
+site/*
+ensembl_tui_data.zip
