@@ -54,3 +54,31 @@ def test_process_maf_line_minus():
     )
 
 
+def get_human_record(blocks, species, strand):
+    for _, seqs in blocks:
+        for name, seq in seqs.items():
+            if name.species == species and name.strand == strand:
+                return name, seq
+    msg = f"No human record found for {species} with strand {strand}"
+    raise ValueError(msg)
+
+
+def test_compare_maf_with_genome(apes_install_path, apes_maf_install_path):
+    config = eti_config.read_installed_cfg(apes_install_path)
+    species = "homo_sapiens"
+    hsap = eti_genome.load_genome(config=config, species=species)
+    chr22 = hsap.seqs["22"]
+
+    # check that the inferred coordinates from an alignment block
+    # and the extracted sequence match the genome for those coordinates
+    # need to add this file to cached data
+    blocks = list(eti_maf.parse(apes_maf_install_path))
+    # plus strand
+    name, seq = get_human_record(blocks, species, strand="+")
+    got = seq.replace("-", "").upper()
+    assert got == str(chr22[name.start : name.stop])
+
+    # minus strand
+    name, seq = get_human_record(blocks, species, strand="-")
+    got = seq.replace("-", "").upper()
+    assert got == str(chr22[name.start : name.stop].rc())

@@ -4,6 +4,7 @@ from configparser import ConfigParser
 
 import pytest
 
+from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _util as eti_util
@@ -205,6 +206,17 @@ def apes_install(data_url, data_dir, data_name):
 def apes_install_path(DATA_DIR):
     return apes_install(TEST_DATA_URL, DATA_DIR, APES_DATA_DIRNAME)
 
+
+TEST_APES_MAF_URL = "https://www.dropbox.com/scl/fi/9kc57hitzhwwifq35je8l/apes-114-maf.zip?rlkey=mxeytmuv672cpfar7iirh7emm&dl=1"
+APES_MAF_DIRNAME = "apes-114-maf"
+
+
+@pytest.fixture(scope="session")
+def apes_maf_install_path(DATA_DIR):
+    path = apes_install(TEST_APES_MAF_URL, DATA_DIR, APES_MAF_DIRNAME)
+    return next(iter(path.glob("*.maf.gz")))
+
+
 @pytest.fixture
 def apes(apes_install_path):
     config = eti_config.read_installed_cfg(apes_install_path)
@@ -214,3 +226,7 @@ def apes(apes_install_path):
     }
 
 
+@pytest.fixture
+def apes_aligndb(apes_install_path):
+    config = eti_config.read_installed_cfg(apes_install_path)
+    return eti_align.load_aligndb(config=config, align_name="primate")
