@@ -74,6 +74,7 @@ def species_names_from_csv(
 ) -> list[str] | None:
     """returns species names"""
     species_names = values_from_csv_or_file(ctx, param, species)
+    species_names = None if species_names == [""] else species_names
     if species_names is None:
         return None
 
@@ -117,7 +118,15 @@ def genome_coords_from_tsv(
         table = load_table(tsv_file, sep="\t")
     except Exception as e:  # noqa: BLE001
         eti_util.print_colour(
-            text=f"ERROR: failed to load file {str(tsv_file)!r}\n{e}",
+            text=f"ERROR: failed to load file '{tsv_file}'\n{e}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    if table.shape[1] != 5:
+        msg = f"ERROR: genome coord tsv must have 5 columns, got {table.shape[1]}"
+        eti_util.print_colour(
+            text=msg,
             colour="red",
         )
         sys.exit(1)
@@ -125,16 +134,9 @@ def genome_coords_from_tsv(
     columns = "species", "seqid", "start", "stop", "strand"
     required_columns = set(columns)
     header = set(table.header)
-    if header < required_columns:
+    if (header & required_columns) != required_columns:
         eti_util.print_colour(
             text=f"ERROR: genome coord tsv missing required columns {required_columns - header}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    if not table.shape[0]:
-        eti_util.print_colour(
-            text="ERROR: no data in file",
             colour="red",
         )
         sys.exit(1)
