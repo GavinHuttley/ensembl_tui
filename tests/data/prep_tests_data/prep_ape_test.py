@@ -106,7 +106,6 @@ def main(install_dir, download_dir, check):
     seqid = "22"
     # copy smallest maf file for chrom 22
     copy_maf(download_dir / "downloaded.cfg", pathlib.Path("apes-114-maf"), seqid=seqid)
-    return
     cfg = eti_config.read_installed_cfg(install_dir)
 
     for db in cfg.list_genomes():
