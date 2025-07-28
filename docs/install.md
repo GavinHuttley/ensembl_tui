@@ -5,7 +5,7 @@ The install step converts the downloaded data into more efficient data structure
 The install command requires the path to the download directory.
 
 ```
-$ eti install -d ensembl_install_114
+$ eti install -d <dirname>
 ```
 
 > **Note**
