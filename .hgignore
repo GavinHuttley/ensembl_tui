@@ -37,3 +37,10 @@ working/*
 lcov*.info
 .ruff_cache/*
 small-113/*
+.mypy_cache/*
+# data dynamically downloaded
+docs/data/*-114/*
+tests/data/*-114/*
+tests/data/prep_tests_data/*-114*
+docs/data/*114*
+tests/data/*114*

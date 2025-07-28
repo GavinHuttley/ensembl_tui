@@ -188,15 +188,29 @@ TEST_APES_DATA_URL = "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-
 APES_DATA_DIRNAME = "apes-114"
 
 
-@pytest.fixture(scope="session")
-def apes_install_path(DATA_DIR):
+def apes_install(data_url, data_dir, data_name):
     import urllib
     import zipfile
 
-    apes_data_path = DATA_DIR / APES_DATA_DIRNAME
-    if not apes_data_path.exists():
-        dest = DATA_DIR / f"{APES_DATA_DIRNAME}.zip"
-        urllib.request.urlretrieve(TEST_APES_DATA_URL, dest)
+    data_path = data_dir / data_name
+    if not data_path.exists():
+        dest = data_dir / f"{data_name}.zip"
+        urllib.request.urlretrieve(data_url, dest)  # noqa: S310
         with zipfile.ZipFile(dest, "r") as zip_ref:
-            zip_ref.extractall(DATA_DIR)
-    return apes_data_path
+            zip_ref.extractall(data_dir)
+    return data_path
+
+
+@pytest.fixture(scope="session")
+def apes_install_path(DATA_DIR):
+    return apes_install(TEST_DATA_URL, DATA_DIR, APES_DATA_DIRNAME)
+
+@pytest.fixture
+def apes(apes_install_path):
+    config = eti_config.read_installed_cfg(apes_install_path)
+    return {
+        sp: eti_genome.load_genome(config=config, species=sp)
+        for sp in config.list_genomes()
+    }
+
+
