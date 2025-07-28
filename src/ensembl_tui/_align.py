@@ -280,6 +280,7 @@ def get_alignment(
         seqs = {}
         gaps = {}
         offsets = {}
+        reversed_seqs = set()
         seqid_species = {}
         ann_dbs = {}
         for align_record in block:
@@ -319,14 +320,15 @@ def get_alignment(
             # we now trim the gaps for this sequence to the sub-alignment
             imap = imap[align_start:align_end]
 
-            if align_record.strand == -1:
-                s = s.rc()
-
             if not namer:
                 s.name = f"{s.name}:{align_record.strand}"
 
             if s.name in seqs:
                 eti_util.print_colour(f"duplicated {s.name}", colour="yellow")
+
+            if align_record.strand == -1:
+                s = s.rc()
+                reversed_seqs.add(s.name)
 
             seqs[s.name] = numpy.array(s)
             gaps[s.name] = imap.array
@@ -346,6 +348,7 @@ def get_alignment(
             gaps=gaps,
             alphabet=DNA.most_degen_alphabet(),
             offset=offsets,
+            reversed_seqs=reversed_seqs,
         )
         aln = c3_align.Alignment(seqs_data=aln_data, moltype=DNA)
 

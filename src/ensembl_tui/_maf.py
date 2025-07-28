@@ -42,7 +42,7 @@ def process_maf_line(line: str) -> tuple[eti_name.MafName, str]:
     species, coord = src_coord.split(".", maxsplit=1)
     start, size, coord_length = int(start), int(size), int(coord_length)
     if strand == "-":
-        start = coord_length - (start + size)
+        start = coord_length - start - size
 
     stop = start + size
     n = eti_name.MafName(

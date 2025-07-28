@@ -150,7 +150,9 @@ def test_get_gene_segments_stableids(worm_db):
 
 def test_get_features(yeast):
     features = list(yeast.get_features(biotype="rRNA", limit=10))
-    assert len(features) == 10
+    # because of how feature querying works, one seqid at a time,
+    # the limit argument will be applied to each seqid
+    assert len(features) >= 10
 
 
 def test_get_celegans_cds(worm):

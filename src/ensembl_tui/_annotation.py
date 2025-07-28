@@ -435,7 +435,7 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
         local_vars = {
             k: v
             for k, v in local_vars.items()
-            if k not in ("self", "kwargs", "local_vars", "canonical") and v
+            if k not in ("self", "kwargs", "local_vars", "canonical") and v is not None
         }
         kwargs |= local_vars
         if not is_derived_biotype(kwargs.get("biotype")):

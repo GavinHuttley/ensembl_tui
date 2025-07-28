@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 
 import click
 import cogent3
@@ -82,6 +83,15 @@ def drop_chrom(genome_dir: pathlib.Path, seqid: str = "22", check: bool = True):
     new_path.rename(src)
 
 
+def copy_maf(cfg_path: pathlib.Path, dest_dir: pathlib.Path, seqid: str = "22"):
+    cfg = eti_config.read_config(cfg_path)
+    align_path = cfg.staging_aligns / cfg.align_names[0]
+    maf_file = min(align_path.glob(f"*.{seqid}*.maf.*"), key=lambda p: p.stat().st_size)
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = dest_dir / maf_file.name
+    shutil.copy(maf_file, dest_path)
+
+
 _click_command_opts = {
     "no_args_is_help": True,
     "context_settings": {"show_default": True},
@@ -90,9 +100,13 @@ _click_command_opts = {
 
 @click.command(**_click_command_opts)
 @click.argument("install_dir", type=pathlib.Path)
+@click.argument("download_dir", type=pathlib.Path)
 @click.option("--check", is_flag=True)
-def main(install_dir, check):
+def main(install_dir, download_dir, check):
     seqid = "22"
+    # copy smallest maf file for chrom 22
+    copy_maf(download_dir / "downloaded.cfg", pathlib.Path("apes-114-maf"), seqid=seqid)
+    return
     cfg = eti_config.read_installed_cfg(install_dir)
 
     for db in cfg.list_genomes():

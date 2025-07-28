@@ -2,10 +2,8 @@ import configparser
 import fnmatch
 import pathlib
 import sys
-from collections.abc import Iterable
+from collections.abc import Generator, Sequence
 from dataclasses import dataclass
-
-import click
 
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
@@ -43,8 +41,8 @@ class Config:
     staging_path: pathlib.Path
     install_path: pathlib.Path
     species_dbs: dict[str, list[str]]
-    align_names: Iterable[str]
-    tree_names: Iterable[str]
+    align_names: Sequence[str]
+    tree_names: Sequence[str]
     homologies: bool
 
     def __post_init__(self) -> None:
@@ -69,7 +67,7 @@ class Config:
         self.species_dbs |= species
 
     @property
-    def db_names(self) -> Iterable[str]:
+    def db_names(self) -> Generator[str, None, None]:
         for species in self.species_dbs:
             yield eti_species.Species.get_ensembl_db_prefix(species)
 
@@ -247,7 +245,7 @@ def read_installed_cfg(path: eti_util.PathType) -> InstalledConfig:
         path if path.name == INSTALLED_CONFIG_NAME else (path / INSTALLED_CONFIG_NAME)
     )
     if not path.exists():
-        print(f"{path!s} does not exist, exiting")
+        eti_util.print_colour(f"{path!s} does not exist, exiting", colour="red")
         sys.exit(1)
 
     parser.read(path)
@@ -272,7 +270,7 @@ def read_config(
     from ensembl_tui._download import download_ensembl_tree
 
     if not config_path.exists():
-        click.secho(f"File not found {config_path.resolve()!s}", fg="red")
+        eti_util.print_colour(f"File not found {config_path.resolve()!s}", colour="red")
         sys.exit(1)
 
     parser = configparser.ConfigParser()
