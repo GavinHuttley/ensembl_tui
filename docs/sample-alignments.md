@@ -14,5 +14,6 @@ import cogent3
 loader = cogent3.get_app("load_aligned", moltype="dna")
 align_dir = cogent3.open_data_store("apes_aligns", suffix="fa")
 aln = loader(align_dir[1])
-print(aln)
+# pretty print the first 200 bases
+print(aln[:200].to_pretty(wrap=60))
 ```
