@@ -48,7 +48,7 @@ classifiers = [
 dynamic = ["version", "description"]
 
 [project.urls]
-Documentation = "https://github.com/cogent3/ensembl_tui"
+Documentation = "https://ensembl-tui.readthedocs.io/"
 "Bug Tracker" = "https://github.com/cogent3/ensembl_tui/issues"
 "Source Code" = "https://github.com/cogent3/ensembl_tui"
 
