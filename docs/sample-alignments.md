@@ -32,5 +32,4 @@ aln = loader(align_dir[0])
 # remove the alignment columns containing any degenerate character
 # by default this includes the gap character
 aln2 = aln.no_degenerates()
-print(aln2[:200].to_pretty(wrap=60))
 ```
