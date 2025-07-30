@@ -12,6 +12,8 @@ theme:
         - python
         - text
         - bash
+    font: false
+    custom_dir: docs/overrides
     features:
         - navigation.sections
         - toc.follow

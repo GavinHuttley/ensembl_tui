@@ -65,6 +65,8 @@ jobs:
       - name: Build Documentation
         run: |
           source venv/bin/activate
+          # this dir needs to be in place for mkdocs to start
+          mkdir -p docs/overrides
           mkdocs build
         working-directory: ${{ github.workspace }}
 
