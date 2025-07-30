@@ -96,7 +96,7 @@ def test_installed_with_alignments(apes_install_path):
         catch_exceptions=False,
     )
     assert r.exit_code == 0, r.output
-    assert "10_primates" in r.output
+    assert "Installed alignments: ✅" in r.output
 
 
 def test_installed_full_path(apes_install_path):
@@ -106,7 +106,7 @@ def test_installed_full_path(apes_install_path):
         catch_exceptions=False,
     )
     assert r.exit_code == 0, r.output
-    assert "10_primates" in r.output
+    assert "Installed alignments: ✅" in r.output
 
 
 def test_installed_invalid_path():
@@ -378,6 +378,19 @@ def test_compara_summary(installed):
     assert r.exit_code == 0, r.output
     assert "homology_type" in r.output
     assert "ortholog_one2many" in r.output
+    assert "alignments" not in r.output.lower()
+
+
+def test_compara_summary_apes(apes_install_path):
+    r = RUNNER.invoke(
+        eti_cli.compara_summary,
+        [f"-i{apes_install_path}"],
+        catch_exceptions=False,
+    )
+    assert r.exit_code == 0, r.output
+    assert "homology_type" in r.output
+    assert "ortholog_one2many" in r.output
+    assert "10_primates" in r.output
 
 
 @pytest.mark.slow

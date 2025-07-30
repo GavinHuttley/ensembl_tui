@@ -222,24 +222,11 @@ def installed(installed: pathlib.Path) -> None:
         table = make_table(data=data, title="Installed genomes:")
         eti_util.rich_display(table)
 
-    if config.homologies_path.exists():
-        eti_util.print_colour("Installed homologies: ✅", colour="blue", style="bold")
+    char = "✅" if config.homologies_path.exists() else "❌"
+    eti_util.print_colour(f"Installed homologies: {char}", colour="blue", style="bold")
 
-    # TODO as above
-    compara_aligns = config.aligns_path
-    if compara_aligns.exists():
-        align_names = {
-            fn.stem for fn in compara_aligns.glob("*") if not fn.name.startswith(".")
-        }
-        eti_util.print_colour(
-            "Installed whole genome alignments:",
-            colour="blue",
-            style="bold",
-        )
-        table = make_table(
-            data={"align name": list(align_names)},
-        )
-        eti_util.rich_display(table)
+    char = "✅" if config.aligns_path.exists() else "❌"
+    eti_util.print_colour(f"Installed alignments: {char}", colour="blue", style="bold")
 
 
 @main.command(**_click_command_opts)
@@ -310,6 +297,7 @@ def dump_genes(
 @cli_opt.installed
 def compara_summary(installed: pathlib.Path) -> None:
     """summary data for compara"""
+    from cogent3 import make_table
 
     config = eti_config.read_installed_cfg(installed)
     if config.homologies_path.exists():
@@ -319,6 +307,21 @@ def compara_summary(installed: pathlib.Path) -> None:
         table = db.count_distinct(homology_type=True)
         table.title = "Homology types"
         table.format_column("count", lambda x: f"{x:,}")
+        eti_util.rich_display(table)
+
+    compara_aligns = config.aligns_path
+    if compara_aligns.exists():
+        align_names = {
+            fn.stem for fn in compara_aligns.glob("*") if not fn.name.startswith(".")
+        }
+        eti_util.print_colour(
+            "Installed whole genome alignments:",
+            colour="blue",
+            style="bold",
+        )
+        table = make_table(
+            data={"align name": list(align_names)},
+        )
         eti_util.rich_display(table)
 
 
@@ -507,9 +510,6 @@ def alignments(
             colour="red",
         )
         sys.exit(1)
-
-    # TODO support genomic coordinates, e.g. coord_name:start-stop, for
-    #  a reference species
 
     if not ref:
         eti_util.print_colour(
