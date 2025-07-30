@@ -45,8 +45,19 @@ def setup_installed(url: str, dest_zip: str, dest: str) -> str:
     return dest
 
 
+def setup_fonts() -> None:
+    font_dir = ROOT_DIR / "overrides/assets/fonts"
+    font_dir.mkdir(parents=True, exist_ok=True)
+    # Download and install fonts here
+    font_dest = font_dir / "roboto-fonts.zip"
+    if not font_dest.exists():
+        font_url = "https://fonts.google.com/download?family=Roboto"
+        urllib.request.urlretrieve(font_url, filename=font_dest)  # noqa: S310
+
+
 def on_pre_build(*args, **kwargs) -> None:
     cleanup_data()
+    setup_fonts()
     demo = ROOT_DIR / "demo"
     shutil.rmtree(demo, ignore_errors=True)
 

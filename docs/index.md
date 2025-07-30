@@ -1,6 +1,6 @@
 `ensembl-tui` provides a textual interface to localised ensembl genomic data.
 
-## Installing the software
+## Installing The Software
 
 `ensembl-tui` can be installed from PyPI as follows
 
@@ -15,7 +15,7 @@ pip install ensembl-tui
 > **Note**
 > The first usage of `ensembl-tui` is slow because both `cogent3` and `ensembl-tui` are compiling some functions. This is a one-time cost.
 
-## Installation and usage with `uv`
+## Installation And Usage With `uv`
 
 Speaking of `uv`, it provides a simplified approach to install `eti` as a command-line only tool as
 

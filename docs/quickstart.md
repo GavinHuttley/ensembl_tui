@@ -11,7 +11,7 @@ In this quick start, we'll perform the following steps:
 5. Export gene meta-data
 6. Export homology data
 
-## Create a demo config
+## Create A Demo Config
 
 You specify the genomic resources that you want from Ensembl using a config file. `ensembl-tui` comes with an example file with comments describing what each of the components of that file are.
 
@@ -25,7 +25,7 @@ $ eti demo-config -o demo
 > **Warning**
 > Edit this file before using! It also specifies primate whole genome alignments -- which are large!
 
-## Download the specified data
+## Download The Specified Data
 
 We use a custom config file which specifies just bakers yeast the the worm. (You can do this yourself by :material-download: [downloading the small.cfg](data/small.cfg) and executing the following command
 
@@ -37,34 +37,34 @@ The data will be downloaded to `staging_path` specified in `small.cfg`, which is
 > **Note**
 > Downloads can be interrupted.
 
-## Make the local installation
+## Make The Local Installation
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti install -d data/small-download
 ```
 
-## Show summaries of the installation
+## Show Summaries Of The Installation
 
-### The top level
+### The Top Level
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti installed -i data/small-install
 ```
 
-### Summary of a species
+### Summary Of A Species
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti species-summary -i data/small-install --species saccharomyces_cerevisiae
 ```
 
-### Summary of compara
+### Summary Of Compara
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti compara-summary -i data/small-install
 ```
  This shows the relationships between the species installed.
 
-## Export gene meta-data
+## Export Gene meta-data
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti dump-genes -i data/small-install --species saccharomyces_cerevisiae --outdir yeast
@@ -76,7 +76,7 @@ Show the first five lines of the output file.
 $ head -n 5 yeast/saccharomyces_cerevisiae*.tsv
 ```
 
-## Export homology data
+## Export Homology Data
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti homologs -i data/small-install --ref caenorhabditis_elegans --outdir worm_yeast --homology_type ortholog_one2one --limit 5
