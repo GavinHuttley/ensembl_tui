@@ -16,8 +16,11 @@ theme:
         - navigation.sections
         - toc.follow
         - toc.integrate
+        - search.highlight
+        - search.share
 
 plugins:
+    - search
     - mkdocs-jupyter:
         allow_errors: false
         remove_tag_config:
@@ -34,12 +37,14 @@ hooks:
     - docs/scripts/setup_data.py
 
 markdown_extensions:
+- attr_list
 - pymdownx.superfences
 - pymdownx.emoji:
     emoji_index: !!python/name:material.extensions.emoji.twemoji
     emoji_generator: !!python/name:material.extensions.emoji.to_svg
 - toc:
     toc_depth: 3
+    permalink: true
 
 nav:
     - Introduction: index.md
