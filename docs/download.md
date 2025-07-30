@@ -1,4 +1,4 @@
-# Download data from Ensembl
+# Download Data From Ensembl
 
 This command downloads the data from the Ensembl server saving it into `staging_path` as specified in the config file. This is the only step that requires Internet access.
 
