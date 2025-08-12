@@ -10,7 +10,8 @@ To sample other types of genes, use the `--ref_genes` argument, providing a csv 
 
 Identifying introns is achieved using `--mask cds`. Masking follows the [cogent3](https://cogent3.org/doc/cookbook/features.html#masking-annotated-regions-on-a-sequence) approach. Nucleotide characters are replaced with the most general IUPAC ambiguity character ('?'). To select everything except an annotated region, use the `--mask_shadow` option (see cogent3 docs on [mask shadow](https://cogent3.org/doc/cookbook/features.html#how-to-get-the-shadow-of-a-feature)). To limit the masking to the reference species use the `--mask_ref` flag.
 
-This above command command produces a directory called `apes_aligns` and individual alignments are at the top level in this directory ending in `.fa`. We show the outcome of the mask option for one of the alignment files produced.
+This above command command produces a directory called `apes_aligns` and individual alignments are at the top level in this directory ending in `.fa`. We show the outcome of the mask option for one of the alignment files produced. We also show how to remove alignment columns containing any degenerate character (as define by the `moltype`), by default this includes the gap character.
+
 
 ```python exec="on" result="ansi" workdir="./docs" source="above"
 import cogent3
@@ -20,16 +21,6 @@ align_dir = cogent3.open_data_store("apes_aligns", suffix="fa")
 aln = loader(align_dir[1])
 # pretty print the first 200 bases
 print(aln[:200].to_pretty(wrap=60))
-```
-We use `cogent3` to remove the masked columns from the alignment.
-
-```python exec="on" result="ansi" workdir="./docs" source="above"
-import cogent3
-
-loader = cogent3.get_app("load_aligned", moltype="dna")
-align_dir = cogent3.open_data_store("apes_aligns", suffix="fa")
-aln = loader(align_dir[0])
-# remove the alignment columns containing any degenerate character
-# by default this includes the gap character
+# remove the alignment columns with degenerate or gap characters
 aln2 = aln.no_degenerates()
 ```
