@@ -63,7 +63,7 @@ test = [
     "pytest-cov",
     "pytest-timeout",
     "pytest-xdist",
-    "ruff==0.10.0",
+    "ruff==0.12.10",
     "nox"]
 doc  = [
     "ensembl-tui",
