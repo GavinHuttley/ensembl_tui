@@ -21,6 +21,7 @@ $ ls demo/
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ head -n 5 demo/species.tsv
 ```
+
 ### The config contents
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
@@ -53,10 +54,10 @@ For now, you must include `db=core` under the species section.
 
 Sources from the Compara database are indicated here. Including `homologies =` (without a value) indicates that you want to get the homology information for all the selected species.
 
-You can indicate the alignments you want as comma separated values assigned to the variable `align_names`. 
+You can indicate the alignments you want as comma separated values assigned to the variable `align_names`.
 
-> **Note**
-> To select the alignments that you want, you will need to navigate the Ensembl FTP site for the release you are interested in.
+!!! note
+    To select the alignments that you want, you will need to navigate the Ensembl FTP site for the release you are interested in.
 
 ## Implicit selection of genomes
 
@@ -79,7 +80,5 @@ homologies =
 ```
 
 ```bash exec="1" workdir="./docs"
-echo `pwd`
-rm -rf demo
-ls
+rm -rf demo  # markdown-exec: hide
 ```

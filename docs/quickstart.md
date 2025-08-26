@@ -5,11 +5,11 @@ Installation of `ensembl-tui` creates a command line tool `eti` which contains a
 In this quick start, we'll perform the following steps:
 
 1. Create a demo config file
-2. Download raw data from Ensembl
-3. Make the local installation
-4. Show summaries of the installation
-5. Export gene meta-data
-6. Export homology data
+1. Download raw data from Ensembl
+1. Make the local installation
+1. Show summaries of the installation
+1. Export gene meta-data
+1. Export homology data
 
 ## Create A Demo Config
 
@@ -19,10 +19,10 @@ You specify the genomic resources that you want from Ensembl using a config file
 $ eti demo-config -o demo
 ```
 
-> **Note**
-> The config specifies download the genomes and annotations from Ensembl release 114 of  *Saccharomyces cerevisiae* and *Caenorhabditis elegans* and gene homology data. It also specifies the path to write the downloaded files and where to install them.
+!!! note
+    The config specifies download the genomes and annotations from Ensembl release 114 of *Saccharomyces cerevisiae* and *Caenorhabditis elegans* and gene homology data. It also specifies the path to write the downloaded files and where to install them.
 
-> **Warning**
+> [!WARNING]
 > Edit this file before using! It also specifies primate whole genome alignments -- which are large!
 
 ## Download The Specified Data
@@ -32,10 +32,11 @@ We use a custom config file which specifies just bakers yeast the the worm. (You
 ```
 $ eti download -c <path to>/small.cfg
 ```
+
 The data will be downloaded to `staging_path` specified in `small.cfg`, which is interpreted relative to the directory in which you executed the command.
 
-> **Note**
-> Downloads can be interrupted.
+!!! note
+    Downloads can be interrupted.
 
 ## Make The Local Installation
 
@@ -62,7 +63,8 @@ $ eti species-summary -i data/small-install --species saccharomyces_cerevisiae
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti compara-summary -i data/small-install
 ```
- This shows the relationships between the species installed.
+
+This shows the relationships between the species installed.
 
 ## Export Gene meta-data
 
@@ -81,11 +83,12 @@ $ head -n 5 yeast/saccharomyces_cerevisiae*.tsv
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti homologs -i data/small-install --ref caenorhabditis_elegans --outdir worm_yeast --homology_type ortholog_one2one --limit 5
 ```
+
 Listing the files that are written into the specified `worm_yeast` directory.
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ ls worm_yeast
 ```
 
-> **Note**
-> The `not_completed` directory will contain any errors that occurred during the homolog command.
+!!! note
+    The `not_completed` directory will contain any errors that occurred during the homolog command.

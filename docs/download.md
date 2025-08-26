@@ -8,5 +8,5 @@ In addition to writing the original files from Ensembl, an expanded version of t
 $ eti download -c example/sample.cfg
 ```
 
-> **Note**
-> Downloading takes advantage of multiple threads and can be interrupted and resumed.
+!!! note
+    Downloading takes advantage of multiple threads and can be interrupted and resumed.
