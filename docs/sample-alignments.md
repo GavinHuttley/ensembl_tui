@@ -12,7 +12,6 @@ Identifying introns is achieved using `--mask cds`. Masking follows the [cogent3
 
 This above command command produces a directory called `apes_aligns` and individual alignments are at the top level in this directory ending in `.fa`. We show the outcome of the mask option for one of the alignment files produced. We also show how to remove alignment columns containing any degenerate character (as define by the `moltype`), by default this includes the gap character.
 
-
 ```python exec="on" result="ansi" workdir="./docs" source="above"
 import cogent3
 

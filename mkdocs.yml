@@ -39,6 +39,7 @@ hooks:
     - docs/scripts/setup_data.py
 
 markdown_extensions:
+- admonition
 - attr_list
 - pymdownx.superfences
 - pymdownx.emoji:

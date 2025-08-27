@@ -8,12 +8,11 @@
 pip install ensembl-tui
 ```
 
-> **NOTE**
-> If you experience any errors during installation, we recommend using [uv pip](https://docs.astral.sh/uv/). This command provides much better error messages than the standard `pip` command. If you cannot resolve the installation problem, please [open an issue](https://github.com/cogent3/ensembl_tui/issues).
+!!! note
+    If you experience any errors during installation, we recommend using [uv pip](https://docs.astral.sh/uv/). This command provides much better error messages than the standard `pip` command. If you cannot resolve the installation problem, please [open an issue](https://github.com/cogent3/ensembl_tui/issues).
 
-
-> **Note**
-> The first usage of `ensembl-tui` is slow because both `cogent3` and `ensembl-tui` are compiling some functions. This is a one-time cost.
+!!! note
+    The first usage of `ensembl-tui` is slow because both `cogent3` and `ensembl-tui` are compiling some functions. This is a one-time cost.
 
 ## Installation And Usage With `uv`
 
@@ -38,9 +37,11 @@ To see the options for `eti` or one of its subcommands, just enter the expressio
 ```console exec="1" source="console" result="ansi" workdir="./docs" returncode="2"
 $ eti
 ```
+
 lists all of the subcommands. While
 
 ```console exec="1" source="console" result="ansi" workdir="./docs" returncode="2"
 $ eti download
 ```
+
 shows the options for the download command.

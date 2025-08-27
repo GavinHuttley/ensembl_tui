@@ -63,7 +63,7 @@ test = [
     "pytest-cov",
     "pytest-timeout",
     "pytest-xdist",
-    "ruff==0.10.0",
+    "ruff==0.12.10",
     "nox"]
 doc  = [
     "ensembl-tui",
@@ -72,6 +72,9 @@ doc  = [
     "markdown-exec[ansi]>=1.10.0",
     "mkdocs-jupyter>=0.25.1",
     "markdown>=3.7",
+    "mdformat",
+    "mdformat-mkdocs",
+    "mdformat-black",
 ]
 dev = ["click",
        "cogapp",
