@@ -105,7 +105,7 @@ class Config:
             install_path = str(make_relative_to(self.staging_path, self.install_path))
 
         data = {
-            "remote path": {"path": str(self.remote_path), "host": str(self.host)},
+            "remote path": {"host": str(self.host)},
             "local path": {
                 "staging_path": staging_path,
                 "install_path": install_path,
