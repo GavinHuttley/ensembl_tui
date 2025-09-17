@@ -542,7 +542,7 @@ def test_aligndb_post_init_failure(tmp_path):
 
 def test_aligndb_close(db_align):
     db_align.close()
-    with pytest.raises(duckdb.duckdb.ConnectionException):
+    with pytest.raises(duckdb.ConnectionException):
         db_align.num_records()
 
 
