@@ -68,7 +68,9 @@ def get_remote_mysql_paths(db_name: str) -> list[str]:
 
 
 def make_core_db_templates(
+    *,
     config: eti_config.Config,
+    site_map: eti_site_map.SiteMap,
     sp_db_map: dict[str, str],
     progress: Progress | None = None,
 ) -> None:
@@ -82,6 +84,8 @@ def make_core_db_templates(
         mapping of species to mysql db names
     progress
         rich.progress context manager for tracking progress
+    site_map
+        site map stores attributes key attributes for the Ensembl site
 
     Notes
     -----
@@ -104,6 +108,8 @@ def make_core_db_templates(
             dest_dir=template_dest,
             db_name=db_name,
             table_name=table_name,
+            db_host=site_map.db_host,
+            db_port=site_map.db_port,
         )
         if progress is not None:
             progress.update(make_templates, description=msg, advance=1)
@@ -137,7 +143,12 @@ def download_species(
     sp_db_map = get_core_db_dirnames(config)
 
     # create the duckdb templates for the tables, if they don't exist
-    make_core_db_templates(config, sp_db_map, progress=progress)
+    make_core_db_templates(
+        config=config,
+        sp_db_map=sp_db_map,
+        site_map=site_map,
+        progress=progress,
+    )
 
     msg = "Downloading genomes"
     if progress is not None:
@@ -356,7 +367,6 @@ def get_ensembl_trees(
 def get_species_for_alignments(
     *,
     host: str,
-    remote_path: str,
     release: str,
     align_names: typing.Iterable[str],
     site_map: eti_site_map.SiteMap,
