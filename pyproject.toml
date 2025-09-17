@@ -20,8 +20,8 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10,<3.14"
 dependencies = ["blosc2",
         "click",
-        "cogent3>=2025.7.10a5",
-        "cogent3-h5seqs",
+        "cogent3==2025.7.10a5",
+        "cogent3-h5seqs==0.5.0",
         "duckdb",
         "numba",
         "numpy",
