@@ -45,7 +45,7 @@ select = ["ALL"]
 # turning of SQL injectiuon risk warnings, we are querying public data only
 # turning off checking using open instead of pathlib.Path.open
 ignore = ["EXE002", "FA100", "E501", "D", "ICN001", "FBT001", "FBT002",
-          "PLR0913", "S608", "PTH123"]
+          "PLR0913", "S608", "PTH123", "COM812"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
