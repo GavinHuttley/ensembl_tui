@@ -108,7 +108,6 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
         species = eti_download.get_species_for_alignments(
             site_map=site_map,
             host=config.host,
-            remote_path=config.remote_path,
             release=config.release,
             align_names=config.align_names,
         )

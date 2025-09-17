@@ -154,7 +154,6 @@ def test_read_config_compara_genomes(cfg_just_aligns):
     assert not config.species_dbs
     sp = eti_download.get_species_for_alignments(
         host=config.host,
-        remote_path=config.remote_path,
         release=config.release,
         align_names=config.align_names,
         site_map=site_map,
