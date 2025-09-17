@@ -602,14 +602,20 @@ def alignments(
         for alignments in maker.as_completed(locations, show_progress=False):
             progress_bar.update(task, advance=1)
             if not alignments:
-                eti_util.print_colour(str(alignments), colour="red")
+                if verbose:
+                    eti_util.print_colour(str(alignments), colour="red")
                 continue
+
             input_source = alignments[0].info.source
             if len(alignments) == 1:
                 writer(alignments[0], identifier=input_source)
                 continue
 
             for i, aln in enumerate(alignments):
+                if len(aln) == 0:
+                    if verbose:
+                        eti_util.print_colour(text=f"{aln=}", colour="red")
+                    continue
                 identifier = f"{input_source}-{i}"
                 writer(aln, identifier=identifier)
 
