@@ -3,7 +3,7 @@ import pathlib
 import typing
 
 from cogent3 import load_table, make_table
-from cogent3.core.tree import TreeNode
+from cogent3.core.tree import PhyloNode
 
 from ensembl_tui import _util as eti_util
 
@@ -197,7 +197,7 @@ class SpeciesNameMap:
 Species = SpeciesNameMap()
 
 
-def species_from_ensembl_tree(tree: TreeNode) -> dict[str, str]:
+def species_from_ensembl_tree(tree: PhyloNode) -> dict[str, str]:
     """get species identifiers from an Ensembl tree"""
     tip_names = tree.get_tip_names()
     selected_species = {}

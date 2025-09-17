@@ -15,6 +15,9 @@ from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
+if typing.TYPE_CHECKING:
+    from cogent3.core.tree import PhyloNode
+
 DEFAULT_CFG = eti_util.get_resource_path("sample.cfg")
 
 _valid_seq = re.compile(r"dna[.](nonchromosomal|toplevel)\.fa\.gz")
@@ -327,7 +330,7 @@ def download_ensembl_tree(
     remote_path: str,
     release: str,
     tree_fname: str,
-) -> cogent3.core.tree.PhyloNode:
+) -> "PhyloNode":
     """loads a tree from Ensembl"""
     site_map = eti_site_map.get_site_map(host)
     url = f"https://{host}/{remote_path}/release-{release}/{site_map.trees_path}/{tree_fname}"
