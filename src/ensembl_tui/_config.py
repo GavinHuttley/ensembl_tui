@@ -37,7 +37,6 @@ def make_relative_to(
 @dataclass
 class Config:
     host: str
-    remote_path: str
     release: str
     staging_path: pathlib.Path
     install_path: pathlib.Path
@@ -49,10 +48,6 @@ class Config:
     def __post_init__(self) -> None:
         self.staging_path = pathlib.Path(self.staging_path)
         self.install_path = pathlib.Path(self.install_path)
-
-    @property
-    def remote_release_path(self) -> str:
-        return f"{self.remote_path}/release-{self.release}"
 
     @property
     def staging_template_path(self) -> pathlib.Path:
@@ -110,7 +105,7 @@ class Config:
             install_path = str(make_relative_to(self.staging_path, self.install_path))
 
         data = {
-            "remote path": {"path": str(self.remote_path), "host": str(self.host)},
+            "remote path": {"host": str(self.host)},
             "local path": {
                 "staging_path": staging_path,
                 "install_path": install_path,
@@ -284,8 +279,6 @@ def read_config(
 
     release = parser.get("release", "release")
     host = parser.get("remote path", "host")
-    remote_path = parser.get("remote path", "path")
-    remote_path = remote_path.removesuffix("/")
     site_map = eti_site_map.get_site_map(host)
     # paths
     staging_path = _standardise_path(parser.get("local path", "staging_path"), root_dir)
@@ -330,7 +323,6 @@ def read_config(
 
     return Config(
         host=host,
-        remote_path=remote_path,
         release=release,
         staging_path=staging_path,
         install_path=install_path,

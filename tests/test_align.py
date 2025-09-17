@@ -491,7 +491,6 @@ def db_align(DATA_DIR, tmp_dir):
 
     cfg = eti_config.Config(
         host="localhost",
-        remote_path="",
         staging_path=staging_path,
         install_path=install_path,
         species_dbs={},
