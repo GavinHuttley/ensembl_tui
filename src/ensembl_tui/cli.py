@@ -14,6 +14,7 @@ from ensembl_tui import _cli_option as cli_opt
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _homology as eti_homology
+from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
@@ -94,6 +95,7 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
         sys.exit(1)
 
     config = eti_config.read_config(configpath, root_dir=pathlib.Path.cwd())
+    site_map = eti_site_map.get_site_map(config.host)
 
     if verbose:
         eti_util.print_colour(text=str(config), colour="yellow")
@@ -104,6 +106,7 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
 
     if not config.species_dbs:
         species = eti_download.get_species_for_alignments(
+            site_map=site_map,
             host=config.host,
             remote_path=config.remote_path,
             release=config.release,
@@ -125,9 +128,27 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
             progress.TimeElapsedColumn(),
         ) as prog_bar,
     ):
-        eti_download.download_species(config, debug, verbose, progress=prog_bar)
-        eti_download.download_homology(config, debug, verbose, progress=prog_bar)
-        eti_download.download_aligns(config, debug, verbose, progress=prog_bar)
+        eti_download.download_species(
+            site_map=site_map,
+            config=config,
+            debug=debug,
+            verbose=verbose,
+            progress=prog_bar,
+        )
+        eti_download.download_homology(
+            site_map=site_map,
+            config=config,
+            debug=debug,
+            verbose=verbose,
+            progress=prog_bar,
+        )
+        eti_download.download_aligns(
+            site_map=site_map,
+            config=config,
+            debug=debug,
+            verbose=verbose,
+            progress=prog_bar,
+        )
 
     eti_util.print_colour(text=f"Downloaded to {config.staging_path}", colour="green")
 

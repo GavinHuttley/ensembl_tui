@@ -5,6 +5,7 @@ import sys
 from collections.abc import Generator, Sequence
 from dataclasses import dataclass
 
+from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
@@ -285,6 +286,7 @@ def read_config(
     host = parser.get("remote path", "host")
     remote_path = parser.get("remote path", "path")
     remote_path = remote_path.removesuffix("/")
+    site_map = eti_site_map.get_site_map(host)
     # paths
     staging_path = _standardise_path(parser.get("local path", "staging_path"), root_dir)
     install_path = _standardise_path(parser.get("local path", "install_path"), root_dir)
@@ -317,7 +319,12 @@ def read_config(
     if tree_names:
         # add all species in the tree to species_dbs
         for tree_name in tree_names:
-            tree = download_ensembl_tree(host, remote_path, release, tree_name)
+            tree = download_ensembl_tree(
+                host=host,
+                release=release,
+                site_map=site_map,
+                tree_fname=tree_name,
+            )
             sp = eti_species.species_from_ensembl_tree(tree)
             species_dbs |= sp
 

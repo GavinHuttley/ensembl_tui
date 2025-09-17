@@ -47,8 +47,11 @@ def _remove_tmpdirs(path: eti_util.PathType) -> None:
 
 def get_core_db_dirnames(config: eti_config.Config) -> dict[str, str]:
     """maps species name to ftp path to mysql core dbs"""
+    site_map = eti_site_map.get_site_map(config.host)
+    remote_release_path = site_map.get_remote_release_path(config.release)
+    # get all the mysql db names
     all_db_names = list(
-        eti_ftp.listdir(config.host, f"{config.remote_release_path}/mysql"),
+        eti_ftp.listdir(config.host, f"{remote_release_path}/mysql"),
     )
     selected_species = {}
     for db_name in all_db_names:
@@ -107,14 +110,16 @@ def make_core_db_templates(
 
 
 def download_species(
+    *,
+    site_map: eti_site_map.SiteMap,
     config: eti_config.Config,
     debug: bool,
     verbose: bool,
     progress: Progress | None = None,
 ) -> None:
     """download seq and annotation data"""
-    remote_template = f"{config.remote_release_path}/" + "{}"
-    site_map = eti_site_map.get_site_map(config.host)
+    remote_release_path = site_map.get_remote_release_path(config.release)
+    remote_template = f"{remote_release_path}/" + "{}"
     if verbose:
         eti_util.print_colour(
             text=f"DOWNLOADING\n  ensembl release={config.release}",
@@ -208,7 +213,9 @@ class valid_compara_align:  # noqa: N801
 
 
 def download_aligns(
+    *,
     config: eti_config.Config,
+    site_map: eti_site_map.SiteMap,
     debug: bool,
     verbose: bool,
     progress: Progress | None = None,
@@ -217,10 +224,7 @@ def download_aligns(
     if not config.align_names:
         return
 
-    site_map = eti_site_map.get_site_map(config.host)
-    remote_template = (
-        f"{config.remote_path}/release-{config.release}/{site_map.alignments_path}/{{}}"
-    )
+    remote_template = f"{site_map.remote_path}/release-{config.release}/{site_map.alignments_path}/{{}}"
 
     msg = "Downloading alignments"
     if progress is not None:
@@ -271,19 +275,18 @@ class valid_compara_homology:  # noqa: N801
 
 
 def download_homology(
+    *,
     config: eti_config.Config,
     debug: bool,
     verbose: bool,
+    site_map: eti_site_map.SiteMap,
     progress: Progress | None = None,
 ) -> None:
     """downloads tsv homology files for each genome"""
     if not config.homologies:
         return
 
-    site_map = eti_site_map.get_site_map(config.host)
-    remote_template = (
-        f"{config.remote_path}/release-{config.release}/{site_map.homologies_path}/{{}}"
-    )
+    remote_template = f"{site_map.remote_path}/release-{config.release}/{site_map.homologies_path}/{{}}"
 
     local = config.staging_homologies
 
@@ -326,44 +329,50 @@ def download_homology(
 
 
 def download_ensembl_tree(
+    *,
     host: str,
-    remote_path: str,
+    site_map: eti_site_map.SiteMap,
     release: str,
     tree_fname: str,
 ) -> "PhyloNode":
     """loads a tree from Ensembl"""
-    site_map = eti_site_map.get_site_map(host)
-    url = f"https://{host}/{remote_path}/release-{release}/{site_map.trees_path}/{tree_fname}"
+    url = f"https://{host}/{site_map.remote_path}/release-{release}/{site_map.trees_path}/{tree_fname}"
     return cogent3.load_tree(url)
 
 
-def get_ensembl_trees(host: str, remote_path: str, release: str) -> list[str]:
+def get_ensembl_trees(
+    *,
+    host: str,
+    release: str,
+    site_map: eti_site_map.SiteMap,
+) -> list[str]:
     """returns trees from ensembl compara"""
-    site_map = eti_site_map.get_site_map(host)
-    path = f"{remote_path}/release-{release}/{site_map.trees_path}"
+    path = f"{site_map.remote_path}/release-{release}/{site_map.trees_path}"
     return list(
         eti_ftp.listdir(host=host, path=path, pattern=lambda x: x.endswith(".nh")),
     )
 
 
 def get_species_for_alignments(
+    *,
     host: str,
     remote_path: str,
     release: str,
     align_names: typing.Iterable[str],
+    site_map: eti_site_map.SiteMap,
 ) -> dict[str, list[str]]:
     """return the species for the indicated alignments"""
     ensembl_trees = get_ensembl_trees(
+        site_map=site_map,
         host=host,
-        remote_path=remote_path,
         release=release,
     )
     aligns_trees = eti_util.trees_for_aligns(align_names, ensembl_trees)
     species = {}
     for tree_path in aligns_trees.values():
         tree = download_ensembl_tree(
+            site_map=site_map,
             host=host,
-            remote_path=remote_path,
             release=release,
             tree_fname=pathlib.Path(tree_path).name,
         )
