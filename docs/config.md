@@ -34,7 +34,7 @@ This is a `.ini` format. A section is denoted by square brackets surrounding the
 
 ### `[remote path]`
 
-This is the section defining which Ensembl FTP server hosts the data and the remote path. At present, we are only supporting the primary Ensembl Server, so this section should be left as is.
+This is the section defining which Ensembl FTP server hosts the data. At present, we are only supporting the primary Ensembl Server, so this section should be left as is.
 
 ### `[local path]`
 
@@ -68,7 +68,6 @@ For example, the following config would download 10 primate genomes along with w
 ```ini
 [remote path]
 host=ftp.ensembl.org
-path=pub
 [local path]
 staging_path=download_114
 install_path=install_114
