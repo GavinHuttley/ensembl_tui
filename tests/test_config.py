@@ -6,6 +6,7 @@ import pytest
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _download as eti_download
+from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _util as eti_util
 
 
@@ -149,12 +150,14 @@ def test_read_config_compara_genomes(cfg_just_aligns):
     from ensembl_tui._species import Species
 
     config = eti_config.read_config(cfg_just_aligns)
+    site_map = eti_site_map.get_site_map(config.host)
     assert not config.species_dbs
     sp = eti_download.get_species_for_alignments(
         host=config.host,
         remote_path=config.remote_path,
         release=config.release,
         align_names=config.align_names,
+        site_map=site_map,
     )
     expected = {Species.get_species_name(n) for n in COMMON_NAMES}
     assert set(sp.keys()) == expected
