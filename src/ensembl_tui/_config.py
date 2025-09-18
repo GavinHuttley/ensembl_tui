@@ -2,12 +2,16 @@ import configparser
 import fnmatch
 import pathlib
 import sys
+import typing
 from collections.abc import Generator, Sequence
 from dataclasses import dataclass
 
 from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.table import Table
 
 INSTALLED_CONFIG_NAME = "installed.cfg"
 DOWNLOADED_CONFIG_NAME = "downloaded.cfg"
@@ -16,6 +20,8 @@ _COMPARA_NAME: str = "compara"
 _ALIGNS_NAME: str = "aligns"
 _HOMOLOGIES_NAME: str = "homologies"
 _GENOMES_NAME: str = "genomes"
+
+_VERSION_SECTION = "software versions"
 
 
 def make_relative_to(
@@ -153,6 +159,7 @@ class Config:
 class InstalledConfig:
     release: str
     install_path: pathlib.Path
+    software_versions: dict[str, str]
 
     def __hash__(self) -> int:
         return id(self)
@@ -219,13 +226,49 @@ class InstalledConfig:
             raise FileNotFoundError(msg)
         return align_dir
 
+    def get_version_table(self) -> "Table":
+        """returns table of software versions used to make installation"""
+
+        from cogent3 import make_table
+
+        header = ["package", "version"]
+        return make_table(
+            header=header,
+            data=sorted(self.software_versions.items()),
+            index_name="package",
+            title="Installation software versions:",
+        )
+
+
+def _get_dependency_versions() -> dict[str, str]:
+    import re
+    from importlib import metadata
+    from importlib.util import find_spec
+
+    # get the declared dependencies
+    deps = {"ensembl_tui"}
+    for pkg in metadata.requires("ensembl_tui"):
+        if "extra" in pkg:
+            continue
+        if match := re.match(r"^[A-Za-z0-9_-]+", pkg):
+            pkg = match.group(0).replace("-", "_")
+            if find_spec(pkg):
+                deps.add(pkg)
+
+    return {pkg: metadata.version(pkg) for pkg in deps}
+
 
 def write_installed_cfg(config: Config) -> eti_util.PathType:
     """writes an ini file under config.installed_path"""
     parser = configparser.ConfigParser()
     parser.add_section("release")
     parser.set("release", "release", config.release)
-    # create all the genome
+    # get the declared dependencies
+    deps = _get_dependency_versions()
+    parser.add_section(_VERSION_SECTION)
+    for pkg, vers in deps.items():
+        parser.set(_VERSION_SECTION, pkg, vers)
+
     outpath = config.install_path / INSTALLED_CONFIG_NAME
     outpath.parent.mkdir(parents=True, exist_ok=True)
     with outpath.open(mode="w") as out:
@@ -246,7 +289,13 @@ def read_installed_cfg(path: eti_util.PathType) -> InstalledConfig:
 
     parser.read(path)
     release = parser.get("release", "release")
-    return InstalledConfig(release=release, install_path=path.parent)
+    if parser.has_section(_VERSION_SECTION):
+        software_versions = dict(parser.items(_VERSION_SECTION))
+    else:
+        software_versions = {}
+    return InstalledConfig(
+        release=release, install_path=path.parent, software_versions=software_versions
+    )
 
 
 def _standardise_path(

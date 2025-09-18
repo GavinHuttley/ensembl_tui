@@ -248,6 +248,12 @@ def installed(installed: pathlib.Path) -> None:
     char = "✅" if config.aligns_path.exists() else "❌"
     eti_util.print_colour(f"Installed alignments: {char}", colour="blue", style="bold")
 
+    table = config.get_version_table()
+    if table.shape[0] > 1:
+        eti_util.rich_display(table)
+    else:
+        eti_util.print_colour(f"{table.title} ❌", colour="blue", style="bold")
+
 
 @main.command(**_click_command_opts)
 @cli_opt.installed
