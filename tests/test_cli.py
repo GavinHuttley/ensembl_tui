@@ -87,6 +87,8 @@ def test_installed(installed):
     path = config.installed_genome("caenorhabditis_elegans")
     # should be 2 combined attr parquet files
     assert len(list(path.glob("*attr.parquet"))) == 2
+    table = config.get_version_table()
+    assert table.title in r.output
 
 
 def test_installed_with_alignments(apes_install_path):

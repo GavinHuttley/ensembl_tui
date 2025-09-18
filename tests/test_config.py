@@ -11,31 +11,64 @@ from ensembl_tui import _util as eti_util
 
 
 def test_installed_genome():
-    cfg = eti_config.InstalledConfig(release="110", install_path="abcd")
+    cfg = eti_config.InstalledConfig(
+        release="110", install_path="abcd", software_versions={}
+    )
     assert cfg.installed_genome("human") == pathlib.Path("abcd/genomes/homo_sapiens")
 
 
 def test_installed_aligns():
-    cfg = eti_config.InstalledConfig(release="110", install_path="abcd")
+    cfg = eti_config.InstalledConfig(
+        release="110", install_path="abcd", software_versions={}
+    )
     assert cfg.aligns_path == pathlib.Path("abcd/compara/aligns")
 
 
 def test_installed_homologies():
-    cfg = eti_config.InstalledConfig(release="110", install_path="abcd")
+    cfg = eti_config.InstalledConfig(
+        release="110", install_path="abcd", software_versions={}
+    )
     assert cfg.homologies_path == pathlib.Path("abcd/compara/homologies")
 
 
-def test_read_installed(tmp_config, tmp_path):
+@pytest.fixture
+def installed_cfg_path(tmp_config, tmp_path):
     config = eti_config.read_config(tmp_config)
     outpath = eti_config.write_installed_cfg(config)
-    got = eti_config.read_installed_cfg(outpath)
+    return outpath
+
+
+def test_read_installed(installed_cfg_path):
+    got = eti_config.read_installed_cfg(installed_cfg_path)
     assert str(got.installed_genome("human")) == str(
         got.install_path / "genomes/homo_sapiens",
     )
 
 
+def test_read_installed_software_versions(installed_cfg_path):
+    import cogent3
+    import cogent3_h5seqs
+
+    import ensembl_tui
+
+    config = eti_config.read_installed_cfg(installed_cfg_path)
+    assert config.software_versions["ensembl_tui"] == ensembl_tui.__version__
+    assert config.software_versions["cogent3"] == cogent3.__version__
+    assert config.software_versions["cogent3_h5seqs"] == cogent3_h5seqs.__version__
+
+
+def test_read_installed_get_version_table(installed_cfg_path):
+    import ensembl_tui
+
+    config = eti_config.read_installed_cfg(installed_cfg_path)
+    table = config.get_version_table()
+    assert table["ensembl_tui", "version"] == ensembl_tui.__version__
+
+
 def test_installed_config_hash():
-    ic = eti_config.InstalledConfig(release="11", install_path="abcd")
+    ic = eti_config.InstalledConfig(
+        release="11", install_path="abcd", software_versions={}
+    )
     assert hash(ic) == id(ic)
     v = {ic}
     assert len(v) == 1
@@ -50,7 +83,9 @@ def installed_aligns(tmp_path):
         dirname = align_dir / name
         dirname.mkdir(parents=True, exist_ok=True)
         (dirname / f"align_blocks.{eti_align.ALIGN_STORE_SUFFIX}").open(mode="w")
-    return eti_config.InstalledConfig(release="11", install_path=tmp_path)
+    return eti_config.InstalledConfig(
+        release="11", install_path=tmp_path, software_versions={}
+    )
 
 
 @pytest.fixture

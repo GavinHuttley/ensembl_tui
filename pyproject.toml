@@ -57,7 +57,6 @@ eti = "ensembl_tui.cli:main"
 
 [project.optional-dependencies]
 test = [
-    "click",
     "pandas",
     "pytest",
     "pytest-cov",
@@ -66,8 +65,6 @@ test = [
     "ruff==0.12.10",
     "nox"]
 doc  = [
-    "ensembl-tui",
-    "diverse_seq[extra]",
     "mkdocs>=1.6.1",
     "markdown-exec[ansi]>=1.10.0",
     "mkdocs-jupyter>=0.25.1",
@@ -76,10 +73,8 @@ doc  = [
     "mdformat-mkdocs",
     "mdformat-black",
 ]
-dev = ["click",
-       "cogapp",
+dev = ["cogapp",
        "flit",
-       "nox",
        "numpydoc",
        "psutil",
        "scriv",
