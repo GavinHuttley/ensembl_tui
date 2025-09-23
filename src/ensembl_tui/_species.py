@@ -8,7 +8,7 @@ from cogent3.core.tree import PhyloNode
 from ensembl_tui import _util as eti_util
 
 SPECIES_NAME = "species.tsv"
-StrOrNone = typing.Union[str, type(None)]
+StrOrNone = str | None
 
 
 def load_species(species_path: eti_util.PathType) -> list[list[str]]:
