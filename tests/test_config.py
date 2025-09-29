@@ -32,10 +32,9 @@ def test_installed_homologies():
 
 
 @pytest.fixture
-def installed_cfg_path(tmp_config, tmp_path):
-    config = eti_config.read_config(tmp_config)
-    outpath = eti_config.write_installed_cfg(config)
-    return outpath
+def installed_cfg_path(tmp_config):
+    config = eti_config.read_config(config_path=tmp_config)
+    return eti_config.write_installed_cfg(config)
 
 
 def test_read_installed(installed_cfg_path):
@@ -184,7 +183,7 @@ def cfg_just_genomes(empty_cfg):
 def test_read_config_compara_genomes(cfg_just_aligns):
     from ensembl_tui._species import Species
 
-    config = eti_config.read_config(cfg_just_aligns)
+    config = eti_config.read_config(config_path=cfg_just_aligns)
     site_map = eti_site_map.get_site_map(config.host)
     assert not config.species_dbs
     sp = eti_download.get_species_for_alignments(
@@ -202,6 +201,6 @@ def test_read_config_compara_genomes(cfg_just_aligns):
 def test_read_config_genomes(cfg_just_genomes):
     from ensembl_tui._species import Species
 
-    config = eti_config.read_config(cfg_just_genomes)
+    config = eti_config.read_config(config_path=cfg_just_genomes)
     expected = {Species.get_species_name(n) for n in COMMON_NAMES}
     assert set(config.species_dbs.keys()) == expected

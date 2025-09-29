@@ -84,7 +84,7 @@ def drop_chrom(genome_dir: pathlib.Path, seqid: str = "22", check: bool = True):
 
 
 def copy_maf(cfg_path: pathlib.Path, dest_dir: pathlib.Path, seqid: str = "22"):
-    cfg = eti_config.read_config(cfg_path)
+    cfg = eti_config.read_config(config_path=cfg_path)
     align_path = cfg.staging_aligns / cfg.align_names[0]
     maf_file = min(align_path.glob(f"*.{seqid}*.maf.*"), key=lambda p: p.stat().st_size)
     dest_dir.mkdir(parents=True, exist_ok=True)

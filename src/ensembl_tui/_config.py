@@ -307,7 +307,9 @@ def _standardise_path(
 
 
 def read_config(
+    *,
     config_path: pathlib.Path,
+    species_map: eti_species.SpeciesNameMap | None = None,
     root_dir: pathlib.Path | None = None,
 ) -> Config:
     """returns ensembl release, local path, and db specifics from the provided
@@ -352,8 +354,8 @@ def read_config(
         dbs = [db.strip() for db in get_option(section, "db").split(",")]
 
         # handle synonyms
-        species = eti_species.Species.get_species_name(section, level="raise")
-        species_dbs[species] = dbs
+        species_name = species_map.get_species_name(section, level="raise")
+        species_dbs[species_name] = dbs
 
     # we also want homologies if we want alignments
     homologies = homologies or bool(align_names)
@@ -369,7 +371,8 @@ def read_config(
             )
             if tree is None:
                 continue
-            sp = eti_species.species_from_ensembl_tree(tree)
+
+            sp = eti_species.species_from_ensembl_tree(tree, species_map=species_map)
             species_dbs |= sp
 
     return Config(

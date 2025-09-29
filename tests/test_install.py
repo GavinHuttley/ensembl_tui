@@ -155,7 +155,7 @@ def downloaded_cfg(tmp_downloaded):
 
 
 def test_write_parquet(downloaded_cfg):
-    cfg = eti_config.read_config(downloaded_cfg)
+    cfg = eti_config.read_config(config_path=downloaded_cfg)
     template_path = cfg.staging_template_path
     genome = "saccharomyces_cerevisiae"
     dump_path = cfg.staging_genomes / genome / "mysql" / "gene.txt.gz"
@@ -190,7 +190,7 @@ def test_install_features(yeast_db):
 # fail to import if directories or files are missing
 @pytest.fixture(params=[1, 2, 3])
 def invalid_downloaded_cfg(downloaded_cfg, request):
-    cfg = eti_config.read_config(downloaded_cfg)
+    cfg = eti_config.read_config(config_path=downloaded_cfg)
     genome = "saccharomyces_cerevisiae"
     genome_root = cfg.staging_genomes / genome
     if request.param == 1:
@@ -204,7 +204,7 @@ def invalid_downloaded_cfg(downloaded_cfg, request):
 
 
 def test_install_features_invalid(invalid_downloaded_cfg):
-    cfg = eti_config.read_config(invalid_downloaded_cfg)
+    cfg = eti_config.read_config(config_path=invalid_downloaded_cfg)
     with pytest.raises(FileNotFoundError):  # noqa: PT012
         app = eti_db_ingest.mysql_dump_to_parquet(config=cfg)
         # an exception during call in finding mysql file

@@ -103,7 +103,7 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
         )
         sys.exit(1)
 
-    config = eti_config.read_config(configpath, root_dir=pathlib.Path.cwd())
+    config = eti_config.read_config(config_path=configpath, root_dir=pathlib.Path.cwd())
     site_map = eti_site_map.get_site_map(config.host)
 
     if verbose:
@@ -182,7 +182,7 @@ def install(
     )
 
     configpath = download / eti_config.DOWNLOADED_CONFIG_NAME
-    config = eti_config.read_config(configpath)
+    config = eti_config.read_config(config_path=configpath, root_dir=None)
     if verbose:
         eti_util.print_colour(text=f"{config.install_path=}", colour="yellow")
 

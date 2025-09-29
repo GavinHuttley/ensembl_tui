@@ -81,7 +81,7 @@ def small_install_path(small_path):
 
 @pytest.fixture(scope="session")
 def small_download_cfg(small_download_path):
-    return eti_config.read_config(small_download_path)
+    return eti_config.read_config(config_path=small_download_path)
 
 
 @pytest.fixture(scope="session")
