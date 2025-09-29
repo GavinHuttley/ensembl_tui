@@ -10,23 +10,32 @@ from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _util as eti_util
 
 
-def test_installed_genome():
+def test_installed_genome(default_species_map):
     cfg = eti_config.InstalledConfig(
-        release="110", install_path="abcd", software_versions={}
+        release="110",
+        install_path="abcd",
+        software_versions={},
+        species_map=default_species_map,
     )
     assert cfg.installed_genome("human") == pathlib.Path("abcd/genomes/homo_sapiens")
 
 
-def test_installed_aligns():
+def test_installed_aligns(default_species_map):
     cfg = eti_config.InstalledConfig(
-        release="110", install_path="abcd", software_versions={}
+        release="110",
+        install_path="abcd",
+        software_versions={},
+        species_map=default_species_map,
     )
     assert cfg.aligns_path == pathlib.Path("abcd/compara/aligns")
 
 
-def test_installed_homologies():
+def test_installed_homologies(default_species_map):
     cfg = eti_config.InstalledConfig(
-        release="110", install_path="abcd", software_versions={}
+        release="110",
+        install_path="abcd",
+        software_versions={},
+        species_map=default_species_map,
     )
     assert cfg.homologies_path == pathlib.Path("abcd/compara/homologies")
 
@@ -39,8 +48,8 @@ def installed_cfg_path(tmp_config):
 
 def test_read_installed(installed_cfg_path):
     got = eti_config.read_installed_cfg(installed_cfg_path)
-    assert str(got.installed_genome("human")) == str(
-        got.install_path / "genomes/homo_sapiens",
+    assert str(got.installed_genome("sac-cere")) == str(
+        got.install_path / "genomes/saccharomyces_cerevisiae",
     )
 
 
@@ -64,9 +73,12 @@ def test_read_installed_get_version_table(installed_cfg_path):
     assert table["ensembl_tui", "version"] == ensembl_tui.__version__
 
 
-def test_installed_config_hash():
+def test_installed_config_hash(default_species_map):
     ic = eti_config.InstalledConfig(
-        release="11", install_path="abcd", software_versions={}
+        release="11",
+        install_path="abcd",
+        software_versions={},
+        species_map=default_species_map,
     )
     assert hash(ic) == id(ic)
     v = {ic}
@@ -74,7 +86,7 @@ def test_installed_config_hash():
 
 
 @pytest.fixture
-def installed_aligns(tmp_path):
+def installed_aligns(tmp_path, default_species_map):
     align_dir = tmp_path / eti_config._COMPARA_NAME / eti_config._ALIGNS_NAME
     # make two alignment paths with similar names
     names = "10_primates.epo", "24_primates.epo_extended"
@@ -83,7 +95,10 @@ def installed_aligns(tmp_path):
         dirname.mkdir(parents=True, exist_ok=True)
         (dirname / f"align_blocks.{eti_align.ALIGN_STORE_SUFFIX}").open(mode="w")
     return eti_config.InstalledConfig(
-        release="11", install_path=tmp_path, software_versions={}
+        release="11",
+        install_path=tmp_path,
+        software_versions={},
+        species_map=default_species_map,
     )
 
 
