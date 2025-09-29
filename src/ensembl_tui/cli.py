@@ -48,9 +48,16 @@ def main() -> None:
 
 @main.command(**_click_command_opts)
 @cli_opt.dbrc_out
+@cli_opt.site
 @cli_opt.force
-def demo_config(outpath: pathlib.Path, force_overwrite: bool) -> None:
+def demo_config(outpath: pathlib.Path, site: str, force_overwrite: bool) -> None:
     """exports sample config and species table to the nominated path"""
+    from ensembl_tui._download import download_species_table
+
+    site_map = eti_site_map.get_site_map(site)
+    table = download_species_table(
+        site_map=site_map,
+    )
 
     outpath = outpath.expanduser()
     if outpath.exists() and not force_overwrite:
@@ -73,6 +80,8 @@ def demo_config(outpath: pathlib.Path, force_overwrite: bool) -> None:
             else:
                 # __pycache__ directory
                 shutil.rmtree(fn)
+    species_path = outpath / "species-full.tsv"
+    table.write(species_path)
     eti_util.print_colour(text=f"Contents written to {outpath}", colour="green")
 
 

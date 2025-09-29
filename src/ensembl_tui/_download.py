@@ -1,3 +1,4 @@
+import io
 import pathlib
 import re
 import shutil
@@ -16,6 +17,7 @@ from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
 if typing.TYPE_CHECKING:
+    from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
 
 DEFAULT_CFG = eti_util.get_resource_path("sample.cfg")
@@ -389,3 +391,28 @@ def get_species_for_alignments(
         # dict structure is {common name: db prefix}, just use common name
         species |= {n: ["core"] for n in eti_species.species_from_ensembl_tree(tree)}
     return species
+
+
+def download_species_table(
+    *,
+    site_map: eti_site_map.SiteMap,
+) -> "Table":
+    """downloads the species file for the given Ensembl division"""
+    remote = f"{site_map.remote_path}/current/{site_map.species_file_name}"
+    ftp = eti_ftp.configured_ftp(host=site_map.site)
+    buff = io.BytesIO()
+    ftp.retrbinary(f"RETR {remote}", buff.write)
+    buff.seek(0)
+    data = buff.getvalue().decode("utf-8").splitlines()
+    header = data.pop(0).split("\t")
+    header[0] = header[0].lstrip("#")
+    # the file is tab delimited but does not have a consistent number of columns
+    num_col = len(header)
+    rows = [row.split("\t")[:num_col] for row in data]
+    table = cogent3.make_table(header=header, data=rows)
+    abbrevs = eti_species.make_unique_abbrevs(table.columns["species"])
+    table = table.with_new_column("abbrev", lambda x: abbrevs[x], columns=["species"])
+    old = ["name", "species", "core_db"]
+    table = table.with_new_header(old, ["common_name", "genome_name", "db_prefix"])
+    old = ["abbrev", *old]
+    return table.get_columns(["abbrev"] + [c for c in table.header if c not in old])

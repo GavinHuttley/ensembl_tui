@@ -7,6 +7,7 @@ from cogent3 import load_table
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
+from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
@@ -275,4 +276,10 @@ nprocs = click.option(
     default=1,
     help="Number of procs to use.",
     show_default=True,
+)
+site = click.option(
+    "--site",
+    default="main",
+    type=click.Choice(eti_site_map.get_site_map_names(), case_sensitive=False),
+    help="Ensembl site to use for species list.",
 )

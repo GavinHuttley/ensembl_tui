@@ -214,3 +214,19 @@ def species_from_ensembl_tree(tree: PhyloNode) -> dict[str, str]:
             raise ValueError(f"cannot establish species for {'_'.join(name_fields)}")
 
     return selected_species
+
+
+def make_unique_abbrevs(names: list[str]) -> dict[str, str]:
+    """makes unique abbreviations from the species names"""
+    abbrevs: dict[str, str] = {}
+    for name in names:
+        parts = [p for p in name.split("_") if not _accession.search(p)]
+        parts = [parts[0][:3], *[p[:4] for p in parts[1:]], ""]
+        i = 1
+        while "-".join(p for p in parts if p) in abbrevs.values():
+            i += 1
+            parts[-1] = f"{i}"
+
+        abbrevs[name] = "-".join(p for p in parts if p)
+
+    return abbrevs

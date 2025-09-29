@@ -112,3 +112,7 @@ def test_db_prefix_from_stableid_fail(invalid):
 def test_db_prefixes_from_stablesids(stableid, expect):
     got = Species.get_db_prefix_from_stableid(stableid)
     assert got == expect
+def test_make_unique_abbrevs():
+    names = ["danaus_plexippus", "danaus_plexippus_gca018135715v1"]
+    got = eti_species.make_unique_abbrevs(names)
+    assert got == dict(zip(names, ["dan-plex", "dan-plex-2"], strict=False))

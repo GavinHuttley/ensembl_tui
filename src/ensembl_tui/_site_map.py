@@ -49,6 +49,7 @@ class SiteMap:
     db_host: str
     db_port: int
     remote_path: str
+    species_file_name: str
     _seqs_path: str = "fasta"
     _annotations_path: str = "mysql"
     _alignments_path: str | None = None
@@ -79,6 +80,8 @@ class SiteMap:
 
 
 @extend_docstring_from(SiteMap)
+@register_ensembl_site_map("main")
+@register_ensembl_site_map("vertebrates")
 @register_ensembl_site_map("ftp.ensembl.org")
 def ensembl_main_sitemap() -> SiteMap:
     """the main Ensembl site map"""
@@ -90,12 +93,14 @@ def ensembl_main_sitemap() -> SiteMap:
         db_host="ensembldb.ensembl.org",
         db_port=3306,
         remote_path="pub",
+        species_file_name="species_EnsemblVertebrates.txt",
     )
 
 
+@register_ensembl_site_map("metazoa")
 @register_ensembl_site_map("ftp.ensemblgenomes.org")
 def ensembl_metazoa_sitemap() -> SiteMap:
-    """the main Ensembl site map"""
+    """the metazoa Ensembl site map"""
     return SiteMap(
         site="ftp.ensemblgenomes.org",
         _alignments_path=None,
@@ -104,6 +109,7 @@ def ensembl_metazoa_sitemap() -> SiteMap:
         db_host="mysql-eg-publicsql.ebi.ac.uk",
         db_port=4157,
         remote_path="pub/metazoa",
+        species_file_name="species_EnsemblMetazoa.txt",
     )
 
 
@@ -122,3 +128,8 @@ def ensembl_metazoa_sitemap() -> SiteMap:
 def get_site_map(domain: str) -> SiteMap:
     """returns a site map instance"""
     return _ensembl_site_map[domain]()
+
+
+def get_site_map_names() -> list[str]:
+    """returns the registered site map names"""
+    return list(_ensembl_site_map)
