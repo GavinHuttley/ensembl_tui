@@ -530,9 +530,9 @@ def alignments(
 
     from ensembl_tui import _align as eti_align
 
-    LOGGER = CachingLogger()
-    LOGGER.log_args()
-    LOGGER.log_versions(["cogent3", "cogent3_h5seqs", "numpy", "duckdb"])
+    logger = CachingLogger()
+    logger.log_args()
+    logger.log_versions(["cogent3", "cogent3_h5seqs", "numpy", "duckdb"])
 
     if mask and mask_shadow:
         eti_util.print_colour(
@@ -551,7 +551,7 @@ def alignments(
     if force_overwrite:
         shutil.rmtree(outdir, ignore_errors=True)
 
-    LOGGER.log_file_path = outdir / f"alignments-{ref}.log"
+    logger.log_file_path = outdir / f"alignments-{ref}.log"
 
     config = eti_config.read_installed_cfg(installed)
     align_db = eti_align.load_aligndb(config=config, align_name=align_name)
@@ -656,10 +656,10 @@ def alignments(
                 identifier = f"{input_source}-{i}"
                 writer(aln, identifier=identifier)
 
-    log_file_path = pathlib.Path(LOGGER.log_file_path)
-    LOGGER.shutdown()
+    log_file_path = pathlib.Path(logger.log_file_path)
+    logger.shutdown()
     output.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
-    log_file_path.unlink()
+    log_file_path.unlink(missing_ok=True)
 
     eti_util.print_colour(text="Done!", colour="green")
 
