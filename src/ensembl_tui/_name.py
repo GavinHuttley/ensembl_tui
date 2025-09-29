@@ -3,10 +3,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-import typing_extensions
-
-from ._species import Species
-
 _release = re.compile(r"\d+")
 
 _db_types = (
@@ -52,7 +48,7 @@ def get_db_prefix(name: str) -> str:
 
 class EnsemblDbName:
     """container for a db name, inferring different attributes from the name,
-    such as species, version, build"""
+    such as db prefix, version, build"""
 
     def __init__(self, db_name: str) -> None:
         """db_name: and Emsembl database name"""
@@ -74,8 +70,6 @@ class EnsemblDbName:
             self.build = build[1]
             self.general_release = build[0]
 
-        self.species = Species.get_species_name(self.prefix)
-
     def __repr__(self) -> str:
         build = f"; build='{self.build}'" if self.build is not None else ""
         return f"db(prefix='{self.prefix}'; type='{self.db_type}'; release='{self.release}'{build})"
@@ -83,17 +77,17 @@ class EnsemblDbName:
     def __str__(self) -> str:
         return self.name
 
-    def __lt__(self, other: typing_extensions.Self | str) -> bool:
+    def __lt__(self, other: object) -> bool:
         if isinstance(other, type(self)):
             return self.name < other.name
-        return self.name < other
+        return self.name < other if isinstance(other, str) else NotImplemented
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, type(self)):
             return self.name == other.name
         return self.name == other
 
-    def __ne__(self, other: typing_extensions.Self | str) -> bool:
+    def __ne__(self, other: object) -> bool:
         if isinstance(other, type(self)):
             return self.name != other.name
         return self.name != other

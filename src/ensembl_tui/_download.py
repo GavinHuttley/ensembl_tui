@@ -58,7 +58,7 @@ def get_core_db_dirnames(config: eti_config.Config) -> dict[str, str]:
         if "_core_" not in db_name:
             continue
         db = eti_name.EnsemblDbName(db_name.rsplit("/", maxsplit=1)[1])
-        if db.species in config.species_dbs and db.db_type == "core":
+        if db.prefix in config.species_dbs and db.db_type == "core":
             selected_species[db.prefix] = db_name
     return selected_species
 
