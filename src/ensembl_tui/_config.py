@@ -61,15 +61,6 @@ class Config:
     def staging_template_path(self) -> pathlib.Path:
         return self.staging_genomes / "coredb_templates"
 
-    def update_species(self, species: dict[str, list[str]]) -> None:
-        if not species:
-            return
-        for k in species:
-            if k not in eti_species.Species:
-                msg = f"Unknown species {k=!r}"
-                raise ValueError(msg)
-        self.species_dbs |= species
-
     @property
     def db_names(self) -> Generator[str, None, None]:
         for species in self.species_dbs:
