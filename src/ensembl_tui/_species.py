@@ -205,6 +205,13 @@ class SpeciesNameMap:
             abbrev_common=abrv_common, abbrev_genome=abrv_genome, abbrev_db=abrv_db
         )
 
+    def get_subset(self, names: list[str]) -> "SpeciesNameMap":
+        """returns a species map subset for the given names"""
+        selected = {self.get_genome_name(n, level="raise") for n in names}
+        data = self.for_storage()
+        subset = {k: v for k, v in data.items() if k == "header" or k in selected}
+        return self.from_storage(subset)
+
 
 def species_from_ensembl_tree(
     tree: PhyloNode, species_map: SpeciesNameMap

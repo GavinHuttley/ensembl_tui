@@ -88,3 +88,19 @@ def test_make_unique_abbrevs():
     names = ["danaus_plexippus", "danaus_plexippus_gca018135715v1"]
     got = eti_species.make_unique_abbrevs(names)
     assert got == dict(zip(names, ["dan-plex", "dan-plex-2"], strict=False))
+
+
+def test_get_subset(species):
+    """should take common or latin names and return the corresponding
+    ensembl db prefix"""
+    subset = species.get_subset(["human", "Mus musculus", "canis_lupus_familiaris"])
+    assert subset.to_table().shape[0] == 3
+    got = subset.get_abbreviation("saccharomyces_cerevisiae", level="ignore")
+    assert got is None
+
+
+def test_get_subset_invalid(species):
+    """should take common or latin names and return the corresponding
+    ensembl db prefix"""
+    with pytest.raises(ValueError):  # noqa: PT011
+        species.get_subset(["does not exist"])
