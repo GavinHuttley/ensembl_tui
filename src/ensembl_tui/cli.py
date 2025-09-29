@@ -88,8 +88,14 @@ def demo_config(outpath: pathlib.Path, site: str, force_overwrite: bool) -> None
 @main.command(**_click_command_opts)
 @cli_opt.cfgpath
 @cli_opt.debug
+@cli_opt.species_map
 @cli_opt.verbose
-def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
+def download(
+    configpath: pathlib.Path,
+    species_map: eti_species.SpeciesNameMap,
+    debug: bool,
+    verbose: bool,
+) -> None:
     """download data from Ensembl's ftp site"""
     from rich import progress
 
@@ -103,24 +109,17 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
         )
         sys.exit(1)
 
-    config = eti_config.read_config(config_path=configpath, root_dir=pathlib.Path.cwd())
+    config = eti_config.read_config(
+        config_path=configpath, root_dir=pathlib.Path.cwd(), species_map=species_map
+    )
     site_map = eti_site_map.get_site_map(config.host)
 
     if verbose:
         eti_util.print_colour(text=str(config), colour="yellow")
 
-    if not any((config.species_dbs, config.align_names)):
-        eti_util.print_colour(text="No genomes, no alignments specified", colour="red")
-        sys.exit(1)
-
     if not config.species_dbs:
-        species = eti_download.get_species_for_alignments(
-            site_map=site_map,
-            host=config.host,
-            release=config.release,
-            align_names=config.align_names,
-        )
-        config.update_species(species)
+        eti_util.print_colour(text="No genomes specified", colour="red")
+        sys.exit(1)
 
     if verbose:
         eti_util.print_colour(text=str(config.species_dbs), colour="yellow")

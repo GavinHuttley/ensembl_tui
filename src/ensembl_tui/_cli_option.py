@@ -283,3 +283,10 @@ site = click.option(
     type=click.Choice(eti_site_map.get_site_map_names(), case_sensitive=False),
     help="Ensembl site to use for species list.",
 )
+species_map = click.option(
+    "-sm",
+    "--species_map",
+    default="main",
+    callback=species_map_from_tsv,
+    help="Tsv file with species names, abbreviations etc..",
+)

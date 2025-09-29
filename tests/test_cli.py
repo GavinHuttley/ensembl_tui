@@ -53,6 +53,7 @@ def test_demo_config(tmp_dir):
     shutil.rmtree(tmp_dir)
 
 
+@pytest.mark.internet
 def test_demo_config_exists(tmp_dir):
     outdir = tmp_dir / "exported"
     outdir.mkdir(parents=True, exist_ok=True)
