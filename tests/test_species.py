@@ -21,6 +21,13 @@ def test_get_name_type(species):
     assert species.get_common_name("mus_musculus") == "mouse"
 
 
+def test_get_species_from_common(species):
+    common = "Microbat"
+    assert common in species
+    got = species.get_species_name(common)
+    assert got == "Myotis lucifugus"
+
+
 def test_get_ensembl_format(species):
     """should take common or latin names and return the corresponding
     ensembl db prefix"""

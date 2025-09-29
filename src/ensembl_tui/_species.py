@@ -94,19 +94,7 @@ class SpeciesNameMap:
         return repr(self.to_table())
 
     def __contains__(self, item: str) -> bool:
-        item = item.lower()
-        if " " in item:
-            return _genome_name_to_species_name(item) is not None
-
-        return any(
-            item in attr
-            for attr in (
-                self._abrv_to_db,
-                self._db_to_abrv,
-                self._common_to_abrv,
-                self._genome_to_abrv,
-            )
-        )
+        return bool(self._get_abbrev_for_name(item))
 
     def _repr_html_(self) -> str:
         table = self.to_table()
@@ -120,6 +108,8 @@ class SpeciesNameMap:
             print(f"WARN: {msg}")
 
     def _get_abbrev_for_name(self, name: str) -> StrOrNone:
+        if not isinstance(name, (str, bytes)):
+            return False
         name = name.lower()
         if name in self._abrv_to_db:
             return name
@@ -173,9 +163,15 @@ class SpeciesNameMap:
         self._handle_optional_errors(name, level)
         return None
 
-    def get_abbreviation(self, name: str) -> StrOrNone:
+    def get_abbreviation(
+        self, name: str, level: typing.Literal["ignore", "warn", "raise"] = "ignore"
+    ) -> StrOrNone:
         """returns the abbreviation for the given name"""
-        return self._get_abbrev_for_name(name)
+        if abrv := self._get_abbrev_for_name(name):
+            return abrv
+
+        self._handle_optional_errors(name, level)
+        return None
 
     def to_table(self) -> "Table":
         """returns cogent3 Table"""
@@ -192,6 +188,8 @@ class SpeciesNameMap:
     @classmethod
     def from_table(cls, species_table: "Table") -> "SpeciesNameMap":
         """uses TABLE_COLUMNS from species_table to create a SpeciesNameMap"""
+        from ensembl_tui._name import EnsemblDbName
+
         abrv_genome = {}
         abrv_common = {}
         abrv_db = {}
@@ -201,7 +199,7 @@ class SpeciesNameMap:
             abrv = abrv.strip().lower()
             abrv_genome[abrv] = genome.lower()
             abrv_common[abrv] = common.lower()
-            abrv_db[abrv] = db_prefix.lower()
+            abrv_db[abrv] = EnsemblDbName(db_prefix.lower()).prefix
 
         return cls(
             abbrev_common=abrv_common, abbrev_genome=abrv_genome, abbrev_db=abrv_db
