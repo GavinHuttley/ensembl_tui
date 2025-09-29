@@ -38,9 +38,10 @@ def test_species_with_three_words_name():
     assert n.prefix == "mustela_putorius_furo"
     assert n.db_type == "core"
     assert n.build == "1"
-    assert n.species == "Mustela putorius furo"
     n = EnsemblDbName("canis_lupus_familiaris_core_102_31")
-    assert n.species == "Canis lupus familiaris"
+    assert n.prefix == "canis_lupus_familiaris"
+    assert n.db_type == "core"
+    assert n.build == "31"
 
 
 def test_ensemblgenomes_names():

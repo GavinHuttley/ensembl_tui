@@ -367,6 +367,8 @@ def read_config(
                 site_map=site_map,
                 tree_fname=tree_name,
             )
+            if tree is None:
+                continue
             sp = eti_species.species_from_ensembl_tree(tree)
             species_dbs |= sp
 
