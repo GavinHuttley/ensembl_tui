@@ -1,318 +1,349 @@
-Species name	Common name	Ensembl stableid Prefix
-Acanthochromis polyacanthus	Spiny chromis	ENSAPO
-Accipiter nisus	Eurasian sparrowhawk	ENSANI
-Ailuropoda melanoleuca	Giant panda	ENSAME
-Amazona collaria	Yellow-billed parrot	ENSACO
-Amphilophus citrinellus	Midas cichlid	ENSACI
-Amphiprion ocellaris	Clown anemonefish	ENSAOC
-Amphiprion percula	Orange clownfish	ENSAPE
-Anabas testudineus	Climbing perch	ENSATE
-Anas platyrhynchos	Mallard	ENSAPL
-Anas platyrhynchos platyrhynchos	Duck	ENSAPL
-Anas zonorhyncha	Eastern spot-billed duck	ENSAZO
-Anolis carolinensis	Green anole	ENSACA
-Anser brachyrhynchus	Pink-footed goose	ENSABR
-Anser cygnoides	Swan goose	ENSACD
-Aotus nancymaae	Ma's night monkey	ENSANA
-Apteryx haastii	Great spotted kiwi	ENSAHA
-Apteryx owenii	Little spotted kiwi	ENSAOW
-Apteryx rowi	Okarito brown kiwi	ENSARW
-Aquila chrysaetos chrysaetos	Golden eagle	ENSACC
-Astatotilapia calliptera	Eastern happy	ENSACL
-Astyanax mexicanus	Mexican tetra	ENSAMX
-Astyanax mexicanus pachon	Pachon cavefish	
-Athene cunicularia	Burrowing owl	ENSACU
-Balaenoptera musculus	Blue whale	ENSBMS
-Betta splendens	Siamese fighting fish	ENSBSL
-Bison bison bison	American bison	ENSBBB
-Bos grunniens	Domestic yak	ENSBGR
-Bos indicus hybrid	Hybrid - Bos Indicus	
-Bos mutus	Wild yak	ENSBMU
-Bos taurus	Cow	ENSBTA
-Bos taurus hybrid	Hybrid - Bos Taurus	
-Bubo bubo	Eurasian eagle-owl	ENSBOB
-Buteo japonicus	Eastern buzzard	ENSBJA
-Caenorhabditis elegans	Caenorhabditis elegans (PRJNA13758)	
-Cairina moschata domestica	Muscovy Duck (domestic type)	ENSCMM
-Calidris pugnax	Ruff	ENSCPU
-Calidris pygmaea	Spoon-billed sandpiper	ENSCPG
-Callithrix jacchus	White-tufted-ear marmoset	ENSCJA
-Callorhinchus milii	Elephant shark	ENSCMI
-Camarhynchus parvulus	Small tree finch	ENSCPV
-Camelus dromedarius	Arabian camel	ENSCDR
-Canis lupus dingo	Dingo	ENSCAF
-Canis lupus familiaris	Dog	ENSCAF
-Canis lupus familiarisbasenji	Dog - Basenji	
-Canis lupus familiarisboxer	Dog - Boxer	
-Canis lupus familiarisgreatdane	Dog - Great Dane	
-Canis lupus familiarisgsd	Dog - German Shepherd	
-Capra hircus	Goat	ENSCHI
-Capra hircus blackbengal	Goat (black bengal)	
-Carassius auratus	Goldfish	ENSCAR
-Carlito syrichta	Tarsier	ENSTSY
-Castor canadensis	American beaver	ENSCCN
-Catagonus wagneri	Chacoan peccary	ENSCWA
-Catharus ustulatus	Swainson's thrush	ENSCUS
-Cavia aperea	Brazilian guinea pig	ENSCAP
-Cavia porcellus	Guinea Pig	ENSCPO
-Cebus imitator	Panamanian white-faced capuchin	ENSCCA
-Cercocebus atys	Sooty mangabey	ENSCAT
-Cervus hanglu yarkandensis	Yarkand deer	ENSCHY
-Chelonoidis abingdonii	Abingdon island giant tortoise	ENSCAB
-Chelydra serpentina	Common snapping turtle	ENSCSR
-Chinchilla lanigera	Long-tailed chinchilla	ENSCLA
-Chlorocebus sabaeus	Vervet-AGM	ENSCSA
-Choloepus hoffmanni	Sloth	ENSCHO
-Chrysemys picta bellii	Painted turtle	ENSCPB
-Chrysolophus pictus	Golden pheasant	ENSCPI
-Ciona intestinalis	C.intestinalis	ENSCIN
-Ciona savignyi	C.savignyi	ENSCSAV
-Clupea harengus	Atlantic herring	ENSCHA
-Colobus angolensis palliatus	Angola colobus	ENSCAN
-Corvus moneduloides	New Caledonian crow	ENSCMU
-Cottoperca gobio	Channel bull blenny	ENSCGO
-Coturnix japonica	Japanese quail	ENSCJP
-Cricetulus griseus chok1gshd	Chinese hamster CHOK1GS	
-Cricetulus griseus crigri	Chinese hamster CriGri	
-Cricetulus griseus picr	Chinese hamster PICR	
-Crocodylus porosus	Australian saltwater crocodile	ENSCPR
-Cyanistes caeruleus	Blue tit	ENSCCE
-Cyclopterus lumpus	Lumpfish	ENSCLM
-Cynoglossus semilaevis	Tongue sole	ENSCSE
-Cyprinodon variegatus	Sheepshead minnow	ENSCVA
-Cyprinus carpio carpio	Common carp	ENSCCR
-Cyprinus carpio germanmirror	Common carp german mirror	
-Cyprinus carpio hebaored	Common carp hebao red	
-Cyprinus carpio huanghe	Common carp huanghe	
-Danio rerio	Zebrafish	ENSDAR
-Dasypus novemcinctus	Armadillo	ENSDNO
-Delphinapterus leucas	Beluga whale	ENSDLE
-Denticeps clupeoides	Denticle herring	ENSDCD
-Dicentrarchus labrax	European seabass	ENSDLA
-Dipodomys ordii	Kangaroo rat	ENSDOR
-Dromaius novaehollandiae	Emu	ENSDNV
-Drosophila melanogaster	Drosophila melanogaster (Fruit fly)	
-Echeneis naucrates	Live sharksucker	ENSENL
-Echinops telfairi	Lesser hedgehog tenrec	ENSETE
-Electrophorus electricus	Electric eel	ENSEEE
-Eptatretus burgeri	Hagfish	ENSEBU
-Equus asinus	Donkey	ENSEAS
-Equus caballus	Horse	ENSECA
-Erinaceus europaeus	Hedgehog	ENSEEU
-Erpetoichthys calabaricus	Reedfish	ENSECR
-Erythrura gouldiae	Gouldian finch	ENSEGO
-Esox lucius	Northern pike	ENSELU
-Falco tinnunculus	Common kestrel	ENSFTI
-Felis catus	Cat	ENSFCA
-Ficedula albicollis	Collared flycatcher	ENSFAL
-Fukomys damarensis	Damara mole rat	ENSFDA
-Fundulus heteroclitus	Mummichog	ENSFHE
-Gadus morhua	Atlantic cod	ENSGMO
-Gallus gallus	Chicken	ENSGAL
-Gallus gallus gca000002315v5	Chicken (Red Jungle fowl)	
-Gallus gallus gca016700215v2	Chicken (paternal White leghorn layer)	
-Gambusia affinis	Western mosquitofish	ENSGAF
-Gasterosteus aculeatus	Stickleback	ENSGAC
-Geospiza fortis	Medium ground-finch	ENSGFO
-Gopherus agassizii	Agassiz's desert tortoise	ENSGAG
-Gopherus evgoodei	Goodes thornscrub tortoise	ENSGEV
-Gorilla gorilla	Gorilla	ENSGGO
-Gouania willdenowi	Blunt-snouted clingfish	ENSGWI
-Haplochromis burtoni	Burton's mouthbrooder	ENSHBU
-Heterocephalus glaber female	Naked mole-rat female	
-Heterocephalus glaber male	Naked mole-rat male	
-Hippocampus comes	Tiger tail seahorse	ENSHCO
-Homo sapiens	Human	ENS
-Hucho hucho	Huchen	ENSHHU
-Ictalurus punctatus	Channel catfish	ENSIPU
-Ictidomys tridecemlineatus	Squirrel	ENSSTO
-Jaculus jaculus	Lesser Egyptian jerboa	ENSJJA
-Junco hyemalis	Dark-eyed junco	ENSJHY
-Kryptolebias marmoratus	Mangrove rivulus	ENSKMA
-Labrus bergylta	Ballan wrasse	ENSLBE
-Larimichthys crocea	Large yellow croaker	ENSLCR
-Lates calcarifer	Barramundi perch	ENSLCA
-Laticauda laticaudata	Blue-ringed sea krait	ENSLLT
-Latimeria chalumnae	Coelacanth	ENSLAC
-Lepidothrix coronata	Blue-crowned manakin	ENSLCO
-Lepisosteus oculatus	Spotted gar	ENSLOC
-Leptobrachium leishanense	Leishan spiny toad	ENSLLE
-Lonchura striata domestica	Bengalese finch	ENSLSD
-Loxodonta africana	Elephant	ENSLAF
-Lynx canadensis	Canada lynx	ENSLCN
-Macaca fascicularis	Crab-eating macaque	ENSMFA
-Macaca mulatta	Macaque	ENSMMU
-Macaca nemestrina	Pig-tailed macaque	ENSMNE
-Malurus cyaneus samueli	Superb fairywren	ENSMCS
-Manacus vitellinus	Golden-collared manakin	ENSMVI
-Mandrillus leucophaeus	Drill	ENSMLE
-Marmota marmota marmota	Alpine marmot	ENSMMM
-Mastacembelus armatus	Zig-zag eel	ENSMAM
-Maylandia zebra	Zebra mbuna	ENSMZE
-Meleagris gallopavo	Turkey	ENSMGA
-Melopsittacus undulatus	Budgerigar	ENSMUN
-Meriones unguiculatus	Mongolian gerbil	ENSMUG
-Mesocricetus auratus	Golden Hamster	ENSMAU
-Microcebus murinus	Mouse Lemur	ENSMIC
-Microtus ochrogaster	Prairie vole	ENSMOC
-Mola mola	Ocean sunfish	ENSMMO
-Monodelphis domestica	Opossum	ENSMOD
-Monodon monoceros	Narwhal	ENSMMN
-Monopterus albus	Swamp eel	ENSMAL
-Moschus moschiferus	Siberian musk deer	ENSMMS
-Mus caroli	Ryukyu mouse	MGP_CAROLIEiJ_
-Mus musculus	Mouse	MGP_C57BL6NJ_
-Mus musculus 129s1svimj	Mouse 129S1/SvImJ	
-Mus musculus aj	Mouse A/J	
-Mus musculus akrj	Mouse AKR/J	
-Mus musculus balbcj	Mouse BALB/cJ	
-Mus musculus c3hhej	Mouse C3H/HeJ	
-Mus musculus c57bl6nj	Mouse C57BL/6NJ	
-Mus musculus casteij	Mouse CAST/EiJ	
-Mus musculus cbaj	Mouse CBA/J	
-Mus musculus dba2j	Mouse DBA/2J	
-Mus musculus fvbnj	Mouse FVB/NJ	
-Mus musculus lpj	Mouse LP/J	
-Mus musculus nodshiltj	Mouse NOD/ShiLtJ	
-Mus musculus nzohlltj	Mouse NZO/HlLtJ	
-Mus musculus pwkphj	Mouse PWK/PhJ	
-Mus musculus wsbeij	Mouse WSB/EiJ	
-Mus pahari	Shrew mouse	MGP_PahariEiJ_
-Mus spicilegus	Steppe mouse	ENSMSI
-Mus spretus	Algerian mouse	MGP_SPRETEiJ_
-Mustela putorius furo	Ferret	ENSMPU
-Myotis lucifugus	Microbat	ENSMLU
-Myripristis murdjan	Pinecone soldierfish	ENSMMD
-Naja naja	Indian cobra	ENSNNA
-Nannospalax galili	Upper Galilee mountains blind mole rat	ENSNGA
-Neogobius melanostomus	Round goby	ENSNML
-Neolamprologus brichardi	Lyretail cichlid	ENSNBR
-Neovison vison	American mink	ENSNVI
-Nomascus leucogenys	Gibbon	ENSNLE
-Notamacropus eugenii	Wallaby	ENSMEU
-Notechis scutatus	Mainland tiger snake	ENSNSU
-Nothobranchius furzeri	Turquoise killifish	ENSNFU
-Nothoprocta perdicaria	Chilean tinamou	ENSNPE
-Numida meleagris	Helmeted guineafowl	ENSNME
-Ochotona princeps	Pika	ENSOPR
-Octodon degus	Degu	ENSODE
-Oncorhynchus kisutch	Coho salmon	ENSOKI
-Oncorhynchus mykiss	Rainbow trout	ENSOMY
-Oncorhynchus tshawytscha	Chinook salmon	ENSOTS
-Oreochromis aureus	Blue tilapia	ENSOAB
-Oreochromis niloticus	Nile tilapia	ENSONI
-Ornithorhynchus anatinus	Platypus	ENSOAN
-Oryctolagus cuniculus	Rabbit	ENSOCU
-Oryzias javanicus	Javanese ricefish	ENSOJA
-Oryzias latipes	Japanese medaka HdrR	ENSORL
-Oryzias latipes hni	Japanese medaka HNI	
-Oryzias latipes hsok	Japanese medaka HSOK	
-Oryzias melastigma	Indian medaka	ENSOME
-Oryzias sinensis	Chinese medaka	ENSOSI
-Otolemur garnettii	Bushbaby	ENSOGA
-Otus sunia	Oriental scops-owl	ENSOSU
-Ovis aries	Sheep (texel)	ENSOAR
-Ovis aries rambouillet	Sheep	
-Pan paniscus	Bonobo	ENSPPA
-Pan troglodytes	Chimpanzee	ENSPTR
-Panthera leo	Lion	ENSPLO
-Panthera pardus	Leopard	ENSPPR
-Panthera tigris altaica	Tiger	ENSPTI
-Papio anubis	Olive baboon	ENSPAN
-Parambassis ranga	Indian glassy fish	ENSPRN
-Paramormyrops kingsleyae	Paramormyrops kingsleyae	ENSPKI
-Parus major	Great Tit	ENSPMJ
-Pavo cristatus	Indian peafowl	ENSPST
-Pelodiscus sinensis	Chinese softshell turtle	ENSPSI
-Pelusios castaneus	West African mud turtle	ENSPCE
-Periophthalmus magnuspinnatus	Periophthalmus magnuspinnatus	ENSPMG
-Peromyscus maniculatus bairdii	Northern American deer mouse	ENSPEM
-Petromyzon marinus	Lamprey	ENSPMA
-Phascolarctos cinereus	Koala	ENSPCI
-Phasianus colchicus	Ring-necked pheasant	ENSPCL
-Phocoena sinus	Vaquita	ENSPSN
-Physeter catodon	Sperm whale	ENSPCT
-Piliocolobus tephrosceles	Ugandan red Colobus	ENSPTE
-Podarcis muralis	Common wall lizard	ENSPMR
-Poecilia formosa	Amazon molly	ENSPFO
-Poecilia latipinna	Sailfin molly	ENSPLA
-Poecilia mexicana	Shortfin molly	ENSPME
-Poecilia reticulata	Guppy	ENSPRE
-Pogona vitticeps	Central bearded dragon	ENSPVI
-Pongo abelii	Sumatran orangutan	ENSPPY
-Procavia capensis	Hyrax	ENSPCA
-Prolemur simus	Greater bamboo lemur	ENSPSM
-Propithecus coquereli	Coquerel's sifaka	ENSPCO
-Pseudonaja textilis	Eastern brown snake	ENSPTX
-Pteropus vampyrus	Megabat	ENSPVA
-Pundamilia nyererei	Makobe Island cichlid	ENSPNY
-Pygocentrus nattereri	Red-bellied piranha	ENSPNA
-Rattus norvegicus	Rat	ENSRNO
-Rattus norvegicus shrspbbbutx	Rat - SHRSP/BbbUtx	
-Rattus norvegicus shrutx	Rat - SHR/Utx RGD_8142385	
-Rattus norvegicus wkybbb	Rat - WKY/Bbb RGD_1581635	
-Rhinolophus ferrumequinum	Greater horseshoe bat	ENSRFE
-Rhinopithecus bieti	Black snub-nosed monkey	ENSRBI
-Rhinopithecus roxellana	Golden snub-nosed monkey	ENSRRO
-Saccharomyces cerevisiae	Saccharomyces cerevisiae	
-Saimiri boliviensis boliviensis	Bolivian squirrel monkey	ENSSBO
-Salarias fasciatus	Jewelled blenny	ENSSFA
-Salmo salar	Atlantic salmon	ENSSSA
-Salmo trutta	Brown trout	ENSSTU
-Salvator merianae	Argentine black and white tegu	ENSSMR
-Sander lucioperca	Pike-perch	ENSSLU
-Sarcophilus harrisii	Tasmanian devil	ENSSHA
-Sciurus vulgaris	Eurasian red squirrel	ENSSVL
-Scleropages formosus	Asian bonytongue	ENSCHA
-Scophthalmus maximus	Turbot	ENSSMA
-Serinus canaria	Common canary	ENSSCA
-Seriola dumerili	Greater amberjack	ENSSDU
-Seriola lalandi dorsalis	Yellowtail amberjack	ENSSLD
-Sinocyclocheilus anshuiensis	Blind barbel	ENSSAN
-Sinocyclocheilus grahami	Golden-line barbel	ENSSGR
-Sinocyclocheilus rhinocerous	Horned golden-line barbel	ENSSRH
-Sorex araneus	Shrew	ENSSAR
-Sparus aurata	Gilthead seabream	ENSSAU
-Spermophilus dauricus	Daurian ground squirrel	ENSSDA
-Sphaeramia orbicularis	Orbiculate cardinalfish	ENSSOR
-Sphenodon punctatus	Tuatara	ENSSPU
-Stachyris ruficeps	Rufous-capped babbler	
-Stegastes partitus	Bicolor damselfish	ENSSPA
-Strigops habroptila	Kakapo	ENSSHB
-Strix occidentalis caurina	Northern spotted owl	ENSSOC
-Struthio camelus australis	African ostrich	ENSSCU
-Suricata suricatta	Meerkat	ENSSSU
-Sus scrofa	Pig	ENSSSC
-Sus scrofa bamei	Pig - Bamei	
-Sus scrofa berkshire	Pig - Berkshire	
-Sus scrofa hampshire	Pig - Hampshire	
-Sus scrofa jinhua	Pig - Jinhua	
-Sus scrofa landrace	Pig - Landrace	
-Sus scrofa largewhite	Pig - Largewhite	
-Sus scrofa meishan	Pig - Meishan	
-Sus scrofa pietrain	Pig - Pietrain	
-Sus scrofa rongchang	Pig - Rongchang	
-Sus scrofa tibetan	Pig - Tibetan	
-Sus scrofa usmarc	Pig USMARC	
-Sus scrofa wuzhishan	Pig - Wuzhishan	
-Taeniopygia guttata	Zebra finch	ENSTGU
-Takifugu rubripes	Fugu	ENSTRU
-Terrapene carolina triunguis	Three-toed box turtle	ENSTMT
-Tetraodon nigroviridis	Tetraodon	ENSTNI
-Theropithecus gelada	Gelada	ENSTGE
-Tupaia belangeri	Tree Shrew	ENSTBE
-Tursiops truncatus	Dolphin	ENSTTR
-Urocitellus parryii	Arctic ground squirrel	ENSUPA
-Ursus americanus	American black bear	ENSUAM
-Ursus maritimus	Polar bear	ENSUMA
-Ursus thibetanus thibetanus	Asiatic black bear	ENSUTT
-Varanus komodoensis	Komodo dragon	ENSVKK
-Vicugna pacos	Alpaca	ENSVPA
-Vombatus ursinus	Common wombat	ENSVUR
-Vulpes vulpes	Red fox	ENSVVU
-Xenopus tropicalis	Tropical clawed frog	ENSXET
-Xiphophorus couchianus	Monterrey platyfish	ENSXCO
-Xiphophorus maculatus	Platyfish	ENSXMA
-Zalophus californianus	California sea lion	ENSZCA
-Zonotrichia albicollis	White-throated sparrow	ENSZAL
-Zosterops lateralis melanops	Silver-eye	ENSZLM
+abbrev	common_name	genome_name	db_prefix	taxonomy_id
+aca-poly	Spiny chromis	acanthochromis_polyacanthus	acanthochromis_polyacanthus	80966
+acc-nisu	Eurasian sparrowhawk	accipiter_nisus	accipiter_nisus	211598
+ail-mela	Giant panda	ailuropoda_melanoleuca	ailuropoda_melanoleuca	9646
+ama-coll	Yellow-billed parrot	amazona_collaria	amazona_collaria	241587
+amp-citr	Midas cichlid	amphilophus_citrinellus	amphilophus_citrinellus	61819
+amp-ocel	Clown anemonefish	amphiprion_ocellaris	amphiprion_ocellaris	80972
+amp-perc	Orange clownfish	amphiprion_percula	amphiprion_percula	161767
+ana-test	Climbing perch	anabas_testudineus	anabas_testudineus	64144
+ana-plat	Mallard	anas_platyrhynchos	anas_platyrhynchos	8839
+ana-plat-plat	Duck	anas_platyrhynchos_platyrhynchos	anas_platyrhynchos_platyrhynchos	8840
+ana-zono	Eastern spot-billed duck	anas_zonorhyncha	anas_zonorhyncha	75864
+ano-caro	Green anole	anolis_carolinensis	anolis_carolinensis	28377
+ans-brac	Pink-footed goose	anser_brachyrhynchus	anser_brachyrhynchus	132585
+ans-cygn	Swan goose	anser_cygnoides	anser_cygnoides	8845
+aot-nanc	Ma's night monkey	aotus_nancymaae	aotus_nancymaae	37293
+apt-haas	Great spotted kiwi	apteryx_haastii	apteryx_haastii	8823
+apt-owen	Little spotted kiwi	apteryx_owenii	apteryx_owenii	8824
+apt-rowi	Okarito brown kiwi	apteryx_rowi	apteryx_rowi	308060
+aqu-chry-chry	Golden eagle	aquila_chrysaetos_chrysaetos	aquila_chrysaetos_chrysaetos	223781
+ast-call	Eastern happy	astatotilapia_calliptera	astatotilapia_calliptera	8154
+ast-mexi	Mexican tetra	astyanax_mexicanus	astyanax_mexicanus	7994
+ast-mexi-pach	Pachon cavefish	astyanax_mexicanus_pachon	astyanax_mexicanus_pachon	7994
+ath-cuni	Burrowing owl	athene_cunicularia	athene_cunicularia	194338
+bal-musc	Blue whale	balaenoptera_musculus	balaenoptera_musculus	9771
+bet-sple	Siamese fighting fish	betta_splendens	betta_splendens	158456
+bis-biso-biso	American bison	bison_bison_bison	bison_bison_bison	43346
+bos-grun	Domestic yak	bos_grunniens	bos_grunniens	30521
+bos-indi-hybr	Hybrid - Bos Indicus	bos_indicus_hybrid	bos_indicus_hybrid	30522
+bos-mutu	Wild yak	bos_mutus	bos_mutus	72004
+bos-taur	Cattle	bos_taurus	bos_taurus	9913
+bos-taur-hybr	Hybrid - Bos Taurus	bos_taurus_hybrid	bos_taurus_hybrid	30522
+bos-taur-tuli	Cattle - Tuli	bos_taurus_tuli	bos_taurus_tuli	9913
+bos-taur-wagy	Cattle - Wagyu	bos_taurus_wagyu	bos_taurus_wagyu	9913
+bub-bubo	Eurasian eagle-owl	bubo_bubo	bubo_bubo	30461
+but-japo	Eastern buzzard	buteo_japonicus	buteo_japonicus	224669
+cae-eleg	Caenorhabditis elegans (Nematode, N2)	caenorhabditis_elegans	caenorhabditis_elegans	6239
+cai-mosc-dome	Muscovy Duck (domestic type)	cairina_moschata_domestica	cairina_moschata_domestica	8855
+cal-pugn	Ruff	calidris_pugnax	calidris_pugnax	198806
+cal-pygm	Spoon-billed sandpiper	calidris_pygmaea	calidris_pygmaea	425635
+cal-jacc	White-tufted-ear marmoset	callithrix_jacchus	callithrix_jacchus	9483
+cal-mili	Elephant shark	callorhinchus_milii	callorhinchus_milii	7868
+cam-parv	Small tree finch	camarhynchus_parvulus	camarhynchus_parvulus	87175
+cam-drom	Arabian camel	camelus_dromedarius	camelus_dromedarius	9838
+can-lupu-ding	Dingo	canis_lupus_dingo	canis_lupus_dingo	286419
+can-lupu-fami	Dog	canis_lupus_familiaris	canis_lupus_familiaris	9615
+can-lupu-fami-2	Dog - Basenji	canis_lupus_familiarisbasenji	canis_lupus_familiarisbasenji	9615
+can-lupu-fami-3	Dog - Boxer	canis_lupus_familiarisboxer	canis_lupus_familiarisboxer	9615
+can-lupu-fami-4	Dog - Great Dane	canis_lupus_familiarisgreatdane	canis_lupus_familiarisgreatdane	9615
+can-lupu-fami-5	Dog - German Shepherd	canis_lupus_familiarisgsd	canis_lupus_familiarisgsd	9615
+cap-hirc	Goat	capra_hircus	capra_hircus	9925
+cap-hirc-blac	Goat (black bengal)	capra_hircus_blackbengal	capra_hircus_blackbengal	9925
+cap-hirc-2	Goat - Saanen Dairy	capra_hircus_gca015443085v1	capra_hircus_gca015443085v1	9925
+cap-hirc-3	Goat - Xinong Saanen Dairy	capra_hircus_gca026652205v1	capra_hircus_gca026652205v1	9925
+car-aura	Goldfish	carassius_auratus	carassius_auratus	7957
+car-syri	Tarsier	carlito_syrichta	carlito_syrichta	1868482
+cas-cana	American beaver	castor_canadensis	castor_canadensis	51338
+cat-wagn	Chacoan peccary	catagonus_wagneri	catagonus_wagneri	51154
+cat-ustu	Swainson's thrush	catharus_ustulatus	catharus_ustulatus	91951
+cav-aper	Brazilian guinea pig	cavia_aperea	cavia_aperea	37548
+cav-porc	Guinea Pig	cavia_porcellus	cavia_porcellus	10141
+ceb-imit	Panamanian white-faced capuchin	cebus_imitator	cebus_imitator	2715852
+cer-atys	Sooty mangabey	cercocebus_atys	cercocebus_atys	9531
+cer-hang-yark	Yarkand deer	cervus_hanglu_yarkandensis	cervus_hanglu_yarkandensis	84702
+che-abin	Abingdon island giant tortoise	chelonoidis_abingdonii	chelonoidis_abingdonii	106734
+che-serp	Common snapping turtle	chelydra_serpentina	chelydra_serpentina	8475
+chi-lani	Long-tailed chinchilla	chinchilla_lanigera	chinchilla_lanigera	34839
+chl-saba	Vervet-AGM	chlorocebus_sabaeus	chlorocebus_sabaeus	60711
+cho-hoff	Sloth	choloepus_hoffmanni	choloepus_hoffmanni	9358
+chr-pict-bell	Painted turtle	chrysemys_picta_bellii	chrysemys_picta_bellii	8478
+chr-pict	Golden pheasant	chrysolophus_pictus	chrysolophus_pictus	9089
+cio-inte	C.intestinalis	ciona_intestinalis	ciona_intestinalis	7719
+cio-savi	C.savignyi	ciona_savignyi	ciona_savignyi	51511
+clu-hare	Atlantic herring 	clupea_harengus	clupea_harengus	7950
+col-ango-pall	Angola colobus	colobus_angolensis_palliatus	colobus_angolensis_palliatus	336983
+cor-mone	New Caledonian crow	corvus_moneduloides	corvus_moneduloides	1196302
+cot-gobi	Channel bull blenny	cottoperca_gobio	cottoperca_gobio	56716
+cot-japo	Japanese quail	coturnix_japonica	coturnix_japonica	93934
+cri-gris	Chinese hamster CHOK1GS	cricetulus_griseus_chok1gshd	cricetulus_griseus_chok1gshd	10029
+cri-gris-crig	Chinese hamster CriGri	cricetulus_griseus_crigri	cricetulus_griseus_crigri	10029
+cri-gris-picr	Chinese hamster PICR	cricetulus_griseus_picr	cricetulus_griseus_picr	10029
+cro-poro	Australian saltwater crocodile	crocodylus_porosus	crocodylus_porosus	8502
+cya-caer	Blue tit	cyanistes_caeruleus	cyanistes_caeruleus	156563
+cyc-lump	Lumpfish	cyclopterus_lumpus	cyclopterus_lumpus	8103
+cyn-semi	Tongue sole	cynoglossus_semilaevis	cynoglossus_semilaevis	244447
+cyp-vari	Sheepshead minnow	cyprinodon_variegatus	cyprinodon_variegatus	28743
+cyp-carp-carp	Common carp	cyprinus_carpio_carpio	cyprinus_carpio_carpio	630221
+cyp-carp-germ	Common carp german mirror	cyprinus_carpio_germanmirror	cyprinus_carpio_germanmirror	7962
+cyp-carp-heba	Common carp hebao red	cyprinus_carpio_hebaored	cyprinus_carpio_hebaored	7962
+cyp-carp-huan	Common carp huanghe	cyprinus_carpio_huanghe	cyprinus_carpio_huanghe	7962
+dan-reri	Zebrafish	danio_rerio	danio_rerio	7955
+das-nove	Armadillo	dasypus_novemcinctus	dasypus_novemcinctus	9361
+del-leuc	Beluga whale	delphinapterus_leucas	delphinapterus_leucas	9749
+den-clup	Denticle herring	denticeps_clupeoides	denticeps_clupeoides	299321
+dic-labr	European seabass	dicentrarchus_labrax	dicentrarchus_labrax	13489
+dip-ordi	Kangaroo rat	dipodomys_ordii	dipodomys_ordii	10020
+dro-nova	Emu	dromaius_novaehollandiae	dromaius_novaehollandiae	8790
+dro-mela	Drosophila melanogaster - (Fruit fly)	drosophila_melanogaster	drosophila_melanogaster	7227
+ech-nauc	Live sharksucker	echeneis_naucrates	echeneis_naucrates	173247
+ech-telf	Lesser hedgehog tenrec	echinops_telfairi	echinops_telfairi	9371
+ele-elec	Electric eel	electrophorus_electricus	electrophorus_electricus	8005
+ept-burg	Hagfish	eptatretus_burgeri	eptatretus_burgeri	7764
+equ-asin	Donkey	equus_asinus	equus_asinus	9793
+equ-caba	Horse	equus_caballus	equus_caballus	9796
+eri-euro	Hedgehog	erinaceus_europaeus	erinaceus_europaeus	9365
+erp-cala	Reedfish	erpetoichthys_calabaricus	erpetoichthys_calabaricus	27687
+ery-goul	Gouldian finch	erythrura_gouldiae	erythrura_gouldiae	44316
+eso-luci	Northern pike	esox_lucius	esox_lucius	8010
+fal-tinn	Common kestrel	falco_tinnunculus	falco_tinnunculus	100819
+fel-catu	Domestic cat	felis_catus	felis_catus	9685
+fel-catu-abys	Cat - Abyssinian	felis_catus_abyssinian	felis_catus_abyssinian	9685
+fic-albi	Collared flycatcher	ficedula_albicollis	ficedula_albicollis	59894
+fuk-dama	Damara mole rat	fukomys_damarensis	fukomys_damarensis	885580
+fun-hete	Mummichog	fundulus_heteroclitus	fundulus_heteroclitus	8078
+gad-morh	Atlantic cod	gadus_morhua	gadus_morhua	8049
+gad-morh-2	Atlantic cod - Celtic sea	gadus_morhua_gca010882105v1	gadus_morhua_gca010882105v1	8049
+gal-gall	Chicken	gallus_gallus	gallus_gallus	9031
+gal-gall-2	Chicken (Red Jungle fowl)	gallus_gallus_gca000002315v5	gallus_gallus_gca000002315v5	9031
+gal-gall-3	Chicken (paternal White leghorn layer)	gallus_gallus_gca016700215v2	gallus_gallus_gca016700215v2	9031
+gam-affi	Western mosquitofish	gambusia_affinis	gambusia_affinis	33528
+gas-acul	Stickleback	gasterosteus_aculeatus	gasterosteus_aculeatus	481459
+gas-acul-2	Three-spined sticklebacki - Freshwater BOT	gasterosteus_aculeatus_gca006229185v1	gasterosteus_aculeatus_gca006229185v1	69293
+gas-acul-3	Three-spined sticklebacki - Marine BAM	gasterosteus_aculeatus_gca006232265v1	gasterosteus_aculeatus_gca006232265v1	69293
+gas-acul-4	Three-spined sticklebacki - Marine SYL	gasterosteus_aculeatus_gca006232285v1	gasterosteus_aculeatus_gca006232285v1	69293
+geo-fort	Medium ground-finch	geospiza_fortis	geospiza_fortis	48883
+gop-agas	Agassiz's desert tortoise	gopherus_agassizii	gopherus_agassizii	38772
+gop-evgo	Goodes thornscrub tortoise	gopherus_evgoodei	gopherus_evgoodei	1825980
+gor-gori	Gorilla	gorilla_gorilla	gorilla_gorilla	9595
+gou-will	Blunt-snouted clingfish	gouania_willdenowi	gouania_willdenowi	441366
+hap-burt	Burton's mouthbrooder	haplochromis_burtoni	haplochromis_burtoni	8153
+het-glab-fema	Naked mole-rat female	heterocephalus_glaber_female	heterocephalus_glaber_female	10181
+het-glab-male	Naked mole-rat male	heterocephalus_glaber_male	heterocephalus_glaber_male	10181
+hip-come	Tiger tail seahorse	hippocampus_comes	hippocampus_comes	109280
+hom-sapi	Human	homo_sapiens	homo_sapiens	9606
+huc-huch	Huchen	hucho_hucho	hucho_hucho	62062
+ict-punc	Channel catfish	ictalurus_punctatus	ictalurus_punctatus	7998
+ict-trid	Squirrel	ictidomys_tridecemlineatus	ictidomys_tridecemlineatus	43179
+jac-jacu	Lesser Egyptian jerboa	jaculus_jaculus	jaculus_jaculus	51337
+jun-hyem	Dark-eyed junco	junco_hyemalis	junco_hyemalis	40217
+kry-marm	Mangrove rivulus	kryptolebias_marmoratus	kryptolebias_marmoratus	37003
+lab-berg	Ballan wrasse	labrus_bergylta	labrus_bergylta	56723
+lar-croc	Large yellow croaker	larimichthys_crocea	larimichthys_crocea	215358
+lat-calc	Barramundi perch	lates_calcarifer	lates_calcarifer	8187
+lat-lati	Blue-ringed sea krait	laticauda_laticaudata	laticauda_laticaudata	8630
+lat-chal	Coelacanth	latimeria_chalumnae	latimeria_chalumnae	7897
+lep-coro	Blue-crowned manakin	lepidothrix_coronata	lepidothrix_coronata	321398
+lep-ocul	Spotted gar	lepisosteus_oculatus	lepisosteus_oculatus	7918
+lep-leis	Leishan spiny toad	leptobrachium_leishanense	leptobrachium_leishanense	445787
+lon-stri-dome	Bengalese finch	lonchura_striata_domestica	lonchura_striata_domestica	40157
+lox-afri	Elephant	loxodonta_africana	loxodonta_africana	9785
+lyn-cana	Canada lynx	lynx_canadensis	lynx_canadensis	61383
+mac-fasc	Crab-eating macaque	macaca_fascicularis	macaca_fascicularis	9541
+mac-mula	Macaque	macaca_mulatta	macaca_mulatta	9544
+mac-neme	Pig-tailed macaque	macaca_nemestrina	macaca_nemestrina	9545
+mal-cyan-samu	Superb fairywren	malurus_cyaneus_samueli	malurus_cyaneus_samueli	2593467
+man-vite	Golden-collared manakin	manacus_vitellinus	manacus_vitellinus	328815
+man-leuc	Drill	mandrillus_leucophaeus	mandrillus_leucophaeus	9568
+mar-marm-marm	Alpine marmot	marmota_marmota_marmota	marmota_marmota_marmota	9994
+mas-arma	Zig-zag eel	mastacembelus_armatus	mastacembelus_armatus	205130
+may-zebr	Zebra mbuna	maylandia_zebra	maylandia_zebra	106582
+mel-gall	Turkey	meleagris_gallopavo	meleagris_gallopavo	9103
+mel-undu	Budgerigar	melopsittacus_undulatus	melopsittacus_undulatus	13146
+mer-ungu	Mongolian gerbil	meriones_unguiculatus	meriones_unguiculatus	10047
+mes-aura	Golden Hamster	mesocricetus_auratus	mesocricetus_auratus	10036
+mic-muri	Mouse Lemur	microcebus_murinus	microcebus_murinus	30608
+mic-ochr	Prairie vole	microtus_ochrogaster	microtus_ochrogaster	79684
+mol-mola	Ocean sunfish	mola_mola	mola_mola	94237
+mon-dome	Opossum	monodelphis_domestica	monodelphis_domestica	13616
+mon-mono	Narwhal	monodon_monoceros	monodon_monoceros	40151
+mon-albu	Swamp eel	monopterus_albus	monopterus_albus	43700
+mos-mosc	Siberian musk deer	moschus_moschiferus	moschus_moschiferus	68415
+mus-caro	Ryukyu mouse	mus_caroli	mus_caroli	10089
+mus-musc	Mouse	mus_musculus	mus_musculus	10090
+mus-musc-2	Mouse 129S1/SvImJ	mus_musculus_129s1svimj	mus_musculus_129s1svimj	10090
+mus-musc-aj	Mouse A/J	mus_musculus_aj	mus_musculus_aj	10090
+mus-musc-akrj	Mouse AKR/J	mus_musculus_akrj	mus_musculus_akrj	10090
+mus-musc-balb	Mouse BALB/cJ	mus_musculus_balbcj	mus_musculus_balbcj	10090
+mus-musc-3	Mouse C3H/HeJ	mus_musculus_c3hhej	mus_musculus_c3hhej	10090
+mus-musc-4	Mouse C57BL/6NJ	mus_musculus_c57bl6nj	mus_musculus_c57bl6nj	10090
+mus-musc-cast	Mouse CAST/EiJ	mus_musculus_casteij	mus_musculus_casteij	10091
+mus-musc-cbaj	Mouse CBA/J	mus_musculus_cbaj	mus_musculus_cbaj	10090
+mus-musc-5	Mouse DBA/2J	mus_musculus_dba2j	mus_musculus_dba2j	10090
+mus-musc-fvbn	Mouse FVB/NJ	mus_musculus_fvbnj	mus_musculus_fvbnj	10090
+mus-musc-lpj	Mouse LP/J	mus_musculus_lpj	mus_musculus_lpj	10090
+mus-musc-6	Mouse JF1/MsJ	mus_musculus_molossinusjf1msj	mus_musculus_molossinusjf1msj	57486
+mus-musc-nods	Mouse NOD/ShiLtJ	mus_musculus_nodshiltj	mus_musculus_nodshiltj	10090
+mus-musc-nzoh	Mouse NZO/HlLtJ	mus_musculus_nzohlltj	mus_musculus_nzohlltj	10090
+mus-musc-pwkp	Mouse PWK/PhJ	mus_musculus_pwkphj	mus_musculus_pwkphj	39442
+mus-musc-wsbe	Mouse WSB/EiJ	mus_musculus_wsbeij	mus_musculus_wsbeij	10092
+mus-paha	Shrew mouse	mus_pahari	mus_pahari	10093
+mus-spic	Steppe mouse	mus_spicilegus	mus_spicilegus	10103
+mus-spre	Western wild mouse	mus_spretus	mus_spretus	10096
+mus-puto-furo	Ferret	mustela_putorius_furo	mustela_putorius_furo	9669
+myo-luci	Microbat	myotis_lucifugus	myotis_lucifugus	59463
+myr-murd	Pinecone soldierfish	myripristis_murdjan	myripristis_murdjan	586833
+naj-naja	Indian cobra	naja_naja	naja_naja	35670
+nan-gali	Upper Galilee mountains blind mole rat	nannospalax_galili	nannospalax_galili	1026970
+neo-mela	Round goby	neogobius_melanostomus	neogobius_melanostomus	47308
+neo-bric	Lyretail cichlid	neolamprologus_brichardi	neolamprologus_brichardi	32507
+neo-viso	American mink	neovison_vison	neovison_vison	452646
+nom-leuc	Gibbon	nomascus_leucogenys	nomascus_leucogenys	61853
+not-euge	Wallaby	notamacropus_eugenii	notamacropus_eugenii	9315
+not-scut	Mainland tiger snake	notechis_scutatus	notechis_scutatus	8663
+not-furz	Turquoise killifish	nothobranchius_furzeri	nothobranchius_furzeri	105023
+not-perd	Chilean tinamou	nothoprocta_perdicaria	nothoprocta_perdicaria	30464
+num-mele	Helmeted guineafowl	numida_meleagris	numida_meleagris	8996
+och-prin	Pika	ochotona_princeps	ochotona_princeps	9978
+oct-degu	Degu	octodon_degus	octodon_degus	10160
+onc-kisu	Coho salmon	oncorhynchus_kisutch	oncorhynchus_kisutch	8019
+onc-myki	Rainbow trout	oncorhynchus_mykiss	oncorhynchus_mykiss	8022
+onc-tsha	Chinook salmon	oncorhynchus_tshawytscha	oncorhynchus_tshawytscha	74940
+ore-aure	Blue tilapia	oreochromis_aureus	oreochromis_aureus	47969
+ore-nilo	Nile tilapia	oreochromis_niloticus	oreochromis_niloticus	8128
+orn-anat	Platypus	ornithorhynchus_anatinus	ornithorhynchus_anatinus	9258
+ory-cuni	Rabbit	oryctolagus_cuniculus	oryctolagus_cuniculus	9986
+ory-java	Javanese ricefish	oryzias_javanicus	oryzias_javanicus	123683
+ory-lati	Japanese medaka HdrR	oryzias_latipes	oryzias_latipes	8090
+ory-lati-hni	Japanese medaka HNI	oryzias_latipes_hni	oryzias_latipes_hni	8090
+ory-lati-hsok	Japanese medaka HSOK	oryzias_latipes_hsok	oryzias_latipes_hsok	8090
+ory-mela	Indian medaka	oryzias_melastigma	oryzias_melastigma	30732
+ory-sine	Chinese medaka	oryzias_sinensis	oryzias_sinensis	183150
+oto-garn	Bushbaby	otolemur_garnettii	otolemur_garnettii	30611
+otu-suni	Oriental scops-owl	otus_sunia	otus_sunia	257818
+ovi-arie	Sheep	ovis_aries	ovis_aries	9940
+ovi-arie-2	Sheep - Hu	ovis_aries_gca011170295v1	ovis_aries_gca011170295v1	9940
+ovi-arie-3	Sheep - East friesian	ovis_aries_gca018804185v1	ovis_aries_gca018804185v1	9940
+ovi-arie-4	Sheep - Qiaoke	ovis_aries_gca022416685v1	ovis_aries_gca022416685v1	9940
+ovi-arie-5	Sheep - White dorper	ovis_aries_gca022416695v1	ovis_aries_gca022416695v1	9940
+ovi-arie-6	Sheep - Ujimqin	ovis_aries_gca022416755v1	ovis_aries_gca022416755v1	9940
+ovi-arie-7	Ovis aries (Texel sheep) - GCA_022416775.1	ovis_aries_gca022416775v1	ovis_aries_gca022416775v1	9940
+ovi-arie-8	Sheep - Polled Dorset	ovis_aries_gca022416915v1	ovis_aries_gca022416915v1	9940
+ovi-arie-9	Sheep - Chinese merino	ovis_aries_gca022432825v1	ovis_aries_gca022432825v1	9940
+ovi-arie-10	Sheep - Kermani	ovis_aries_gca022432835v1	ovis_aries_gca022432835v1	9940
+ovi-arie-11	Sheep - Romanov	ovis_aries_gca024222175v1	ovis_aries_gca024222175v1	9940
+ovi-arie-texe	Sheep - Texel	ovis_aries_texel	ovis_aries_texel	9940
+pan-pani	Bonobo	pan_paniscus	pan_paniscus	9597
+pan-trog	Chimpanzee	pan_troglodytes	pan_troglodytes	9598
+pan-leo	Lion	panthera_leo	panthera_leo	9689
+pan-pard	Leopard	panthera_pardus	panthera_pardus	9691
+pan-tigr-alta	Tiger	panthera_tigris_altaica	panthera_tigris_altaica	74533
+pap-anub	Olive baboon	papio_anubis	papio_anubis	9555
+par-rang	Indian glassy fish	parambassis_ranga	parambassis_ranga	210632
+par-king	Paramormyrops kingsleyae	paramormyrops_kingsleyae	paramormyrops_kingsleyae	1676925
+par-majo	Great Tit	parus_major	parus_major	9157
+pav-cris	Indian peafowl	pavo_cristatus	pavo_cristatus	9049
+pel-sine	Chinese softshell turtle	pelodiscus_sinensis	pelodiscus_sinensis	13735
+pel-cast	West African mud turtle	pelusios_castaneus	pelusios_castaneus	367368
+per-magn	Periophthalmus magnuspinnatus	periophthalmus_magnuspinnatus	periophthalmus_magnuspinnatus	409849
+per-mani-bair	Northern American deer mouse	peromyscus_maniculatus_bairdii	peromyscus_maniculatus_bairdii	230844
+pet-mari	Lamprey	petromyzon_marinus	petromyzon_marinus	7757
+pha-cine	Koala	phascolarctos_cinereus	phascolarctos_cinereus	38626
+pha-colc	Ring-necked pheasant	phasianus_colchicus	phasianus_colchicus	9054
+pho-sinu	Vaquita	phocoena_sinus	phocoena_sinus	42100
+phy-cato	Sperm whale	physeter_catodon	physeter_catodon	9755
+pil-teph	Ugandan red Colobus	piliocolobus_tephrosceles	piliocolobus_tephrosceles	591936
+pod-mura	Common wall lizard	podarcis_muralis	podarcis_muralis	64176
+poe-form	Amazon molly	poecilia_formosa	poecilia_formosa	48698
+poe-lati	Sailfin molly	poecilia_latipinna	poecilia_latipinna	48699
+poe-mexi	Shortfin molly	poecilia_mexicana	poecilia_mexicana	48701
+poe-reti	Guppy	poecilia_reticulata	poecilia_reticulata	8081
+pog-vitt	Central bearded dragon	pogona_vitticeps	pogona_vitticeps	103695
+pon-abel	Sumatran orangutan	pongo_abelii	pongo_abelii	9601
+pro-cape	Hyrax	procavia_capensis	procavia_capensis	9813
+pro-simu	Greater bamboo lemur	prolemur_simus	prolemur_simus	1328070
+pro-coqu	Coquerel's sifaka	propithecus_coquereli	propithecus_coquereli	379532
+pse-text	Eastern brown snake	pseudonaja_textilis	pseudonaja_textilis	8673
+pte-vamp	Megabat	pteropus_vampyrus	pteropus_vampyrus	132908
+pun-nyer	Makobe Island cichlid	pundamilia_nyererei	pundamilia_nyererei	303518
+pyg-natt	Red-bellied piranha	pygocentrus_nattereri	pygocentrus_nattereri	42514
+rat-norv	Norway rat - BN/NHsdMcwi	rattus_norvegicus	rattus_norvegicus	10116
+rat-norv-shrs	Rat - SHRSP/BbbUtx	rattus_norvegicus_shrspbbbutx	rattus_norvegicus_shrspbbbutx	10116
+rat-norv-shru	Rat - SHR/Utx RGD_8142385	rattus_norvegicus_shrutx	rattus_norvegicus_shrutx	10116
+rat-norv-wkyb	Rat - WKY/Bbb RGD_1581635	rattus_norvegicus_wkybbb	rattus_norvegicus_wkybbb	10116
+rhi-ferr	Greater horseshoe bat	rhinolophus_ferrumequinum	rhinolophus_ferrumequinum	59479
+rhi-biet	Black snub-nosed monkey	rhinopithecus_bieti	rhinopithecus_bieti	61621
+rhi-roxe	Golden snub-nosed monkey	rhinopithecus_roxellana	rhinopithecus_roxellana	61622
+sac-cere	Saccharomyces cerevisiae	saccharomyces_cerevisiae	saccharomyces_cerevisiae	559292
+sai-boli-boli	Bolivian squirrel monkey	saimiri_boliviensis_boliviensis	saimiri_boliviensis_boliviensis	39432
+sal-fasc	Jewelled blenny	salarias_fasciatus	salarias_fasciatus	181472
+sal-sala	Atlantic salmon	salmo_salar	salmo_salar	8030
+sal-sala-2	Atlantic salmon - North American Atlantic Salmon	salmo_salar_gca021399835v1	salmo_salar_gca021399835v1	8030
+sal-sala-3	Atlantic salmon - North American origin Brian	salmo_salar_gca923944775v1	salmo_salar_gca923944775v1	8030
+sal-sala-4	Atlantic salmon - European origin ALTA	salmo_salar_gca931346935v2	salmo_salar_gca931346935v2	8030
+sal-trut	Brown trout	salmo_trutta	salmo_trutta	8032
+sal-meri	Argentine black and white tegu	salvator_merianae	salvator_merianae	96440
+san-luci	Pike-perch	sander_lucioperca	sander_lucioperca	283035
+sar-harr	Tasmanian devil	sarcophilus_harrisii	sarcophilus_harrisii	9305
+sci-vulg	Eurasian red squirrel	sciurus_vulgaris	sciurus_vulgaris	55149
+scl-form	Asian bonytongue	scleropages_formosus	scleropages_formosus	113540
+sco-maxi	Turbot	scophthalmus_maximus	scophthalmus_maximus	52904
+ser-cana	Common canary	serinus_canaria	serinus_canaria	9135
+ser-dume	Greater amberjack	seriola_dumerili	seriola_dumerili	41447
+ser-lala-dors	Yellowtail amberjack	seriola_lalandi_dorsalis	seriola_lalandi_dorsalis	1841481
+sin-ansh	Blind barbel	sinocyclocheilus_anshuiensis	sinocyclocheilus_anshuiensis	1608454
+sin-grah	Golden-line barbel	sinocyclocheilus_grahami	sinocyclocheilus_grahami	75366
+sin-rhin	Horned golden-line barbel	sinocyclocheilus_rhinocerous	sinocyclocheilus_rhinocerous	307959
+sor-aran	Shrew	sorex_araneus	sorex_araneus	42254
+spa-aura	Gilthead seabream	sparus_aurata	sparus_aurata	8175
+spe-daur	Daurian ground squirrel	spermophilus_dauricus	spermophilus_dauricus	99837
+sph-orbi	Orbiculate cardinalfish	sphaeramia_orbicularis	sphaeramia_orbicularis	375764
+sph-punc	Tuatara	sphenodon_punctatus	sphenodon_punctatus	8508
+sta-rufi	Rufous-capped babbler	stachyris_ruficeps	stachyris_ruficeps	181631
+ste-part	Bicolor damselfish	stegastes_partitus	stegastes_partitus	144197
+str-habr	Kakapo	strigops_habroptila	strigops_habroptila	2489341
+str-occi-caur	Northern spotted owl	strix_occidentalis_caurina	strix_occidentalis_caurina	311401
+str-came-aust	African ostrich	struthio_camelus_australis	struthio_camelus_australis	441894
+sur-suri	Meerkat	suricata_suricatta	suricata_suricatta	37032
+sus-scro	Pig	sus_scrofa	sus_scrofa	9823
+sus-scro-bame	Pig - Bamei	sus_scrofa_bamei	sus_scrofa_bamei	9823
+sus-scro-berk	Pig - Berkshire	sus_scrofa_berkshire	sus_scrofa_berkshire	9823
+sus-scro-2	Pig - Bama miniature	sus_scrofa_gca007644095v1	sus_scrofa_gca007644095v1	9823
+sus-scro-3	Pig - Duroc	sus_scrofa_gca015776825v1	sus_scrofa_gca015776825v1	9823
+sus-scro-4	Pig - Meishan (GCA_017957985.1)	sus_scrofa_gca017957985v1	sus_scrofa_gca017957985v1	9825
+sus-scro-5	Pig - NIHS-2020	sus_scrofa_gca018555405v1	sus_scrofa_gca018555405v1	9823
+sus-scro-6	Pig - PB115	sus_scrofa_gca019290145v1	sus_scrofa_gca019290145v1	9823
+sus-scro-7	Pig - Ningxiang	sus_scrofa_gca020567905v1	sus_scrofa_gca020567905v1	9825
+sus-scro-8	Pig - euw1 (european wild boar)	sus_scrofa_gca021656055v1	sus_scrofa_gca021656055v1	9823
+sus-scro-9	Pig - Ossabaw miniature	sus_scrofa_gca024718415v1	sus_scrofa_gca024718415v1	9823
+sus-scro-hamp	Pig - Hampshire	sus_scrofa_hampshire	sus_scrofa_hampshire	9823
+sus-scro-jinh	Pig - Jinhua	sus_scrofa_jinhua	sus_scrofa_jinhua	9823
+sus-scro-land	Pig - Landrace	sus_scrofa_landrace	sus_scrofa_landrace	9823
+sus-scro-larg	Pig - Largewhite	sus_scrofa_largewhite	sus_scrofa_largewhite	9823
+sus-scro-meis	Pig - Meishan	sus_scrofa_meishan	sus_scrofa_meishan	9823
+sus-scro-piet	Pig - Pietrain	sus_scrofa_pietrain	sus_scrofa_pietrain	9823
+sus-scro-rong	Pig - Rongchang	sus_scrofa_rongchang	sus_scrofa_rongchang	9823
+sus-scro-tibe	Pig - Tibetan	sus_scrofa_tibetan	sus_scrofa_tibetan	9823
+sus-scro-usma	Pig USMARC	sus_scrofa_usmarc	sus_scrofa_usmarc	9823
+sus-scro-wuzh	Pig - Wuzhishan	sus_scrofa_wuzhishan	sus_scrofa_wuzhishan	9823
+tae-gutt	Zebra finch	taeniopygia_guttata	taeniopygia_guttata	59729
+tak-rubr	Fugu	takifugu_rubripes	takifugu_rubripes	31033
+ter-caro-triu	Three-toed box turtle	terrapene_carolina_triunguis	terrapene_carolina_triunguis	2587831
+tet-nigr	Tetraodon	tetraodon_nigroviridis	tetraodon_nigroviridis	99883
+the-gela	Gelada	theropithecus_gelada	theropithecus_gelada	9565
+tup-bela	Tree Shrew	tupaia_belangeri	tupaia_belangeri	37347
+tur-trun	Dolphin	tursiops_truncatus	tursiops_truncatus	9739
+uro-parr	Arctic ground squirrel	urocitellus_parryii	urocitellus_parryii	9999
+urs-amer	American black bear	ursus_americanus	ursus_americanus	9643
+urs-mari	Polar bear	ursus_maritimus	ursus_maritimus	29073
+urs-thib-thib	Asiatic black bear	ursus_thibetanus_thibetanus	ursus_thibetanus_thibetanus	441215
+var-komo	Komodo dragon	varanus_komodoensis	varanus_komodoensis	61221
+vic-paco	Alpaca	vicugna_pacos	vicugna_pacos	30538
+vom-ursi	Common wombat	vombatus_ursinus	vombatus_ursinus	29139
+vul-vulp	Red fox	vulpes_vulpes	vulpes_vulpes	9627
+xen-trop	Tropical clawed frog	xenopus_tropicalis	xenopus_tropicalis	8364
+xip-couc	Monterrey platyfish	xiphophorus_couchianus	xiphophorus_couchianus	32473
+xip-macu	Platyfish	xiphophorus_maculatus	xiphophorus_maculatus	8083
+zal-cali	California sea lion	zalophus_californianus	zalophus_californianus	9704
+zon-albi	White-throated sparrow	zonotrichia_albicollis	zonotrichia_albicollis	44394
+zos-late-mela	Silver-eye	zosterops_lateralis_melanops	zosterops_lateralis_melanops	1220523

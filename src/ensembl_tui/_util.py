@@ -17,7 +17,6 @@ import blosc2
 import hdf5plugin
 import numba
 import numpy
-import typing_extensions
 from cogent3.app.composable import define_app
 from cogent3.util.parallel import as_completed
 from rich import text as rich_text
@@ -122,28 +121,6 @@ def exec_command(
         sys.stderr.writelines(f"FAILED: {cmnd}\n{msg}")
         sys.exit(proc.returncode)
     return out.decode("utf8") if out is not None else None
-
-
-class CaseInsensitiveString(str):
-    """A case-insensitive string class. Comparisons are also case-insensitive."""
-
-    __slots__ = ("_hash", "_lower")
-
-    def __new__(cls, arg, h=None) -> "CaseInsensitiveString":
-        n = str.__new__(cls, str(arg))
-        n._lower = "".join(list(n)).lower()
-        n._hash = hash(n._lower)
-        return n
-
-    def __eq__(self, other: typing_extensions.Self) -> bool:
-        return self._lower == "".join(list(other)).lower()
-
-    def __hash__(self) -> int:
-        # dict hashing done via lower case
-        return self._hash
-
-    def __str__(self) -> str:
-        return "".join(list(self))
 
 
 def load_ensembl_checksum(path: pathlib.Path) -> dict:
