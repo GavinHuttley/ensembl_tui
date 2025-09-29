@@ -212,6 +212,26 @@ class SpeciesNameMap:
         subset = {k: v for k, v in data.items() if k == "header" or k in selected}
         return self.from_storage(subset)
 
+    def for_storage(self) -> dict[str, str]:
+        """creates a dict suitable for cfg storage"""
+        delim = "\t"
+        table = self.to_table()
+        primary = "genome_name"
+        header = [primary, *[c for c in table.header if c != primary]]
+        result = {"header": delim.join(header)}
+        for row in table.to_list(columns=header):
+            result[row[0]] = delim.join(row[1:])
+        return result
+
+    @classmethod
+    def from_storage(cls, d: dict[str, str]) -> "SpeciesNameMap":
+        """creates a SpeciesNameMap from a dict created by for_storage"""
+        delim = "\t"
+        header = d.pop("header").split(delim)
+        rows = [[key, *row.split(delim)] for key, row in d.items()]
+        table = make_table(header=header, data=rows, space=2)
+        return cls.from_table(table)
+
 
 def species_from_ensembl_tree(
     tree: PhyloNode, species_map: SpeciesNameMap

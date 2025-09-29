@@ -90,6 +90,37 @@ def test_make_unique_abbrevs():
     assert got == dict(zip(names, ["dan-plex", "dan-plex-2"], strict=False))
 
 
+def test_for_storage(species):
+    d = species.for_storage()
+    # first value in header should be the genome name
+    delim = "\t"
+    header = d["header"].split(delim)
+    assert header[0] == "genome_name"
+    assert set(header) == set(eti_species.TABLE_COLUMNS)
+    human_data = dict(
+        zip(
+            header,
+            ["homo_sapiens", *d["homo_sapiens"].split(delim)],
+            strict=True,
+        )
+    )
+    expect = {
+        "abbrev": "hom-sapi",
+        "genome_name": "homo_sapiens",
+        "common_name": "human",
+        "db_prefix": "homo_sapiens",
+    }
+    assert human_data == expect
+
+
+def test_from_storage(species):
+    table = species.to_table().sorted(columns="abbrev")
+    d = species.for_storage()
+    inflated = species.from_storage(d)
+    got = inflated.to_table().sorted(columns="abbrev")
+    assert got.to_list() == table.to_list()
+
+
 def test_get_subset(species):
     """should take common or latin names and return the corresponding
     ensembl db prefix"""
