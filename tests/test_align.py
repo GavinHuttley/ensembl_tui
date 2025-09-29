@@ -11,6 +11,7 @@ from ensembl_tui import _annotation as eti_annots
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _ingest_align as eti_ingest_align
+from ensembl_tui import _species as eti_species
 
 
 def make_gene_attr(records: list[dict]) -> eti_annots.GeneView:
@@ -498,6 +499,7 @@ def db_align(DATA_DIR, tmp_dir):
         align_names=[align_name],
         tree_names=[],
         homologies=True,
+        species_map=eti_species.make_species_map(None),
     )
     align_dir = cfg.staging_aligns / align_name
     align_dir.mkdir(parents=True, exist_ok=True)

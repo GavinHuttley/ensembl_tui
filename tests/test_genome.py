@@ -1,4 +1,5 @@
 from ensembl_tui import _genome as eti_genome
+from ensembl_tui import _species as eti_species
 
 
 def test_get_gene_segments_limit(yeast_db):
@@ -38,7 +39,9 @@ def test_get_gene_table_for_species(yeast_db):
 def test_get_species_gene_summary(yeast_db):
     from cogent3.core.table import Table
 
-    got = eti_genome.get_species_gene_summary(annot_db=yeast_db)
+    got = eti_genome.get_species_gene_summary(
+        annot_db=yeast_db, species_map=eti_species.make_species_map(None)
+    )
     # we do not check values here, only the Type and that we have > 0 records
     assert isinstance(got, Table)
     assert len(got) > 0
@@ -48,7 +51,9 @@ def test_get_species_gene_summary(yeast_db):
 def test_get_species_repeat_summary(yeast_db):
     from cogent3.core.table import Table
 
-    got = eti_genome.get_species_repeat_summary(annot_db=yeast_db)
+    got = eti_genome.get_species_repeat_summary(
+        annot_db=yeast_db, species_map=eti_species.make_species_map(None)
+    )
     # we do not check values here, only the Type and that we have > 0 records
     assert isinstance(got, Table)
     assert len(got) > 0

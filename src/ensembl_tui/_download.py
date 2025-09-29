@@ -389,7 +389,12 @@ def get_species_for_alignments(
             tree_fname=pathlib.Path(tree_path).name,
         )
         # dict structure is {common name: db prefix}, just use common name
-        species |= {n: ["core"] for n in eti_species.species_from_ensembl_tree(tree)}
+        species |= {
+            n: ["core"]
+            for n in eti_species.species_from_ensembl_tree(
+                tree, species_map=species_map
+            )
+        }
     return species
 
 
