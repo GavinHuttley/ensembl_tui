@@ -479,6 +479,10 @@ def test_alignments_coord_names(apes_install_path, tmp_dir, coord_name):
     assert r.exit_code == 0, r.output
     dstore = cogent3.open_data_store(outdir, suffix="fa", mode="r")
     assert len(dstore.completed)
+    logged = dstore.logs[0].read()
+    assert isinstance(logged, str)
+    # check the version of one dependency is present
+    assert "version : cogent3_h5seqs" in logged
 
 
 @pytest.fixture

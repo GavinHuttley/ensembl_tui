@@ -521,7 +521,7 @@ def alignments(
     mask_shadow: list[str] | None,
     mask_ref: bool,
     ref_coords: list[eti_genome.genome_segment],
-    limit: int,
+    limit: int | None,
     force_overwrite: bool,
     verbose: bool,
 ) -> None:
@@ -529,6 +529,10 @@ def alignments(
     from rich import progress
 
     from ensembl_tui import _align as eti_align
+
+    LOGGER = CachingLogger()
+    LOGGER.log_args()
+    LOGGER.log_versions(["cogent3", "cogent3_h5seqs", "numpy", "duckdb"])
 
     if mask and mask_shadow:
         eti_util.print_colour(
@@ -546,6 +550,8 @@ def alignments(
 
     if force_overwrite:
         shutil.rmtree(outdir, ignore_errors=True)
+
+    LOGGER.log_file_path = outdir / f"alignments-{ref}.log"
 
     config = eti_config.read_installed_cfg(installed)
     align_db = eti_align.load_aligndb(config=config, align_name=align_name)
@@ -600,6 +606,9 @@ def alignments(
             limit=limit,
             stableids=stableids,
         )
+    if limit:
+        locations = locations[:limit]
+
     mask = mask_shadow or mask
     shadow = bool(mask_shadow)
     maker = eti_align.construct_alignment(
@@ -630,9 +639,11 @@ def alignments(
             if not alignments:
                 if verbose:
                     eti_util.print_colour(str(alignments), colour="red")
+                if not isinstance(alignments, list):
+                    writer(alignments)
                 continue
 
-            input_source = alignments[0].info.source
+            input_source = alignments[0].source
             if len(alignments) == 1:
                 writer(alignments[0], identifier=input_source)
                 continue
@@ -644,6 +655,11 @@ def alignments(
                     continue
                 identifier = f"{input_source}-{i}"
                 writer(aln, identifier=identifier)
+
+    log_file_path = pathlib.Path(LOGGER.log_file_path)
+    LOGGER.shutdown()
+    output.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
+    log_file_path.unlink()
 
     eti_util.print_colour(text="Done!", colour="green")
 

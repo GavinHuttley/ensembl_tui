@@ -401,7 +401,7 @@ class construct_alignment:  # noqa: N801
             shadow=self._shadow,
             mask_ref=self._ref_only,
         ):
-            aln.info.source = segment.source
+            aln.source = segment.source
             results.append(aln)
 
         return results
