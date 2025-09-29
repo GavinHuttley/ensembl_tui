@@ -246,7 +246,7 @@ def species_from_ensembl_tree(
         for j in range(len(name_fields) + 1, 1, -1):
             n = "_".join(name_fields[:j])
             if n in species_map:
-                selected_species[species_map.get_species_name(n)] = n
+                selected_species[species_map.get_genome_name(n)] = n
                 break
         else:
             msg = f"cannot establish species for {'_'.join(name_fields)}"

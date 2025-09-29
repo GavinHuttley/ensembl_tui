@@ -180,27 +180,15 @@ def cfg_just_genomes(empty_cfg):
 
 @pytest.mark.internet
 @pytest.mark.timeout(10)
-def test_read_config_compara_genomes(cfg_just_aligns):
-    from ensembl_tui._species import Species
-
+def test_read_config_compara_genomes(cfg_just_aligns, default_species_map):
     config = eti_config.read_config(config_path=cfg_just_aligns)
-    site_map = eti_site_map.get_site_map(config.host)
-    assert not config.species_dbs
-    sp = eti_download.get_species_for_alignments(
-        host=config.host,
-        release=config.release,
-        align_names=config.align_names,
-        site_map=site_map,
-    )
-    expected = {Species.get_species_name(n) for n in COMMON_NAMES}
-    assert set(sp.keys()) == expected
+    expected = {default_species_map.get_genome_name(n) for n in COMMON_NAMES}
+    assert set(config.species_dbs.keys()) == expected
 
 
 @pytest.mark.internet
 @pytest.mark.timeout(10)
-def test_read_config_genomes(cfg_just_genomes):
-    from ensembl_tui._species import Species
-
+def test_read_config_genomes(cfg_just_genomes, default_species_map):
     config = eti_config.read_config(config_path=cfg_just_genomes)
-    expected = {Species.get_species_name(n) for n in COMMON_NAMES}
+    expected = {default_species_map.get_genome_name(n) for n in COMMON_NAMES}
     assert set(config.species_dbs.keys()) == expected

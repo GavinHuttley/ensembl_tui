@@ -57,7 +57,7 @@ class fasta_to_hdf5:  # noqa: N801
             "species",
             # we have to coerce the species name from a case insensitive string
             # to a standard python string
-            str(eti_species.Species.get_species_name(db_name)),
+            str(self.config.species_map.get_genome_name(db_name)),
             force=True,
         )
         src_dir = src_dir / "fasta"
