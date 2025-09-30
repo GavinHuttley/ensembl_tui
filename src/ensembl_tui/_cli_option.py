@@ -12,9 +12,45 @@ from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
 
+def just_one_species(
+    *, data: list[str] | str, species_map: eti_species.SpeciesNameMap
+) -> str:
+    if data is None:
+        eti_util.print_colour(
+            text="ERROR: no species  provided",
+            colour="red",
+        )
+        sys.exit(1)
+
+    species: list[str] = [data] if isinstance(data, str) else data
+    if len(species) > 1:
+        eti_util.print_colour(
+            text=f"ERROR: one species at a time, not {species!r}",
+            colour="red",
+        )
+        sys.exit(1)
+
+    selected_species = species[0]
+    if selected_species not in species_map:
+        eti_util.print_colour(
+            text=f"ERROR: invalid species name {selected_species!r}", colour="red"
+        )
+        sys.exit(1)
+    return selected_species
+
+
+def species_map_from_tsv(
+    ctx: "Context",  # noqa: ARG001
+    param: "Option",  # noqa: ARG001
+    tsv_file: str | None,
+) -> eti_species.SpeciesNameMap:
+    """returns a SpeciesNameMap from a tsv file"""
+    return eti_species.make_species_map(tsv_file)
+
+
 def stableids_from_tsv(
-    ctx: "Context",
-    param: "Option",
+    ctx: "Context",  # noqa: ARG001
+    param: "Option",  # noqa: ARG001
     tsv_file: pathlib.Path,
 ) -> list[str] | None:
     if not tsv_file:
@@ -75,21 +111,7 @@ def species_names_from_csv(
 ) -> list[str] | None:
     """returns species names"""
     species_names = values_from_csv_or_file(ctx, param, species)
-    species_names = None if species_names == [""] else species_names
-    if species_names is None:
-        return None
-
-    db_names = []
-    for name in species_names:
-        try:
-            db_name = eti_species.Species.get_ensembl_db_prefix(name)
-        except ValueError:
-            eti_util.print_colour(text=f"ERROR: unknown species {name!r}", colour="red")
-            sys.exit(1)
-
-        db_names.append(db_name)
-
-    return db_names
+    return None if species_names == [""] else species_names
 
 
 def genome_coords_from_tsv(
@@ -152,7 +174,7 @@ def genome_coords_from_tsv(
 
     return [
         eti_genome.genome_segment(
-            species=str(eti_species.Species.get_ensembl_db_prefix(sp)),
+            species=sp,
             seqid=str(seqid),
             start=int(start),
             stop=int(stop),

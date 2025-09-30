@@ -271,24 +271,19 @@ def species_summary(installed: pathlib.Path, species: str) -> None:
     """genome summary data for a species"""
 
     config = eti_config.read_installed_cfg(installed)
-    if species is None:
-        eti_util.print_colour(text="ERROR: a species name is required", colour="red")
-        sys.exit(1)
-
-    if len(species) > 1:
-        eti_util.print_colour(
-            text=f"ERROR: one species at a time, not {species!r}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    species = species[0]
-    annot_db = eti_genome.load_annotations_for_species(
-        path=config.installed_genome(species=species),
+    selected_species = cli_opt.just_one_species(
+        data=species, species_map=config.species_map
     )
-    summary = eti_genome.get_species_gene_summary(annot_db=annot_db, species=species)
+    annot_db = eti_genome.load_annotations_for_species(
+        path=config.installed_genome(species=selected_species),
+    )
+    summary = eti_genome.get_species_gene_summary(
+        annot_db=annot_db, species=selected_species, species_map=config.species_map
+    )
     eti_util.rich_display(summary)
-    summary = eti_genome.get_species_repeat_summary(annot_db=annot_db, species=species)
+    summary = eti_genome.get_species_repeat_summary(
+        annot_db=annot_db, species=selected_species, species_map=config.species_map
+    )
     eti_util.rich_display(summary)
 
 
@@ -306,19 +301,11 @@ def dump_genes(
     """export meta-data table for genes from one species to <species>-<release>.gene_metadata.tsv"""
 
     config = eti_config.read_installed_cfg(installed)
-    if species is None:
-        eti_util.print_colour(text="ERROR: a species name is required", colour="red")
-        sys.exit(1)
-
-    if len(species) > 1:
-        eti_util.print_colour(
-            text=f"ERROR: one species at a time, not {species!r}",
-            colour="red",
-        )
-        sys.exit(1)
-
+    selected_species = cli_opt.just_one_species(
+        data=species, species_map=config.species_map
+    )
     annot_db = eti_genome.load_annotations_for_species(
-        path=config.installed_genome(species=species[0]),
+        path=config.installed_genome(species=selected_species),
     )
     path = annot_db.source
     table = eti_genome.get_gene_table_for_species(annot_db=annot_db, limit=limit)
@@ -417,7 +404,6 @@ def homologs(
     LOGGER.log_file_path = outdir / f"homologs-{ref}-{homology_type}.log"
 
     config = eti_config.read_installed_cfg(installed)
-    eti_species.Species.update_from_file(config.genomes_path / "species.tsv")
     # we all the protein coding gene IDs from the reference species
     genome = eti_genome.load_genome(config=config, species=ref)
 
@@ -564,7 +550,7 @@ def alignments(
 
     config = eti_config.read_installed_cfg(installed)
     align_db = eti_align.load_aligndb(config=config, align_name=align_name)
-    ref_species = eti_species.Species.get_ensembl_db_prefix(ref)
+    ref_species = config.species_map.get_ensembl_db_prefix(ref)
     if ref_species not in align_db.get_species_names():
         eti_util.print_colour(
             text=f"species {ref!r} not in the alignment",
