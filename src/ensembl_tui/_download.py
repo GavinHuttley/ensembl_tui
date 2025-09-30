@@ -16,7 +16,7 @@ from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
 
@@ -28,16 +28,6 @@ _valid_seq = re.compile(r"dna[.](nonchromosomal|toplevel)\.fa\.gz")
 def valid_seq_file(name: str) -> bool:
     """unmasked genomic DNA sequences"""
     return _valid_seq.search(name) is not None
-
-
-class valid_gff3_file:  # noqa: N801
-    """whole genome gff3"""
-
-    def __init__(self, release: str) -> None:
-        self._valid = re.compile(f"([.]{release}[.]gff3[.]gz|README|CHECKSUMS)")
-
-    def __call__(self, name: str) -> bool:
-        return self._valid.search(name) is not None
 
 
 def _remove_tmpdirs(path: eti_util.PathType) -> None:
@@ -159,7 +149,6 @@ def download_species(
             description=msg,
         )
 
-    patterns = {"fasta": valid_seq_file, "gff3": valid_gff3_file(config.release)}
     for key in config.species_dbs:
         db_prefix = config.species_map.get_ensembl_db_prefix(key)
         local_root = config.staging_genomes / db_prefix
@@ -168,7 +157,7 @@ def download_species(
         remote = site_map.get_seqs_path(db_prefix)
         remote_dir = remote_template.format(remote)
         remote_paths = list(
-            eti_ftp.listdir(config.host, path=remote_dir, pattern=patterns["fasta"]),
+            eti_ftp.listdir(config.host, path=remote_dir, pattern=valid_seq_file),
         )
         if verbose:
             eti_util.print_colour(text=f"{remote_paths=}", colour="yellow")
@@ -352,7 +341,7 @@ def download_ensembl_tree(
     if site_map.trees_path is None:
         return None
     url = f"https://{host}/{site_map.remote_path}/release-{release}/{site_map.trees_path}/{tree_fname}"
-    return cogent3.load_tree(url)
+    return cogent3.load_tree(url, underscore_unmunge=False)
 
 
 def get_ensembl_trees(

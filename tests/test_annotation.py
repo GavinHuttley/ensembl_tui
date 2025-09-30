@@ -275,6 +275,7 @@ def test_get_ids_for_biotype2(yeast_db):
     assert len(features) == 10
 
 
+@pytest.mark.slow
 def test_get_ids_for_biotype_seqid(yeast_db, yeast):
     stable_ids = list(
         yeast_db.get_ids_for_biotype(biotype="protein_coding", seqid="III"),

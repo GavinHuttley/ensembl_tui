@@ -1,6 +1,9 @@
 import pytest
+from cogent3 import make_tree
 from cogent3.core.table import Table
 
+from ensembl_tui import _download as eti_download
+from ensembl_tui import _site_map as eti_smap
 from ensembl_tui import _species as eti_species
 
 
@@ -40,9 +43,19 @@ def test_get_ensembl_format(species):
     )
 
 
+def test_get_ensembl_prefix_invalid(species):
+    assert species.get_ensembl_db_prefix(1) is None
+    assert species.get_ensembl_db_prefix("not present") is None
+
+
 def test_get_genome_name(species):
     got = species.get_genome_name("Sheep - Polled Dorset")
     assert got.startswith("ovis_aries")
+
+
+def test_get_genome_name_invalid(species):
+    assert not species.get_genome_name(1)
+    assert not species.get_genome_name("not present")
 
 
 @pytest.mark.parametrize("arg", ["Human", "human", "homo_sapiens", "Homo sapiens"])
@@ -66,6 +79,20 @@ def test_lookup_raises(species):
         species.get_common_name("failme", level="raise")
     with pytest.raises(ValueError):  # noqa: PT011
         species.get_ensembl_db_prefix("failme", level="raise")
+
+
+def test_lookup_warns(species, capsys):
+    """setting level to warn should create warnings"""
+    species.get_species_name("failme", level="warn")
+    captured = capsys.readouterr()
+    assert captured.out.startswith("WARN:")
+
+
+def test_lookup_latin(species):
+    # lonchura_striata_domestica
+    query = "lonchura striata"
+    got = species.get_abbreviation(query, level="raise")
+    assert got == "lon-stri-dome"
 
 
 def test_to_table(species):
@@ -135,3 +162,30 @@ def test_get_subset_invalid(species):
     ensembl db prefix"""
     with pytest.raises(ValueError):  # noqa: PT011
         species.get_subset(["does not exist"])
+
+
+def test_spec_map_dunder(species):
+    assert repr(species)
+    assert str(species)
+    assert species._repr_html_()
+
+
+@pytest.mark.internet
+@pytest.mark.timeout(10)
+def test_species_from_tree(species):
+    smap = eti_smap.get_site_map("main")
+    ens_tree = eti_download.download_ensembl_tree(
+        host=smap.site,
+        site_map=smap,
+        release="115",
+        tree_fname="10_primates_EPO_default.nh",
+    )
+
+    genome_tip_map = eti_species.species_from_ensembl_tree(ens_tree, species)
+    assert len(genome_tip_map) == len(ens_tree.get_tip_names())
+
+
+def test_species_from_invalid_tree(species):
+    tree = make_tree(tip_names=["a_b_c_d", "e_f_g_h", "i_j_k_l"])
+    with pytest.raises(ValueError):  # noqa: PT011
+        _ = eti_species.species_from_ensembl_tree(tree, species)
