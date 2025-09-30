@@ -7,7 +7,6 @@ from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _ingest_align as ingest_aln
 from ensembl_tui import _ingest_annotation as eti_db_ingest
 from ensembl_tui import _ingest_homology as homology_ingest
-from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
 
@@ -58,8 +57,6 @@ def local_install_genomes(
         if progress is not None:
             progress.update(write_features, description=msg, advance=1)
 
-    species_table = eti_species.Species.to_table()
-    species_table.write(config.install_genomes / eti_species.SPECIES_NAME)
     if verbose:
         eti_util.print_colour("\nFinished installing features", "yellow")
 

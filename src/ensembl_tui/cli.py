@@ -48,9 +48,16 @@ def main() -> None:
 
 @main.command(**_click_command_opts)
 @cli_opt.dbrc_out
+@cli_opt.site
 @cli_opt.force
-def demo_config(outpath: pathlib.Path, force_overwrite: bool) -> None:
+def demo_config(outpath: pathlib.Path, site: str, force_overwrite: bool) -> None:
     """exports sample config and species table to the nominated path"""
+    from ensembl_tui._download import download_species_table
+
+    site_map = eti_site_map.get_site_map(site)
+    table = download_species_table(
+        site_map=site_map,
+    )
 
     outpath = outpath.expanduser()
     if outpath.exists() and not force_overwrite:
@@ -73,14 +80,22 @@ def demo_config(outpath: pathlib.Path, force_overwrite: bool) -> None:
             else:
                 # __pycache__ directory
                 shutil.rmtree(fn)
+    species_path = outpath / "species-full.tsv"
+    table.write(species_path)
     eti_util.print_colour(text=f"Contents written to {outpath}", colour="green")
 
 
 @main.command(**_click_command_opts)
 @cli_opt.cfgpath
 @cli_opt.debug
+@cli_opt.species_map
 @cli_opt.verbose
-def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
+def download(
+    configpath: pathlib.Path,
+    species_map: eti_species.SpeciesNameMap,
+    debug: bool,
+    verbose: bool,
+) -> None:
     """download data from Ensembl's ftp site"""
     from rich import progress
 
@@ -94,24 +109,17 @@ def download(configpath: pathlib.Path, debug: bool, verbose: bool) -> None:
         )
         sys.exit(1)
 
-    config = eti_config.read_config(configpath, root_dir=pathlib.Path.cwd())
+    config = eti_config.read_config(
+        config_path=configpath, root_dir=pathlib.Path.cwd(), species_map=species_map
+    )
     site_map = eti_site_map.get_site_map(config.host)
 
     if verbose:
         eti_util.print_colour(text=str(config), colour="yellow")
 
-    if not any((config.species_dbs, config.align_names)):
-        eti_util.print_colour(text="No genomes, no alignments specified", colour="red")
-        sys.exit(1)
-
     if not config.species_dbs:
-        species = eti_download.get_species_for_alignments(
-            site_map=site_map,
-            host=config.host,
-            release=config.release,
-            align_names=config.align_names,
-        )
-        config.update_species(species)
+        eti_util.print_colour(text="No genomes specified", colour="red")
+        sys.exit(1)
 
     if verbose:
         eti_util.print_colour(text=str(config.species_dbs), colour="yellow")
@@ -173,7 +181,7 @@ def install(
     )
 
     configpath = download / eti_config.DOWNLOADED_CONFIG_NAME
-    config = eti_config.read_config(configpath)
+    config = eti_config.read_config(config_path=configpath, root_dir=None)
     if verbose:
         eti_util.print_colour(text=f"{config.install_path=}", colour="yellow")
 
@@ -231,13 +239,14 @@ def installed(installed: pathlib.Path) -> None:
     genome_dir = config.genomes_path
     if genome_dir.exists():
         species = [fn.name for fn in genome_dir.glob("*")]
-        data = {"species": [], "common name": []}
+        data = {"abbrev": [], "genome": [], "common name": []}
         for name in species:
-            cn = eti_species.Species.get_common_name(name, level="ignore")
+            cn = config.species_map.get_common_name(name, level="ignore")
             if not cn:
                 continue
-            data["species"].append(name)
+            data["genome"].append(name)
             data["common name"].append(cn)
+            data["abbrev"].append(config.species_map.get_abbreviation(name))
 
         table = make_table(data=data, title="Installed genomes:")
         eti_util.rich_display(table)
@@ -258,28 +267,23 @@ def installed(installed: pathlib.Path) -> None:
 @main.command(**_click_command_opts)
 @cli_opt.installed
 @cli_opt.species
-def species_summary(installed: pathlib.Path, species: str) -> None:
+def species_summary(installed: pathlib.Path, species: list[str]) -> None:
     """genome summary data for a species"""
 
     config = eti_config.read_installed_cfg(installed)
-    if species is None:
-        eti_util.print_colour(text="ERROR: a species name is required", colour="red")
-        sys.exit(1)
-
-    if len(species) > 1:
-        eti_util.print_colour(
-            text=f"ERROR: one species at a time, not {species!r}",
-            colour="red",
-        )
-        sys.exit(1)
-
-    species = species[0]
-    annot_db = eti_genome.load_annotations_for_species(
-        path=config.installed_genome(species=species),
+    selected_species = cli_opt.just_one_species(
+        data=species, species_map=config.species_map
     )
-    summary = eti_genome.get_species_gene_summary(annot_db=annot_db, species=species)
+    annot_db = eti_genome.load_annotations_for_species(
+        path=config.installed_genome(species=selected_species),
+    )
+    summary = eti_genome.get_species_gene_summary(
+        annot_db=annot_db, species=selected_species, species_map=config.species_map
+    )
     eti_util.rich_display(summary)
-    summary = eti_genome.get_species_repeat_summary(annot_db=annot_db, species=species)
+    summary = eti_genome.get_species_repeat_summary(
+        annot_db=annot_db, species=selected_species, species_map=config.species_map
+    )
     eti_util.rich_display(summary)
 
 
@@ -297,19 +301,11 @@ def dump_genes(
     """export meta-data table for genes from one species to <species>-<release>.gene_metadata.tsv"""
 
     config = eti_config.read_installed_cfg(installed)
-    if species is None:
-        eti_util.print_colour(text="ERROR: a species name is required", colour="red")
-        sys.exit(1)
-
-    if len(species) > 1:
-        eti_util.print_colour(
-            text=f"ERROR: one species at a time, not {species!r}",
-            colour="red",
-        )
-        sys.exit(1)
-
+    selected_species = cli_opt.just_one_species(
+        data=species, species_map=config.species_map
+    )
     annot_db = eti_genome.load_annotations_for_species(
-        path=config.installed_genome(species=species[0]),
+        path=config.installed_genome(species=selected_species),
     )
     path = annot_db.source
     table = eti_genome.get_gene_table_for_species(annot_db=annot_db, limit=limit)
@@ -408,7 +404,6 @@ def homologs(
     LOGGER.log_file_path = outdir / f"homologs-{ref}-{homology_type}.log"
 
     config = eti_config.read_installed_cfg(installed)
-    eti_species.Species.update_from_file(config.genomes_path / "species.tsv")
     # we all the protein coding gene IDs from the reference species
     genome = eti_genome.load_genome(config=config, species=ref)
 
@@ -555,7 +550,7 @@ def alignments(
 
     config = eti_config.read_installed_cfg(installed)
     align_db = eti_align.load_aligndb(config=config, align_name=align_name)
-    ref_species = eti_species.Species.get_ensembl_db_prefix(ref)
+    ref_species = config.species_map.get_ensembl_db_prefix(ref)
     if ref_species not in align_db.get_species_names():
         eti_util.print_colour(
             text=f"species {ref!r} not in the alignment",

@@ -22,7 +22,7 @@ def compara_cfg(tmp_config):
 
 
 def test_parse_config(compara_cfg):
-    cfg = eti_config.read_config(compara_cfg)
+    cfg = eti_config.read_config(config_path=compara_cfg)
     assert set(cfg.align_names) == {"17_sauropsids.epc", "10_primates.epo"}
 
 
@@ -53,7 +53,7 @@ def gorilla_cfg(tmp_config):
 
 def test_parse_config_gorilla(gorilla_cfg):
     # Gorilla has two synonyms, we need only one
-    cfg = eti_config.read_config(gorilla_cfg)
+    cfg = eti_config.read_config(config_path=gorilla_cfg)
     num_gorilla = sum(1 for k in cfg.species_dbs if "gorilla" in k)
     assert num_gorilla == 1
 
@@ -108,13 +108,13 @@ def just_compara_cfg(tmp_config):
 @pytest.mark.timeout(10)
 def test_just_compara(just_compara_cfg):
     # get species names from the alignment ref tree
-    cfg = eti_config.read_config(just_compara_cfg)
+    cfg = eti_config.read_config(config_path=just_compara_cfg)
     # 10 primates i the alignments, so we should have 10 db's
     assert len(cfg.species_dbs) == 10
 
 
 def test_write_read_installed_config(tmp_config):
-    config = eti_config.read_config(tmp_config)
+    config = eti_config.read_config(config_path=tmp_config)
     cfg_path = eti_config.write_installed_cfg(config)
     icfg = eti_config.read_installed_cfg(cfg_path.parent)
     assert icfg.release == config.release
@@ -159,28 +159,15 @@ def test_missing_match_align_tree(tmp_config):
         eti_util.trees_for_aligns(aligns, trees)
 
 
-def test_config_update_invalid_species(tmp_config):
-    config = eti_config.read_config(tmp_config)
-    with pytest.raises(ValueError):
-        config.update_species({"Micro bat": ["core"]})
-
-
-def test_config_update_species(tmp_config):
-    config = eti_config.read_config(tmp_config)
-    config.update_species({"Human": ["core"]})
-    assert len(list(config.db_names)) == 2
-    assert set(config.db_names) == {"homo_sapiens", "saccharomyces_cerevisiae"}
-
-
 @pytest.mark.internet
 @pytest.mark.timeout(10)
 def test_cfg_to_dict(just_compara_cfg):
-    cfg = eti_config.read_config(just_compara_cfg)
+    cfg = eti_config.read_config(config_path=just_compara_cfg)
     data = cfg.to_dict()
     cfg.write()
     path = cfg.staging_path / eti_config.DOWNLOADED_CONFIG_NAME
     assert path.exists()
-    got_cfg = eti_config.read_config(path)
+    got_cfg = eti_config.read_config(config_path=path)
     assert got_cfg.to_dict() == data
 
 

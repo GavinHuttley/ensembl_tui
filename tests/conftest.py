@@ -7,12 +7,18 @@ import pytest
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
+from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
 
 @pytest.fixture(scope="session")
 def DATA_DIR():
     return pathlib.Path(__file__).parent / "data"
+
+
+@pytest.fixture(scope="session")
+def default_species_map():
+    return eti_species.make_species_map(None)
 
 
 @pytest.fixture(scope="session")
@@ -81,7 +87,7 @@ def small_install_path(small_path):
 
 @pytest.fixture(scope="session")
 def small_download_cfg(small_download_path):
-    return eti_config.read_config(small_download_path)
+    return eti_config.read_config(config_path=small_download_path)
 
 
 @pytest.fixture(scope="session")

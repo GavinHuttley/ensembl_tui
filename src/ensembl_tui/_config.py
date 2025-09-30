@@ -22,6 +22,7 @@ _HOMOLOGIES_NAME: str = "homologies"
 _GENOMES_NAME: str = "genomes"
 
 _VERSION_SECTION = "software versions"
+_SPECIES_MAP_SECTION = "species_map"
 
 
 def make_relative_to(
@@ -50,6 +51,7 @@ class Config:
     align_names: Sequence[str]
     tree_names: Sequence[str]
     homologies: bool
+    species_map: eti_species.SpeciesNameMap
 
     def __post_init__(self) -> None:
         self.staging_path = pathlib.Path(self.staging_path)
@@ -59,19 +61,10 @@ class Config:
     def staging_template_path(self) -> pathlib.Path:
         return self.staging_genomes / "coredb_templates"
 
-    def update_species(self, species: dict[str, list[str]]) -> None:
-        if not species:
-            return
-        for k in species:
-            if k not in eti_species.Species:
-                msg = f"Unknown species {k=!r}"
-                raise ValueError(msg)
-        self.species_dbs |= species
-
     @property
     def db_names(self) -> Generator[str, None, None]:
         for species in self.species_dbs:
-            yield eti_species.Species.get_ensembl_db_prefix(species)
+            yield self.species_map.get_ensembl_db_prefix(species)
 
     @property
     def staging_genomes(self) -> pathlib.Path:
@@ -97,7 +90,7 @@ class Config:
     def install_aligns(self) -> pathlib.Path:
         return self.install_path / _COMPARA_NAME / _ALIGNS_NAME
 
-    def to_dict(self, relative_paths: bool = True) -> dict[str, str]:
+    def to_dict(self, relative_paths: bool = True) -> dict[str, dict[str, str]]:
         """returns cfg as a dict"""
         if not self.db_names:
             msg = "no db names"
@@ -150,6 +143,14 @@ class Config:
             parser.add_section(section)
             for option, val in settings.items():
                 parser.set(section, option=option, value=val)
+
+        # add the species map section (maps between db name, common name,
+        # abbrev etc..)
+        parser.add_section(_SPECIES_MAP_SECTION)
+        subset = self.species_map.get_subset(list(self.species_dbs))
+        for label, value in subset.for_storage().items():
+            parser.set(_SPECIES_MAP_SECTION, option=label, value=value)
+
         self.staging_path.mkdir(parents=True, exist_ok=True)
         with (self.staging_path / DOWNLOADED_CONFIG_NAME).open(mode="w") as out:
             parser.write(out, space_around_delimiters=True)
@@ -160,6 +161,7 @@ class InstalledConfig:
     release: str
     install_path: pathlib.Path
     software_versions: dict[str, str]
+    species_map: eti_species.SpeciesNameMap
 
     def __hash__(self) -> int:
         return id(self)
@@ -184,13 +186,13 @@ class InstalledConfig:
         return self.install_path / _GENOMES_NAME
 
     def installed_genome(self, species: str) -> pathlib.Path:
-        db_name = eti_species.Species.get_ensembl_db_prefix(species)
+        db_name = self.species_map.get_ensembl_db_prefix(species, level="raise")
         return self.genomes_path / db_name
 
     def list_genomes(self) -> list[str]:
         """returns list of installed genomes"""
         return [
-            p.name for p in self.genomes_path.glob("*") if p.name in eti_species.Species
+            p.name for p in self.genomes_path.glob("*") if p.name in self.species_map
         ]
 
     def path_to_alignment(self, pattern: str, suffix: str) -> pathlib.Path | None:
@@ -269,6 +271,15 @@ def write_installed_cfg(config: Config) -> eti_util.PathType:
     for pkg, vers in deps.items():
         parser.set(_VERSION_SECTION, pkg, vers)
 
+    # add the species map section (maps between db name, common name, abbrev etc..)
+    parser.add_section(_SPECIES_MAP_SECTION)
+    subset = config.species_map.get_subset(list(config.species_dbs))
+    store_map = subset.for_storage()
+    parser.set(_SPECIES_MAP_SECTION, "header", store_map.pop("header"))
+    # now add the species, value the remainder comma separated
+    for genome, value in store_map.items():
+        parser.set(_SPECIES_MAP_SECTION, genome, value)
+
     outpath = config.install_path / INSTALLED_CONFIG_NAME
     outpath.parent.mkdir(parents=True, exist_ok=True)
     with outpath.open(mode="w") as out:
@@ -293,8 +304,18 @@ def read_installed_cfg(path: eti_util.PathType) -> InstalledConfig:
         software_versions = dict(parser.items(_VERSION_SECTION))
     else:
         software_versions = {}
+
+    if parser.has_section("species_map"):
+        map_data = dict(parser.items("species_map"))
+        sp_map = eti_species.SpeciesNameMap.from_storage(map_data)
+    else:
+        sp_map = eti_species.make_species_map(species_path=None)
+
     return InstalledConfig(
-        release=release, install_path=path.parent, software_versions=software_versions
+        release=release,
+        install_path=path.parent,
+        software_versions=software_versions,
+        species_map=sp_map,
     )
 
 
@@ -306,13 +327,27 @@ def _standardise_path(
     return path if path.is_absolute() else (config_path / path).resolve()
 
 
+def _pop_section(
+    config: configparser.ConfigParser, section_name: str
+) -> dict[str, str]:
+    """Pop a section from config, returning its items as a dict"""
+    # Get all items from the section
+    data = dict(config.items(section_name))
+    # Remove the section
+    config.remove_section(section_name)
+
+    return data
+
+
 def read_config(
+    *,
     config_path: pathlib.Path,
+    species_map: eti_species.SpeciesNameMap | None = None,
     root_dir: pathlib.Path | None = None,
 ) -> Config:
     """returns ensembl release, local path, and db specifics from the provided
     config path"""
-    from ensembl_tui._download import download_ensembl_tree
+    from ensembl_tui._download import download_ensembl_tree, get_species_for_alignments
 
     if not config_path.exists():
         eti_util.print_colour(f"File not found {config_path.resolve()!s}", colour="red")
@@ -323,54 +358,86 @@ def read_config(
     with config_path.expanduser().open() as f:
         parser.read_file(f)
 
+    if parser.has_section(_SPECIES_MAP_SECTION):
+        # species map embedded in config takes precedence
+        map_data = _pop_section(parser, _SPECIES_MAP_SECTION)
+        sp_map = eti_species.SpeciesNameMap.from_storage(map_data)
+    elif species_map is None:
+        sp_map = eti_species.make_species_map(species_path=None)
+    else:
+        sp_map = species_map
+
     if root_dir is None:
         root_dir = config_path.parent
 
-    release = parser.get("release", "release")
-    host = parser.get("remote path", "host")
+    release = _pop_section(parser, "release")["release"]
+    host = _pop_section(parser, "remote path")["host"]
     site_map = eti_site_map.get_site_map(host)
     # paths
-    staging_path = _standardise_path(parser.get("local path", "staging_path"), root_dir)
-    install_path = _standardise_path(parser.get("local path", "install_path"), root_dir)
+    paths = _pop_section(parser, "local path")
+    staging_path = _standardise_path(paths["staging_path"], root_dir)
+    install_path = _standardise_path(paths["install_path"], root_dir)
 
     homologies = parser.has_option("compara", "homologies")
-    species_dbs = {}
-    get_option = parser.get
     align_names = []
     tree_names = []
+    if parser.has_section("compara"):
+        compara = _pop_section(parser, "compara")
+        align_names = (
+            [n.strip() for n in compara["align_names"].split(",")]
+            if "align_names" in compara
+            else []
+        )
+        tree_names = (
+            [n.strip() for n in compara["tree_names"].split(",")]
+            if "tree_names" in compara
+            else []
+        )
+
+    species_dbs = {}
     for section in parser.sections():
-        if section in ("release", "remote path", "local path"):
-            continue
-
-        if section == "compara":
-            value = get_option(section, "align_names", fallback=None)
-            align_names = [] if value is None else [n.strip() for n in value.split(",")]
-            value = get_option(section, "tree_names", fallback=None)
-            tree_names = [] if value is None else [n.strip() for n in value.split(",")]
-            continue
-
-        dbs = [db.strip() for db in get_option(section, "db").split(",")]
-
+        sec = _pop_section(parser, section)
+        dbs = [db.strip() for db in sec["db"].split(",")]
         # handle synonyms
-        species = eti_species.Species.get_species_name(section, level="raise")
-        species_dbs[species] = dbs
+        species_name = sp_map.get_ensembl_db_prefix(section, level="raise")
+        species_dbs[species_name] = dbs
 
     # we also want homologies if we want alignments
     homologies = homologies or bool(align_names)
 
-    if tree_names:
-        # add all species in the tree to species_dbs
-        for tree_name in tree_names:
-            tree = download_ensembl_tree(
-                host=host,
-                release=release,
-                site_map=site_map,
-                tree_fname=tree_name,
+    if not species_dbs and (align_names or tree_names):
+        found = set()
+        if tree_names:
+            # add all species in the tree to species_dbs
+            for tree_name in tree_names:
+                tree = download_ensembl_tree(
+                    host=host,
+                    release=release,
+                    site_map=site_map,
+                    tree_fname=tree_name,
+                )
+                if tree is None:
+                    continue
+
+                sp = set(
+                    eti_species.species_from_ensembl_tree(tree, species_map=sp_map)
+                )
+                found |= sp
+
+        if align_names:
+            # add all species in the alignments to species_dbs
+            sp = set(
+                get_species_for_alignments(
+                    host=host,
+                    release=release,
+                    site_map=site_map,
+                    align_names=align_names,
+                    species_map=sp_map,
+                )
             )
-            if tree is None:
-                continue
-            sp = eti_species.species_from_ensembl_tree(tree)
-            species_dbs |= sp
+            found |= sp
+
+        species_dbs |= {n: ["core"] for n in found}
 
     return Config(
         host=host,
@@ -381,4 +448,5 @@ def read_config(
         align_names=align_names,
         tree_names=tree_names,
         homologies=homologies,
+        species_map=sp_map,
     )

@@ -8,7 +8,7 @@ from ensembl_tui import _mysql_core_attr as eti_db_attr
 @pytest.mark.internet
 @pytest.mark.timeout(10)
 def test_get_db_names(tmp_config):
-    cfg = eti_config.read_config(tmp_config)
+    cfg = eti_config.read_config(config_path=tmp_config)
     db_names = eti_download.get_core_db_dirnames(cfg)
     assert db_names == {
         "saccharomyces_cerevisiae": "pub/release-114/mysql/saccharomyces_cerevisiae_core_114_4",

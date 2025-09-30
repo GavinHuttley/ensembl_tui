@@ -41,6 +41,7 @@ def test_download_no_config():
     assert "No config" in r.output
 
 
+@pytest.mark.internet
 def test_demo_config(tmp_dir):
     """demo_config works correctly"""
     outdir = tmp_dir / "exported"
@@ -48,10 +49,11 @@ def test_demo_config(tmp_dir):
     assert r.exit_code == 0, r.output
     fnames = {f.name for f in outdir.iterdir()}
     assert "species.tsv" in fnames
-    assert len(fnames) == 2
+    assert len(fnames) == 3
     shutil.rmtree(tmp_dir)
 
 
+@pytest.mark.internet
 def test_demo_config_exists(tmp_dir):
     outdir = tmp_dir / "exported"
     outdir.mkdir(parents=True, exist_ok=True)

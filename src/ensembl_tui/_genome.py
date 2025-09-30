@@ -57,7 +57,7 @@ class fasta_to_hdf5:  # noqa: N801
             "species",
             # we have to coerce the species name from a case insensitive string
             # to a standard python string
-            str(eti_species.Species.get_species_name(db_name)),
+            str(self.config.species_map.get_genome_name(db_name)),
             force=True,
         )
         src_dir = src_dir / "fasta"
@@ -262,6 +262,7 @@ def get_gene_table_for_species(
 def get_species_gene_summary(
     *,
     annot_db: eti_annots.Annotations,
+    species_map: eti_species.SpeciesNameMap,
     species: str | None = None,
 ) -> Table:
     """
@@ -271,6 +272,8 @@ def get_species_gene_summary(
     ----------
     annot_db
         feature db
+    species_map
+        map of common, latin and ensembl db names
     species
         species name, overrides inference from annot_db.source
     """
@@ -278,7 +281,7 @@ def get_species_gene_summary(
     species = species or annot_db.source.parent.name
     counts = annot_db.biotypes.count_distinct()
     try:
-        common_name = eti_species.Species.get_common_name(species)
+        common_name = species_map.get_species_name(species)
     except ValueError:
         common_name = species
 
@@ -290,6 +293,7 @@ def get_species_gene_summary(
 def get_species_repeat_summary(
     *,
     annot_db: eti_annots.Annotations,
+    species_map: eti_species.SpeciesNameMap,
     species: str | None = None,
 ) -> Table:
     """
@@ -299,6 +303,8 @@ def get_species_repeat_summary(
     ----------
     annot_db
         feature db
+    species_map
+        map of common, latin and ensembl db names
     species
         species name, overrides inference from annot_db.source
     """
@@ -306,7 +312,7 @@ def get_species_repeat_summary(
     species = species or annot_db.source.parent.name
     counts = annot_db.repeats.count_distinct(repeat_class=True, repeat_type=True)
     try:
-        common_name = eti_species.Species.get_common_name(species)
+        common_name = species_map.get_species_name(species)
     except ValueError:
         common_name = species
 
