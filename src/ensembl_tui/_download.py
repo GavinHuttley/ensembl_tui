@@ -30,16 +30,6 @@ def valid_seq_file(name: str) -> bool:
     return _valid_seq.search(name) is not None
 
 
-class valid_gff3_file:  # noqa: N801
-    """whole genome gff3"""
-
-    def __init__(self, release: str) -> None:
-        self._valid = re.compile(f"([.]{release}[.]gff3[.]gz|README|CHECKSUMS)")
-
-    def __call__(self, name: str) -> bool:
-        return self._valid.search(name) is not None
-
-
 def _remove_tmpdirs(path: eti_util.PathType) -> None:
     """delete any tmp dirs left over from unsuccessful runs"""
     tmpdirs = [p for p in path.glob("tmp*") if p.is_dir()]
@@ -159,7 +149,6 @@ def download_species(
             description=msg,
         )
 
-    patterns = {"fasta": valid_seq_file, "gff3": valid_gff3_file(config.release)}
     for key in config.species_dbs:
         db_prefix = config.species_map.get_ensembl_db_prefix(key)
         local_root = config.staging_genomes / db_prefix
@@ -168,7 +157,7 @@ def download_species(
         remote = site_map.get_seqs_path(db_prefix)
         remote_dir = remote_template.format(remote)
         remote_paths = list(
-            eti_ftp.listdir(config.host, path=remote_dir, pattern=patterns["fasta"]),
+            eti_ftp.listdir(config.host, path=remote_dir, pattern=valid_seq_file),
         )
         if verbose:
             eti_util.print_colour(text=f"{remote_paths=}", colour="yellow")
