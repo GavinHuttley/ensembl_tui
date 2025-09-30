@@ -347,8 +347,10 @@ def download_ensembl_tree(
     site_map: eti_site_map.SiteMap,
     release: str,
     tree_fname: str,
-) -> "PhyloNode":
+) -> typing.Optional["PhyloNode"]:
     """loads a tree from Ensembl"""
+    if site_map.trees_path is None:
+        return None
     url = f"https://{host}/{site_map.remote_path}/release-{release}/{site_map.trees_path}/{tree_fname}"
     return cogent3.load_tree(url)
 
@@ -360,6 +362,9 @@ def get_ensembl_trees(
     site_map: eti_site_map.SiteMap,
 ) -> list[str]:
     """returns trees from ensembl compara"""
+    if site_map.trees_path is None:
+        return []
+
     path = f"{site_map.remote_path}/release-{release}/{site_map.trees_path}"
     return list(
         eti_ftp.listdir(host=host, path=path, pattern=lambda x: x.endswith(".nh")),
@@ -379,6 +384,9 @@ def get_species_for_alignments(
         host=host,
         release=release,
     )
+    if not ensembl_trees:
+        return {}
+
     aligns_trees = eti_util.trees_for_aligns(align_names, ensembl_trees)
     species = {}
     for tree_path in aligns_trees.values():
@@ -388,6 +396,8 @@ def get_species_for_alignments(
             release=release,
             tree_fname=pathlib.Path(tree_path).name,
         )
+        if tree is None:
+            continue
         # dict structure is {common name: db prefix}, just use common name
         species |= {
             n: ["core"]
