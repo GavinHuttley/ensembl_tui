@@ -3,6 +3,7 @@ import pytest
 import ensembl_tui._config as eti_config
 import ensembl_tui._download as eti_download
 from ensembl_tui import _mysql_core_attr as eti_db_attr
+from ensembl_tui import _site_map as eti_smap
 
 
 @pytest.mark.internet
@@ -21,3 +22,19 @@ def test_make_dumpfiles():
     assert {
         n.split(".")[0] for n in table_names - {"CHECKSUMS"}
     } == eti_db_attr.get_all_tables()
+
+
+@pytest.mark.internet
+@pytest.mark.timeout(10)
+def test_download_tree():
+    from cogent3.core.tree import PhyloNode
+
+    smap = eti_smap.get_site_map("main")
+    got = eti_download.download_ensembl_tree(
+        host=smap.site,
+        site_map=smap,
+        release="115",
+        tree_fname="10_primates_EPO_default.nh",
+    )
+
+    assert isinstance(got, PhyloNode)
