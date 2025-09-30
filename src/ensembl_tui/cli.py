@@ -267,7 +267,7 @@ def installed(installed: pathlib.Path) -> None:
 @main.command(**_click_command_opts)
 @cli_opt.installed
 @cli_opt.species
-def species_summary(installed: pathlib.Path, species: str) -> None:
+def species_summary(installed: pathlib.Path, species: list[str]) -> None:
     """genome summary data for a species"""
 
     config = eti_config.read_installed_cfg(installed)

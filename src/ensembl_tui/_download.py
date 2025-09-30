@@ -161,7 +161,7 @@ def download_species(
 
     patterns = {"fasta": valid_seq_file, "gff3": valid_gff3_file(config.release)}
     for key in config.species_dbs:
-        db_prefix = eti_species.Species.get_ensembl_db_prefix(key)
+        db_prefix = config.species_map.get_ensembl_db_prefix(key)
         local_root = config.staging_genomes / db_prefix
         local_root.mkdir(parents=True, exist_ok=True)
         # getting genome sequences
@@ -377,6 +377,7 @@ def get_species_for_alignments(
     release: str,
     align_names: typing.Iterable[str],
     site_map: eti_site_map.SiteMap,
+    species_map: eti_species.SpeciesNameMap,
 ) -> dict[str, list[str]]:
     """return the species for the indicated alignments"""
     ensembl_trees = get_ensembl_trees(
