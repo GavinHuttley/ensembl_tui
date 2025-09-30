@@ -5,8 +5,6 @@ import pytest
 
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config
-from ensembl_tui import _download as eti_download
-from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _util as eti_util
 
 
