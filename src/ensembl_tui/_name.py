@@ -42,6 +42,8 @@ def get_version_from_name(name):
 def get_db_prefix(name: str) -> str:
     """returns the db prefix, typically an organism or `ensembl'"""
     db_type = get_dbtype_from_name(name)
+    if not db_type:
+        return name
     parts = name.split(db_type)[0].split("_")
     return "_".join(parts[:-1])
 
@@ -55,6 +57,9 @@ class EnsemblDbName:
         self.name = db_name
         self.db_type = get_dbtype_from_name(db_name)
         self.prefix = get_db_prefix(db_name)
+        if " " in self.prefix:
+            msg = f"Invalid db_name {db_name!r}, contains a space"
+            raise ValueError(msg)
 
         release, build = get_version_from_name(db_name)
         self.release = release
