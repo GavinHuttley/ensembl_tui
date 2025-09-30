@@ -16,7 +16,7 @@ from ensembl_tui import _site_map as eti_site_map
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
 
