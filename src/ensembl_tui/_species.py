@@ -7,7 +7,7 @@ from cogent3.core.tree import PhyloNode
 
 from ensembl_tui import _util as eti_util
 
-if typing.TYPE_CHECKING:
+if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
 
 SPECIES_NAME = "species.tsv"
@@ -44,9 +44,6 @@ def _genome_name_to_species_name(genome_name: str) -> str:
 
 def _latin_to_abbrev(genome_to_abrv: dict[str, str], latin_name: str) -> str | None:
     """convert a latin name to a abbreviation"""
-    if " " not in latin_name:
-        return None
-
     latin_name = latin_name.replace(" ", "_")
     found = []
     for genome_name, abrv in genome_to_abrv.items():
@@ -57,8 +54,7 @@ def _latin_to_abbrev(genome_to_abrv: dict[str, str], latin_name: str) -> str | N
     if len(found) == 1:
         return found[0]
 
-    msg = f"matches to {latin_name!r} {found} != 1"
-    raise ValueError(msg)
+    return None
 
 
 class SpeciesNameMap:
@@ -246,7 +242,7 @@ def species_from_ensembl_tree(
         for j in range(len(name_fields) + 1, 1, -1):
             n = "_".join(name_fields[:j])
             if n in species_map:
-                selected_species[species_map.get_genome_name(n)] = n
+                selected_species[species_map.get_genome_name(n)] = tip_name
                 break
         else:
             msg = f"cannot establish species for {'_'.join(name_fields)}"

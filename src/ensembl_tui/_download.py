@@ -352,7 +352,7 @@ def download_ensembl_tree(
     if site_map.trees_path is None:
         return None
     url = f"https://{host}/{site_map.remote_path}/release-{release}/{site_map.trees_path}/{tree_fname}"
-    return cogent3.load_tree(url)
+    return cogent3.load_tree(url, underscore_unmunge=False)
 
 
 def get_ensembl_trees(
