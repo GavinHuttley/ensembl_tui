@@ -239,13 +239,14 @@ def installed(installed: pathlib.Path) -> None:
     genome_dir = config.genomes_path
     if genome_dir.exists():
         species = [fn.name for fn in genome_dir.glob("*")]
-        data = {"species": [], "common name": []}
+        data = {"abbrev": [], "genome": [], "common name": []}
         for name in species:
-            cn = eti_species.Species.get_common_name(name, level="ignore")
+            cn = config.species_map.get_common_name(name, level="ignore")
             if not cn:
                 continue
-            data["species"].append(name)
+            data["genome"].append(name)
             data["common name"].append(cn)
+            data["abbrev"].append(config.species_map.get_abbreviation(name))
 
         table = make_table(data=data, title="Installed genomes:")
         eti_util.rich_display(table)
