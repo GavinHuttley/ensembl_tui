@@ -18,7 +18,7 @@ $ eti species-summary -i data/apes-115 --species human
 ## Export gene meta-data for a species {#export-genes}
 
 !!! note
-   The list of data from this query only covers human chromosome 22 because we are using a custom subset of the original Ensembl data.
+    The list of data from this query only covers human chromosome 22 because we are using a custom subset of the original Ensembl data.
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti dump-genes -i data/apes-115 --species human -od human_data
