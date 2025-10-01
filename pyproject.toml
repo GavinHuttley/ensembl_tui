@@ -25,6 +25,8 @@ dependencies = [
         "duckdb",
         "numba",
         "numpy",
+        "polars",
+        "pyarrow",
         "rich",
         "scitrack",
         "typing_extensions",
@@ -57,7 +59,6 @@ eti = "ensembl_tui.cli:main"
 
 [project.optional-dependencies]
 test = [
-    "pandas",
     "pytest",
     "pytest-cov",
     "pytest-timeout",

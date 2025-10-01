@@ -74,7 +74,7 @@ def migrate_schema(con: duckdb.DuckDBPyConnection, table_name: str) -> None:
     FROM information_schema.columns
     WHERE table_name = '{table_name}'
     AND column_name LIKE '%strand'"""
-    names = con.sql(sql).to_df()
+    names = con.sql(sql).pl()
     names_types = zip(
         names["column_name"].to_list(),
         names["data_type"].to_list(),
@@ -96,7 +96,7 @@ def migrate_schema(con: duckdb.DuckDBPyConnection, table_name: str) -> None:
     WHERE table_name = '{table_name}'
     AND data_type = 'TIMESTAMP';
     """
-    names = con.sql(sql).to_df()
+    names = con.sql(sql).pl()
     names_types = zip(
         names["column_name"].to_list(),
         names["data_type"].to_list(),
