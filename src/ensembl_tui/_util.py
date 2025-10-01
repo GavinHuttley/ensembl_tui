@@ -13,8 +13,6 @@ from collections.abc import Callable, Hashable
 from hashlib import md5
 from typing import IO
 
-import blosc2
-import hdf5plugin
 import numba
 import numpy
 from cogent3.app.composable import define_app
@@ -38,12 +36,6 @@ except (NotImplementedError, ImportError):
     keep_running = contextlib.nullcontext
 
 CWD = pathlib.Path.cwd()
-
-HDF5_BLOSC2_KWARGS = hdf5plugin.Blosc2(
-    cname="blosclz",
-    clevel=9,
-    filters=hdf5plugin.Blosc2.BITSHUFFLE,
-)
 
 
 def md5sum(data: bytes, *args) -> str:
@@ -373,19 +365,6 @@ def _bytes_to_str(data: bytes) -> str:
     """converts bytes into string"""
     return data.decode("utf8")
 
-
-@define_app
-def blosc_compress_it(data: bytes) -> bytes:
-    return blosc2.compress(data, clevel=9, filter=blosc2.Filter.SHUFFLE)
-
-
-@define_app
-def blosc_decompress_it(data: bytes, as_bytearray: bool = True) -> bytes:
-    return bytes(blosc2.decompress(data, as_bytearray=as_bytearray))
-
-
-eti_compress_it = _str_to_bytes() + blosc_compress_it()
-eti_decompress_it = blosc_decompress_it() + _bytes_to_str()
 
 _biotypes = re.compile(r"(gene|transcript|exon|mRNA|rRNA|protein):")
 
