@@ -10,6 +10,8 @@ from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _species as eti_species
 from ensembl_tui import _util as eti_util
 
+_ensembl_release = "115"
+
 
 @pytest.fixture(scope="session")
 def DATA_DIR():
@@ -23,7 +25,7 @@ def default_species_map():
 
 @pytest.fixture(scope="session")
 def ENSEMBL_RELEASE_VERSION() -> str:
-    return "114"
+    return _ensembl_release
 
 
 @pytest.fixture
@@ -58,7 +60,7 @@ def namer():
 
 
 TEST_DATA_URL = "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
-SMALL_DATA_DIRNAME = "small-114"
+SMALL_DATA_DIRNAME = f"small-{_ensembl_release}"
 
 
 @pytest.fixture(scope="session")
@@ -192,7 +194,7 @@ def tmp_config_no_compara(tmp_path_factory, small_download_path):
 
 
 TEST_APES_DATA_URL = "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
-APES_DATA_DIRNAME = "apes-114"
+APES_DATA_DIRNAME = f"apes-{_ensembl_release}"
 
 
 def apes_install(data_url, data_dir, data_name):
@@ -214,7 +216,7 @@ def apes_install_path(DATA_DIR):
 
 
 TEST_APES_MAF_URL = "https://www.dropbox.com/scl/fi/9kc57hitzhwwifq35je8l/apes-114-maf.zip?rlkey=mxeytmuv672cpfar7iirh7emm&dl=1"
-APES_MAF_DIRNAME = "apes-114-maf"
+APES_MAF_DIRNAME = f"apes-{_ensembl_release}-maf"
 
 
 @pytest.fixture(scope="session")
