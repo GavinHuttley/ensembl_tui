@@ -235,7 +235,9 @@ def installed(installed: pathlib.Path) -> None:
     from cogent3 import make_table
 
     config = eti_config.read_installed_cfg(installed)
-
+    eti_util.print_colour(
+        f"[bold]Ensembl release:[/bold] {config.release}", colour="blue"
+    )
     genome_dir = config.genomes_path
     if genome_dir.exists():
         species = [fn.name for fn in genome_dir.glob("*")]

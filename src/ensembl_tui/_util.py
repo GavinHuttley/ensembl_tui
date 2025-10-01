@@ -437,7 +437,7 @@ class _printer:  # noqa: N801
 
     def __call__(self, text: str, colour: str, style: str = "") -> None:
         """print text in colour"""
-        msg = rich_text.Text(text, style=style)
+        msg = rich_text.Text.from_markup(text, style=style)
         msg.stylize(colour)
         self._console.print(msg)
 
