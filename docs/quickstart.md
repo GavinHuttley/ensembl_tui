@@ -20,7 +20,7 @@ $ eti demo-config -o demo
 ```
 
 !!! note
-    The config specifies download the genomes and annotations from Ensembl release 114 of *Saccharomyces cerevisiae* and *Caenorhabditis elegans* and gene homology data. It also specifies the path to write the downloaded files and where to install them.
+    The config specifies download the genomes and annotations from Ensembl release 115 of *Saccharomyces cerevisiae* and *Caenorhabditis elegans* and gene homology data. It also specifies the path to write the downloaded files and where to install them.
 
 > [!WARNING]
 > Edit this file before using! It also specifies primate whole genome alignments -- which are large!

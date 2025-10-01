@@ -69,10 +69,10 @@ For example, the following config would download 10 primate genomes along with w
 [remote path]
 host=ftp.ensembl.org
 [local path]
-staging_path=download_114
-install_path=install_114
+staging_path=download_115
+install_path=install_115
 [release]
-release=114
+release=115
 [compara]
 align_names=10_primates.epo
 homologies =

@@ -3,16 +3,16 @@
 ## Summary of this installation
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti installed -i data/apes-114
+$ eti installed -i data/apes-115
 ```
 
 !!! note
-    :material-download: [Download all the data](ensembl_tui_data.zip) (zip, ~196 MB).
+    :material-download: [Download all the data](ensembl_tui_doc_data.zip) (zip, ~212 MB).
 
 ## Summary for a species {#summary-species}
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti species-summary -i data/apes-114 --species human
+$ eti species-summary -i data/apes-115 --species human
 ```
 
 ## Export gene meta-data for a species {#export-genes}
@@ -21,11 +21,11 @@ $ eti species-summary -i data/apes-114 --species human
    The list of data from this query only covers human chromosome 22 because we are using a custom subset of the original Ensembl data.
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti dump-genes -i data/apes-114 --species human -od human_data
+$ eti dump-genes -i data/apes-115 --species human -od human_data
 ```
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ head human_data/homo_sapiens-114-gene_metadata.tsv
+$ head human_data/homo_sapiens-115-gene_metadata.tsv
 ```
 
 ## Defining intergenic regions
@@ -43,7 +43,7 @@ In order to utilize `ensembl-tui` for sampling non-genic regions you need to wri
 from cogent3 import load_table, make_table
 from cogent3.util.misc import get_merged_overlapping_coords
 
-table = load_table("human_data/homo_sapiens-114-gene_metadata.tsv")
+table = load_table("human_data/homo_sapiens-115-gene_metadata.tsv")
 # make sure the seqid column is a string type
 table.columns["seqid"] = table.columns["seqid"].astype(str)
 table = table.sorted(columns=["seqid", "start", "stop"])
