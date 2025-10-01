@@ -59,7 +59,7 @@ def namer():
     return name_as_seqid
 
 
-TEST_DATA_URL = "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
+TEST_DATA_URL = "https://www.dropbox.com/scl/fi/cknsuhd6k8t6fjn1odzog/small-115.zip?rlkey=zkacmbhx4ssf4v80d78dd9uql&dl=1"
 SMALL_DATA_DIRNAME = f"small-{_ensembl_release}"
 
 
@@ -193,7 +193,7 @@ def tmp_config_no_compara(tmp_path_factory, small_download_path):
     return dest
 
 
-TEST_APES_DATA_URL = "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+TEST_APES_DATA_URL = "https://www.dropbox.com/scl/fi/h6kd0rlntvyzcb6d485fa/apes-115.zip?rlkey=4hza000j7btue6qwnxvnid5gb&dl=1"
 APES_DATA_DIRNAME = f"apes-{_ensembl_release}"
 
 
@@ -215,7 +215,7 @@ def apes_install_path(DATA_DIR):
     return apes_install(TEST_APES_DATA_URL, DATA_DIR, APES_DATA_DIRNAME)
 
 
-TEST_APES_MAF_URL = "https://www.dropbox.com/scl/fi/9kc57hitzhwwifq35je8l/apes-114-maf.zip?rlkey=mxeytmuv672cpfar7iirh7emm&dl=1"
+TEST_APES_MAF_URL = "https://www.dropbox.com/scl/fi/2wmle5kzjdqralppvddsr/apes-115-maf.zip?rlkey=u1hbfo0jqwhfkfukntgx5tbfn&dl=1"
 APES_MAF_DIRNAME = f"apes-{_ensembl_release}-maf"
 
 
