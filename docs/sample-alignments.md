@@ -3,7 +3,7 @@
 The alignments function returns whole genome alignments for a given set of coordinates from a reference species. The default behavior is to focus on sampling genomic coordinates corresponding to protein coding genes from the nominated reference species. The following command samples protein coding genes from human chromosome 22 using ensembl alignments that have the word "primate" in their name (see `eti compara-summary` to list the installed). The other options are explained below.
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti alignments -i data/apes-114 --align_name "*primates*" --outdir apes_aligns --ref human --coord_names 22 --limit 5 --mask "cds,dust"
+$ eti alignments -i data/apes-115 --align_name "*primates*" --outdir apes_aligns --ref human --coord_names 22 --limit 5 --mask "cds,dust"
 ```
 
 To sample other types of genes, use the `--ref_genes` argument, providing a csv or tsv file with a "stableid" column. To sample non-genic regions by providing explicit genomic coordinates as a delimited file with columns for species, seqid, start, stop and strand to `--ref_coords`. ([See the `eti dump-genes` command](genome.md#export-genes).)

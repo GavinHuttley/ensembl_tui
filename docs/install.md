@@ -16,7 +16,7 @@ $ eti install -d <dirname>
 Once you have finished your installation, you can check its contents using the `installed` command.
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti installed -i data/apes-114
+$ eti installed -i data/apes-115
 ```
 
 !!! note

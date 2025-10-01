@@ -9,13 +9,13 @@ while not (root_dir / "docs").exists():
 
 ROOT_DIR = root_dir / "docs"
 
-DATA_URL = "https://www.dropbox.com/scl/fi/pr5y1r3abi8mam26rasg3/ensembl_tui_data.zip?rlkey=jvke75kupiugs47zjhisans38&dl=1"
+DATA_URL = "https://www.dropbox.com/scl/fi/wgh6yrgh0hb4qrd442q13/ensembl_tui_doc_data.zip?rlkey=jc0n0bd1p92xbdg5s2tw5e5ci&dl=1"
 
 
 def cleanup_data() -> None:
     for dirname in (
         "demo",
-        "apes-114",
+        "apes-115",
         "small-download",
         "human_data",
         "apes_homologs",
@@ -61,7 +61,7 @@ def on_pre_build(*args, **kwargs) -> None:
     demo = ROOT_DIR / "demo"
     shutil.rmtree(demo, ignore_errors=True)
 
-    setup_installed(DATA_URL, "ensembl_tui_data.zip", "data")
+    setup_installed(DATA_URL, "ensembl_tui_doc_data.zip", "data")
 
 
 def on_post_build(*args, **kwargs) -> None:
