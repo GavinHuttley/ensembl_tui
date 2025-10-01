@@ -212,7 +212,7 @@ def apes_install(data_url, data_dir, data_name):
 
 @pytest.fixture(scope="session")
 def apes_install_path(DATA_DIR):
-    return apes_install(TEST_DATA_URL, DATA_DIR, APES_DATA_DIRNAME)
+    return apes_install(TEST_APES_DATA_URL, DATA_DIR, APES_DATA_DIRNAME)
 
 
 TEST_APES_MAF_URL = "https://www.dropbox.com/scl/fi/9kc57hitzhwwifq35je8l/apes-114-maf.zip?rlkey=mxeytmuv672cpfar7iirh7emm&dl=1"
