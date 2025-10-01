@@ -62,13 +62,15 @@ class fasta_to_hdf5:  # noqa: N801
         )
         src_dir = src_dir / "fasta"
         for path in src_dir.glob("*.fa.gz"):
-            for seqid, seq in iter_fasta_records(
-                path,
-                converter=bytes_to_array,
-                label_to_name=self.label_to_name,
-            ):
-                seq_store.add_seqs({seqid: seq}, force_unique_keys=False)
-                del seq
+            seqs = dict(
+                iter_fasta_records(
+                    path,
+                    converter=bytes_to_array,
+                    label_to_name=self.label_to_name,
+                )
+            )
+            seq_store.add_seqs(seqs, force_unique_keys=False)
+            del seqs
 
         seq_store.close()
 
