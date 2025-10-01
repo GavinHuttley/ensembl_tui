@@ -203,7 +203,7 @@ class AlignDb(eti_storage.DuckdbParquetBase):
         return self.conn.sql(f"SELECT COUNT(*) from {self._tables[0]}").fetchone()[0]
 
     def close(self) -> None:
-        """closes duckdb and h5py storage"""
+        """closes duckdb storage"""
         self.conn.close()
 
 
