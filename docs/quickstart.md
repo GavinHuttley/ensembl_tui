@@ -27,7 +27,7 @@ $ eti demo-config -o demo
 
 ## Download The Specified Data
 
-We use a custom config file which specifies just bakers yeast the the worm. (You can do this yourself by :material-download: [downloading the small.cfg](data/small.cfg) and executing the following command
+We use a custom config file which specifies just "yeast" and "worm". (You can do this yourself by :material-download: [downloading the small.cfg](data/small.cfg) and executing the following command
 
 ```
 $ eti download -c <path to>/small.cfg
@@ -36,7 +36,7 @@ $ eti download -c <path to>/small.cfg
 The data will be downloaded to `staging_path` specified in `small.cfg`, which is interpreted relative to the directory in which you executed the command.
 
 !!! note
-    Downloads can be interrupted.
+    If a download is interrupted and restarted, `eti` resumes downloads from where it stopped.
 
 ## Make The Local Installation
 
