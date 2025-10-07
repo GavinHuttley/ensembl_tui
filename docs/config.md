@@ -10,16 +10,19 @@
 $ eti demo-config --outpath demo
 ```
 
-The config template file is written to the specified directory along with a `species.tsv` file which includes a listing of Ensembl species.
+The config template file is written to the specified directory along with a `species.tsv` file which includes a listing of Ensembl species from main site the latest species listing from Ensembl is downloaded and written to `species-full.tsv`. 
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ ls demo/
 ```
 
+!!! note
+    use help to see the currently supported Ensembl domains to download species data from using under `eti demo-config --help`
+
 ### The species contents
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ head -n 5 demo/species.tsv
+$ head -n 5 demo/species-full.tsv
 ```
 
 ### The config contents
@@ -46,7 +49,7 @@ Specify the ensemble release.
 
 ### `[<species name>]`
 
-Selecting a species is done by providing a section with the species name as a section. Available species can be found in the species.tsv file which is written out by the `demo-config` command.
+Selecting a species is done by providing a section with the species name as a section. You can provide an abbreviation of the species name, which can be found in the `species-full.tsv` file which is written out by the `demo-config` command.
 
 For now, you must include `db=core` under the species section.
 
