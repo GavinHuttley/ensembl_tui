@@ -350,8 +350,8 @@ class GeneView(eti_storage.DuckdbParquetBase, eti_storage.ViewMixin):
 
     def num_records(self) -> int:
         """returns the number of distinct genes as identified by stable_id"""
-        sql = "SELECT DISTINCT stable_id FROM gene_attr"
-        return len(self.conn.sql(sql).fetchall())
+        sql = "SELECT COUNT(DISTINCT stable_id) FROM gene_attr"
+        return self.conn.sql(sql).fetchone()[0]
 
     def _get_features_matching(
         self,
