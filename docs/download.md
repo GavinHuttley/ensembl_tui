@@ -1,6 +1,6 @@
 # Download Data From Ensembl
 
-This command downloads the data from the Ensembl server saving it into `staging_path` as specified in the config file. This is the only step that requires Internet access.
+This command downloads the data from the Ensembl server saving it into `staging_path` as specified in the config file. This step requires Internet access.
 
 In addition to writing the original files from Ensembl, an expanded version of the config file is also written into the download directory. This is required for the subsequent `install` step.
 

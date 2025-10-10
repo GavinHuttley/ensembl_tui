@@ -2,8 +2,6 @@
 
 Installation of `ensembl-tui` creates a command line tool `eti` which contains a number of subcommands that allow you to acquire and then sample from Ensembl genomic datasets. The general workflow is:
 
-In this quick start, we'll perform the following steps:
-
 1. Create a demo config file
 1. Download raw data from Ensembl
 1. Make the local installation
@@ -22,8 +20,8 @@ $ eti demo-config -o demo
 !!! note
     The config specifies download the genomes and annotations from Ensembl release 115 of *Saccharomyces cerevisiae* and *Caenorhabditis elegans* and gene homology data. It also specifies the path to write the downloaded files and where to install them.
 
-> [!WARNING]
-> Edit this file before using! It also specifies primate whole genome alignments -- which are large!
+!!! warning
+    Edit this file before using! It also specifies primate whole genome alignments -- which are large!
 
 ## Download The Specified Data
 
