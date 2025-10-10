@@ -94,6 +94,15 @@ class DuckdbParquetBase:
     def __len__(self) -> int:
         return self.num_records()
 
+    def __bool__(self) -> bool:
+        # run an efficient check to see if the db is non-empty
+        for table in self._tables:
+            sql = f"SELECT EXISTS(SELECT 1 FROM {table} LIMIT 1)"
+            result = self.conn.execute(sql).fetchone()
+            if result and result[0]:
+                return True
+        return False
+
     def __eq__(self, other: typing_extensions.Self) -> bool:
         return other.conn is self.conn
 
