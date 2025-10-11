@@ -97,8 +97,16 @@ class DuckdbParquetBase:
         # run an efficient check to see if the db is non-empty
         for table in self._tables:
             parquet_file = self._source / f"{table}.parquet"
-            if parquet_file.stat().st_size > 1024:
+            if not parquet_file.exists():
+                # possibly in memory, so we run a query
+                sql = f"SELECT EXISTS(SELECT 1 FROM {table} LIMIT 1)"
+                r = self.conn.sql(sql).fetchone()
+                if r and r[0]:
+                    return True
+            elif parquet_file.stat().st_size > 1024:
+                # ad hoc threshold of 1kb
                 return True
+
         return False
 
     def __eq__(self, other: object) -> bool:
