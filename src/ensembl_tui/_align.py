@@ -36,12 +36,6 @@ ALIGN_ATTR_COLS = eti_util.make_column_constant(ALIGN_ATTR_SCHEMA)
 
 VT = str | int | numpy.ndarray
 
-# We store alignment data in two parts: the coordinates and the gaps
-# this split was motivated by the limitation of sqlite3 - storing everying
-# in a row meant querying would require loading a row into memory. With the
-# move to parquet it may be possible to just add gap data as a column in the
-# parquet file with BLOB type.
-
 
 @dataclasses.dataclass(slots=True)
 class AlignRecord:
@@ -373,7 +367,7 @@ def get_alignment(
 class construct_alignment:  # noqa: N801
     """reassemble an alignment that maps to a given genomic segment
 
-    If the segment spans multiple alignments these are joinded using
+    If the segment spans multiple alignments these are joined using
     the sep character.
     """
 
