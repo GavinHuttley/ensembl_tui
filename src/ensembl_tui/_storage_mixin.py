@@ -101,7 +101,9 @@ class DuckdbParquetBase:
                 return True
         return False
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, DuckdbParquetBase):
+            return False
         return other.conn is self.conn
 
     @property

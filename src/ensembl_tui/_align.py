@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import cogent3
 import numpy
-import typing_extensions
 from cogent3.app.composable import define_app
 from cogent3.core import alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
@@ -73,7 +72,10 @@ class AlignRecord:
     def __setitem__(self, item: str, value: VT) -> None:
         setattr(self, item, value)
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AlignRecord):
+            return False
+
         attrs = "block_id", "species", "seqid", "start", "stop", "strand"
         for attr in attrs:
             if getattr(self, attr) != getattr(other, attr):
@@ -200,7 +202,10 @@ class AlignDb(eti_storage.DuckdbParquetBase):
         ]
 
     def num_records(self) -> int:
-        return self.conn.sql(f"SELECT COUNT(*) from {self._tables[0]}").fetchone()[0]
+        return typing.cast(
+            "int",
+            self.conn.sql(f"SELECT COUNT(*) from {self._tables[0]}").fetchone()[0],
+        )
 
     def close(self) -> None:
         """closes duckdb storage"""
