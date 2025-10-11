@@ -17,11 +17,11 @@ maintainers = [
 keywords = ["biology", "genomics", "evolution", "bioinformatics"]
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.14"
 dependencies = [
         "click",
         "cogent3==2025.9.8a3",
-        "cogent3-h5seqs==0.7.0",
+        "cogent3-h5seqs==0.7.1",
         "duckdb",
         "numba",
         "numpy",
@@ -42,7 +42,6 @@ classifiers = [
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",

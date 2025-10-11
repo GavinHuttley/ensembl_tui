@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import cogent3
 import numpy
-import typing_extensions
 from cogent3.app.composable import define_app
 from cogent3.core import alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
@@ -37,12 +36,6 @@ ALIGN_ATTR_COLS = eti_util.make_column_constant(ALIGN_ATTR_SCHEMA)
 
 VT = str | int | numpy.ndarray
 
-# We store alignment data in two parts: the coordinates and the gaps
-# this split was motivated by the limitation of sqlite3 - storing everying
-# in a row meant querying would require loading a row into memory. With the
-# move to parquet it may be possible to just add gap data as a column in the
-# parquet file with BLOB type.
-
 
 @dataclasses.dataclass(slots=True)
 class AlignRecord:
@@ -73,7 +66,10 @@ class AlignRecord:
     def __setitem__(self, item: str, value: VT) -> None:
         setattr(self, item, value)
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AlignRecord):
+            return False
+
         attrs = "block_id", "species", "seqid", "start", "stop", "strand"
         for attr in attrs:
             if getattr(self, attr) != getattr(other, attr):
@@ -200,7 +196,10 @@ class AlignDb(eti_storage.DuckdbParquetBase):
         ]
 
     def num_records(self) -> int:
-        return self.conn.sql(f"SELECT COUNT(*) from {self._tables[0]}").fetchone()[0]
+        return typing.cast(
+            "int",
+            self.conn.sql(f"SELECT COUNT(*) from {self._tables[0]}").fetchone()[0],
+        )
 
     def close(self) -> None:
         """closes duckdb storage"""
@@ -368,7 +367,7 @@ def get_alignment(
 class construct_alignment:  # noqa: N801
     """reassemble an alignment that maps to a given genomic segment
 
-    If the segment spans multiple alignments these are joinded using
+    If the segment spans multiple alignments these are joined using
     the sep character.
     """
 

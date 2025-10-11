@@ -5,7 +5,6 @@ import pathlib
 
 import duckdb
 import numpy
-import typing_extensions
 
 ReturnType = tuple[str, tuple]  # the sql statement and corresponding values
 
@@ -94,7 +93,25 @@ class DuckdbParquetBase:
     def __len__(self) -> int:
         return self.num_records()
 
-    def __eq__(self, other: typing_extensions.Self) -> bool:
+    def __bool__(self) -> bool:
+        # run an efficient check to see if the db is non-empty
+        for table in self._tables:
+            parquet_file = self._source / f"{table}.parquet"
+            if not parquet_file.exists():
+                # possibly in memory, so we run a query
+                sql = f"SELECT EXISTS(SELECT 1 FROM {table} LIMIT 1)"
+                r = self.conn.sql(sql).fetchone()
+                if r and r[0]:
+                    return True
+            elif parquet_file.stat().st_size > 1024:
+                # ad hoc threshold of 1kb
+                return True
+
+        return False
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, DuckdbParquetBase):
+            return False
         return other.conn is self.conn
 
     @property

@@ -4,7 +4,7 @@
 
 ## Create a template config file to edit
 
-`eti` can write a template config file to a directory you specify.
+`eti` can write a template config file to a directory you specify. This step requires Internet access.
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
 $ eti demo-config --outpath demo
@@ -37,7 +37,7 @@ This is a `.ini` format. A section is denoted by square brackets surrounding the
 
 ### `[remote path]`
 
-This is the section defining which Ensembl FTP server hosts the data. At present, we are only supporting the primary Ensembl Server, so this section should be left as is.
+This is the section defining which Ensembl FTP server hosts the data.
 
 ### `[local path]`
 
