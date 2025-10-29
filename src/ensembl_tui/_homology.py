@@ -201,14 +201,16 @@ class collect_cds:
 
     def main(self, homologs: homolog_group) -> SeqsCollectionType:
         namer = self._namer
-        seqs = []
+        seqs = {}
         for species, sp_genes in homologs.species_ids().items():
             if species not in self._genomes:
                 self._genomes[species] = eti_genome.load_genome(
                     config=self._config,
                     species=species,
                 )
+
             genome = self._genomes[species]
+
             for name in sp_genes:
                 cds = list(
                     genome.get_features(name=name, biotype="cds", canonical=True),
@@ -223,13 +225,8 @@ class collect_cds:
 
                 feature = cds[0]
                 seq = feature.get_slice()
-                seq.name = f"{species}-{name}" if namer is None else namer(feature)
-                seq.info["species"] = species
-                seq.info["name"] = name
-                # disconnect from annotation so the closure of the genome
-                # does not cause issues when run in parallel
-                seq.annotation_db = None
-                seqs.append(seq)
+                name = f"{species}-{name}" if namer is None else namer(feature)
+                seqs[name] = str(seq)
 
         if not seqs:
             return NotCompleted(
