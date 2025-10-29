@@ -138,7 +138,7 @@ jobs:
 
       - name: "Run nox for ${{ matrix.python-version }}"
         run: |
-          nox -db uv -s test-${{ matrix.python-version }} -- -m 'internet' --cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}-internet.lcov --cov-report term --cov-append --cov ensembl_tui
+          nox -db uv -s test-${{ matrix.python-version }} -- -m 'internet' --durations=10 --cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}-internet.lcov --cov-report term --cov-append --cov ensembl_tui
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v2
