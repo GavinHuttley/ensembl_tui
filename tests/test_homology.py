@@ -1,6 +1,8 @@
 import pytest
-from cogent3 import load_table
+from cogent3 import get_moltype, load_table
 
+from ensembl_tui import _config as eti_config
+from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _homology as eti_homology
 from ensembl_tui import _ingest_homology as homol_ingest
 
@@ -314,3 +316,26 @@ def test_extract_homology_data(hom_dir):
     for result in loader.as_completed(hom_dir.glob("*.tsv.gz"), show_progress=False):
         records.extend(result.obj)
     assert len(records) == 2
+
+
+@pytest.mark.parametrize(
+    ["hsap_gid", "strand"], [("ENSG00000128274", -1), ("ENSG00000130487", 1)]
+)
+def test_get_homologs_one_exon(apes_install_path, hsap_gid, strand):
+    config = eti_config.read_installed_cfg(apes_install_path)
+    get_seqs = eti_homology.collect_cds(config=config)
+    genomes = {
+        sp: str(eti_genome.load_genome(config=config, species=sp).seqs["22"])
+        for sp in config.list_genomes()
+    }
+    homdb = eti_homology.load_homology_db(
+        path=config.homologies_path,
+    )
+    related = homdb.get_related_to(
+        gene_id=hsap_gid, relationship_type="ortholog_one2one"
+    )
+    result = get_seqs.main(related).rename_seqs(lambda x: x.split("-")[0]).to_dict()
+    transform = (lambda x: x) if strand == 1 else get_moltype("dna").rc
+    # as they're single exon genes, they should all be in their
+    # genome chromosome
+    assert all(transform(s) in genomes[n] for n, s in result.items())
