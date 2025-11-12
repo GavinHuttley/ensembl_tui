@@ -39,8 +39,8 @@ def test_installed_homologies(default_species_map):
 
 
 @pytest.fixture
-def installed_cfg_path(tmp_config):
-    config = eti_config.read_config(config_path=tmp_config)
+def installed_cfg_path(tmp_config_just_yeast):
+    config = eti_config.read_config(config_path=tmp_config_just_yeast)
     return eti_config.write_installed_cfg(config)
 
 

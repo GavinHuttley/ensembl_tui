@@ -34,7 +34,7 @@ def tmp_dir(tmp_path_factory):
 
 
 @pytest.fixture
-def tmp_config(tmp_dir):
+def tmp_config_just_yeast(tmp_dir):
     # create a simpler download config
     # we want a very small test set
     parser = ConfigParser()
