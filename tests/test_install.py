@@ -7,6 +7,7 @@ import pytest
 import ensembl_tui._config as eti_config
 import ensembl_tui._ingest_annotation as eti_db_ingest
 import ensembl_tui._mysql_core_attr as eti_tables
+from ensembl_tui import _install as eti_install
 from ensembl_tui import _storage_mixin as eti_storage
 
 TRANSLATION_SCHEMA = (
@@ -694,3 +695,14 @@ def test_make_transcript_attr(mixed_data):
     spans = eti_storage.blob_to_array(result)
     expect = numpy.array([[900, 1000], [1100, 1200], [1300, 1400]], dtype=numpy.int32)
     assert numpy.allclose(spans, expect)
+
+
+def test_install_homology(tmp_downloaded):
+    # just install homology data
+    config = eti_config.read_config(config_path=tmp_downloaded / "downloaded.cfg")
+    eti_install.local_install_homology(
+        config=config, force_overwrite=True, max_workers=1
+    )
+    expect = config.install_homologies / "homology_groups_attr.parquet"
+    assert expect.exists()
+    assert expect.stat().st_size > 8_000

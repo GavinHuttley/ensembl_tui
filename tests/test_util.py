@@ -8,17 +8,17 @@ from ensembl_tui import _util as eti_util
 
 
 @pytest.fixture(scope="function")
-def compara_cfg(tmp_config):
+def compara_cfg(tmp_config_just_yeast):
     # we just add compara sections
     parser = ConfigParser()
-    parser.read(eti_util.get_resource_path(tmp_config))
+    parser.read(eti_util.get_resource_path(tmp_config_just_yeast))
     parser.add_section("compara")
     alns = ",".join(("17_sauropsids.epc", "10_primates.epo"))
     parser.set("compara", "align_names", value=alns)
-    with open(tmp_config, "w") as out:
+    with open(tmp_config_just_yeast, "w") as out:
         parser.write(out)
 
-    return tmp_config
+    return tmp_config_just_yeast
 
 
 def test_parse_config(compara_cfg):
@@ -39,16 +39,16 @@ def test_load_ensembl_checksum(DATA_DIR):
 
 
 @pytest.fixture(scope="function")
-def gorilla_cfg(tmp_config):
+def gorilla_cfg(tmp_config_just_yeast):
     # we add gorilla genome
     parser = ConfigParser()
-    parser.read(eti_util.get_resource_path(tmp_config))
+    parser.read(eti_util.get_resource_path(tmp_config_just_yeast))
     parser.add_section("Gorilla")
     parser.set("Gorilla", "db", value="core")
-    with open(tmp_config, "w") as out:
+    with open(tmp_config_just_yeast, "w") as out:
         parser.write(out)
 
-    return tmp_config
+    return tmp_config_just_yeast
 
 
 def test_parse_config_gorilla(gorilla_cfg):
@@ -90,18 +90,18 @@ def test_valid_seq(name):
 
 
 @pytest.fixture
-def just_compara_cfg(tmp_config):
+def just_compara_cfg(tmp_config_just_yeast):
     # no genomes!
     parser = ConfigParser()
-    parser.read(tmp_config)
+    parser.read(tmp_config_just_yeast)
     parser.remove_section("Saccharomyces cerevisiae")
     parser.add_section("compara")
     parser.set("compara", "align_names", value="10_primates.epo")
     parser.set("compara", "tree_names", value="10_primates_EPO_default.nh")
-    with open(tmp_config, "w") as out:
+    with open(tmp_config_just_yeast, "w") as out:
         parser.write(out)
 
-    return tmp_config
+    return tmp_config_just_yeast
 
 
 @pytest.mark.internet
@@ -113,15 +113,15 @@ def test_just_compara(just_compara_cfg):
     assert len(cfg.species_dbs) == 10
 
 
-def test_write_read_installed_config(tmp_config):
-    config = eti_config.read_config(config_path=tmp_config)
+def test_write_read_installed_config(tmp_config_just_yeast):
+    config = eti_config.read_config(config_path=tmp_config_just_yeast)
     cfg_path = eti_config.write_installed_cfg(config)
     icfg = eti_config.read_installed_cfg(cfg_path.parent)
     assert icfg.release == config.release
     assert icfg.install_path == config.install_path
 
 
-def test_match_align_tree(tmp_config):
+def test_match_align_tree(tmp_config_just_yeast):
     trees = [
         "pub/release-110/compara/species_trees/16_pig_breeds_EPO-Extended_default.nh",
         "pub/release-110/compara/species_trees/21_murinae_EPO_default.nh",
@@ -142,7 +142,7 @@ def test_match_align_tree(tmp_config):
     assert result == expect
 
 
-def test_missing_match_align_tree(tmp_config):
+def test_missing_match_align_tree(tmp_config_just_yeast):
     trees = [
         "pub/release-110/compara/species_trees/16_pig_breeds_EPO-Extended_default.nh",
         "pub/release-110/compara/species_trees/21_murinae_EPO_default.nh",

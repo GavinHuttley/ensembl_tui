@@ -15,12 +15,14 @@ RUNNER = CliRunner()
 @pytest.mark.slow
 @pytest.mark.internet
 @pytest.mark.timeout(120)
-def test_download(tmp_config):
+def test_download(tmp_config_just_yeast):
     """runs download, install, drop according to a special test cfg"""
-    tmp_dir = tmp_config.parent
+    tmp_dir = tmp_config_just_yeast.parent
     # now download
 
-    r = RUNNER.invoke(eti_cli.download, [f"-c{tmp_config}"], catch_exceptions=False)
+    r = RUNNER.invoke(
+        eti_cli.download, [f"-c{tmp_config_just_yeast}"], catch_exceptions=False
+    )
     assert r.exit_code == 0, r.output
     # make sure the download checkpoint file exists
     genome_dir = tmp_dir / "staging" / "genomes"
@@ -77,12 +79,31 @@ def installed(tmp_downloaded):
     return tmp_downloaded.parent / "install"
 
 
-@pytest.mark.slow
-def test_installed(installed):
-    config = eti_config.read_installed_cfg(installed)
+def test_do_install(tmp_config_no_compara):
+    r = RUNNER.invoke(
+        eti_cli.install,
+        [f"-d{tmp_config_no_compara}", "-v", "-f"],
+        catch_exceptions=False,
+    )
+    assert r.exit_code == 0, r.output
+    install_dir = tmp_config_no_compara.parent / "install"
+    assert install_dir.exists()
+    config = eti_config.read_installed_cfg(install_dir)
+    assert not config.homologies_path.exists()
+    r = RUNNER.invoke(eti_cli.installed, [f"-i{install_dir}"], catch_exceptions=False)
+    assert r.exit_code == 0, r.output
+    assert "Ensembl release:" in r.output
+    assert "Installed genomes" in r.output
+    assert "saccharomyces_cerevisiae" in r.output
+
+
+def test_installed(small_install_path):
+    config = eti_config.read_installed_cfg(small_install_path)
     assert config.homologies_path.exists()
     assert sum(f.stat().st_size for f in config.homologies_path.iterdir()) > 8_000
-    r = RUNNER.invoke(eti_cli.installed, [f"-i{installed}"], catch_exceptions=False)
+    r = RUNNER.invoke(
+        eti_cli.installed, [f"-i{small_install_path}"], catch_exceptions=False
+    )
     assert r.exit_code == 0, r.output
     assert "Ensembl release:" in r.output
     assert "Installed genomes" in r.output
@@ -123,12 +144,11 @@ def test_installed_invalid_path():
     assert r.exit_code != 0, r.output
 
 
-@pytest.mark.slow
-def test_check_one_cds_seq(installed):
+def test_check_one_cds_seq(small_install_path):
     # checking a single exon sequence with a rel_start > 0
     from ensembl_tui import _genome as eti_genome
 
-    config = eti_config.read_installed_cfg(installed)
+    config = eti_config.read_installed_cfg(small_install_path)
     genome = eti_genome.load_genome(
         config=config,
         species="saccharomyces_cerevisiae",
@@ -149,13 +169,12 @@ def test_check_one_cds_seq(installed):
     assert str(seq) == expect
 
 
-@pytest.mark.slow
-def test_check_multi_exon_cds_seq_plus_strand(installed):
+def test_check_multi_exon_cds_seq_plus_strand(small_install_path):
     # checking a multi exon sequence with a rel_start > 0
     # and rel_end != exon length
     from ensembl_tui import _genome as eti_genome
 
-    config = eti_config.read_installed_cfg(installed)
+    config = eti_config.read_installed_cfg(small_install_path)
     genome = eti_genome.load_genome(
         config=config,
         species="caenorhabditis_elegans",
@@ -170,13 +189,12 @@ def test_check_multi_exon_cds_seq_plus_strand(installed):
     assert len(aa) == 274
 
 
-@pytest.mark.slow
-def test_check_two_exon_cds_seq_rev_strand(installed):
+def test_check_two_exon_cds_seq_rev_strand(small_install_path):
     # checking a two exon sequence with a rel_start > 0
     # and rel_end != exon length
     from ensembl_tui import _genome as eti_genome
 
-    config = eti_config.read_installed_cfg(installed)
+    config = eti_config.read_installed_cfg(small_install_path)
     genome = eti_genome.load_genome(
         config=config,
         species="caenorhabditis_elegans",
@@ -191,11 +209,10 @@ def test_check_two_exon_cds_seq_rev_strand(installed):
     assert len(aa) == 161
 
 
-@pytest.mark.slow
-def test_species_summary(installed):
+def test_species_summary(small_install_path):
     r = RUNNER.invoke(
         eti_cli.species_summary,
-        [f"-i{installed}", "--species", "caenorhabditis_elegans"],
+        [f"-i{small_install_path}", "--species", "caenorhabditis_elegans"],
         catch_exceptions=False,
     )
     assert r.exit_code == 0, r.output
@@ -224,13 +241,12 @@ def test_species_summary_invalid_species(apes_install_path, bad_species):
     assert r.exit_code != 0, r.output
 
 
-@pytest.mark.slow
-def test_dump_genes(installed):
+def test_dump_genes(small_install_path):
     species = "caenorhabditis_elegans"
-    outdir = installed.parent
+    outdir = small_install_path.parent
     limit = 10
     args = [
-        f"-i{installed}",
+        f"-i{small_install_path}",
         "--species",
         species,
         "--outdir",
@@ -270,12 +286,11 @@ def test_dump_genes_error(apes_install_path, bad_species):
     assert r.exit_code != 0, r.output
 
 
-@pytest.mark.slow
-def test_homologs(installed, tmp_dir):
+def test_homologs(small_install_path, tmp_dir):
     outdir = tmp_dir / "output"
     limit = 10
     args = [
-        f"-i{installed}",
+        f"-i{small_install_path}",
         "--ref",
         "caenorhabditis_elegans",
         "--outdir",
@@ -344,12 +359,11 @@ def test_homologs_error_refgenes_coords(
     assert r.exit_code != 0, r.output
 
 
-@pytest.mark.slow
-def test_homologs_coord_name(installed, tmp_dir):
+def test_homologs_coord_name(small_install_path, tmp_dir):
     outdir = tmp_dir / "output"
     limit = 10
     args = [
-        f"-i{installed}",
+        f"-i{small_install_path}",
         "--ref",
         "saccharomyces_cerevisiae",
         "--outdir",
@@ -373,11 +387,10 @@ def test_homologs_coord_name(installed, tmp_dir):
     assert len(dstore.completed) == limit
 
 
-@pytest.mark.slow
-def test_compara_summary(installed):
+def test_compara_summary(small_install_path):
     r = RUNNER.invoke(
         eti_cli.compara_summary,
-        [f"-i{installed}"],
+        [f"-i{small_install_path}"],
         catch_exceptions=False,
     )
     assert r.exit_code == 0, r.output
@@ -398,7 +411,6 @@ def test_compara_summary_apes(apes_install_path):
     assert "10_primates" in r.output
 
 
-@pytest.mark.slow
 def test_compara_folder_not_created(tmp_config_no_compara):
     # ensure compara folder is not created if not specified in the config
     r = RUNNER.invoke(

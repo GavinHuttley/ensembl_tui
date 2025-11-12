@@ -1,5 +1,5 @@
+import cogent3 as c3
 import pytest
-from cogent3 import get_moltype, load_table
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
@@ -37,7 +37,7 @@ def o2o_db(DATA_DIR, tmp_dir):
         "species_2",
         "gene_id_2",
     )
-    table = load_table(raw).get_columns(src_cols)
+    table = c3.load_table(raw).get_columns(src_cols)
     table = table.with_new_header(src_cols, dest_col)
     table = table.get_columns(["relationship", "gene_id_1", "gene_id_2"])
     species = {
@@ -300,7 +300,7 @@ def test_homdb_num_records(o2o_db):
 @pytest.fixture
 def hom_dir(DATA_DIR, tmp_path):
     path = DATA_DIR / "small_protein_homologies.tsv.gz"
-    table = load_table(path)
+    table = c3.load_table(path)
     outpath = tmp_path / "small_1.tsv.gz"
     table[:1].write(outpath)
     outpath = tmp_path / "small_2.tsv.gz"
@@ -319,7 +319,7 @@ def test_extract_homology_data(hom_dir):
 
 
 @pytest.mark.parametrize(
-    ["hsap_gid", "strand"], [("ENSG00000128274", -1), ("ENSG00000130487", 1)]
+    ("hsap_gid", "strand"), [("ENSG00000128274", -1), ("ENSG00000130487", 1)]
 )
 def test_get_homologs_one_exon(apes_install_path, hsap_gid, strand):
     config = eti_config.read_installed_cfg(apes_install_path)
@@ -334,8 +334,8 @@ def test_get_homologs_one_exon(apes_install_path, hsap_gid, strand):
     related = homdb.get_related_to(
         gene_id=hsap_gid, relationship_type="ortholog_one2one"
     )
-    result = get_seqs.main(related).rename_seqs(lambda x: x.split("-")[0]).to_dict()
-    transform = (lambda x: x) if strand == 1 else get_moltype("dna").rc
+    result = get_seqs.main(related).renamed_seqs(lambda x: x.split("-")[0]).to_dict()
+    transform = (lambda x: x) if strand == 1 else c3.get_moltype("dna").rc
     # as they're single exon genes, they should all be in their
     # genome chromosome
     assert all(transform(s) in genomes[n] for n, s in result.items())
