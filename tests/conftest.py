@@ -171,19 +171,19 @@ def genome_dir(small_install_cfg):
     return small_install_cfg.installed_genome(species="caenorhabditis_elegans")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def tmp_config_no_compara(tmp_path_factory, small_download_path):
     # modify the small_download_path to remove the compara folder
     tmp_path = tmp_path_factory.mktemp("downloaded")
     dest = tmp_path / small_download_path.name
     shutil.copytree(small_download_path, dest)
-    shutil.rmtree(dest / "genomes" / "saccharomyces_cerevisiae")
+    shutil.rmtree(dest / "genomes" / "caenorhabditis_elegans")
     shutil.rmtree(dest / "compara")
 
     # create a config with one specie but without compara section
     parser = ConfigParser()
     parser.read(next(iter(small_download_path.glob("*cfg"))))
-    parser.remove_section("saccharomyces_cerevisiae")
+    parser.remove_section("caenorhabditis_elegans")
     parser.remove_section("compara")
 
     download_cfg = dest / "downloaded.cfg"
