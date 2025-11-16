@@ -3,19 +3,24 @@ import pytest
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
 from ensembl_tui import _maf as eti_maf
+from ensembl_tui import _util as eti_util
+
+
+def get_expected_block_ids(alignments):
+    expect = set()
+    for alignment in alignments:
+        concat = "".join(sorted(str(n) for n in alignment))
+        expect.add(eti_util.hash64(concat.encode("utf-8")))
+    return expect
 
 
 def test_read(DATA_DIR):
     path = DATA_DIR / "sample.maf"
     blocks = list(eti_maf.parse(path))
     assert len(blocks) == 4
-    block_ids = {b for b, *_ in blocks}
-    assert block_ids == {20060000040557, 20060000042317, 20060000132559, 20060000102888}
-
-
-def test_process_id_line():
-    got = eti_maf.process_id_line("# id: 20060000042317 \n")
-    assert got == 20060000042317
+    block_ids, alignments = zip(*blocks, strict=False)
+    expect = get_expected_block_ids(alignments)
+    assert set(block_ids) == expect
 
 
 @pytest.mark.parametrize(
