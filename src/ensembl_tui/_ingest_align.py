@@ -91,9 +91,6 @@ def add_records(
         if progress is not None:
             progress.update(writing, description=msg, advance=1)
 
-    if progress is not None:
-        progress.remove_task(writing)
-
 
 def install_alignment(
     config: eti_config.Config,
@@ -128,10 +125,8 @@ def install_alignment(
         if progress is not None:
             progress.update(reading, description=msg, advance=1)
 
-    if progress is not None:
-        progress.remove_task(reading)
-
     add_records(conn=agg, records=records, progress=progress)
+
     # write the parquet file, returns path to that file
     return eti_db_ingest.export_parquet(
         con=agg,
