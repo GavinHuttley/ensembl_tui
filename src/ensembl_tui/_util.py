@@ -141,6 +141,14 @@ def load_ensembl_md5sum(path: pathlib.Path) -> dict:
     return result
 
 
+def hash64(data: bytes) -> int:
+    """returns 63-bit hash of numpy array as a signed integer"""
+    h = md5(data, usedforsecurity=False)
+    # Take first 8 bytes and mask to 63 bits (keep it positive)
+    hash_val = int.from_bytes(h.digest()[:8], byteorder="big")
+    return hash_val & 0x7FFFFFFFFFFFFFFF  # Mask to 63 bits
+
+
 class atomic_write:  # noqa: N801
     """performs atomic write operations, cleans up if fails"""
 

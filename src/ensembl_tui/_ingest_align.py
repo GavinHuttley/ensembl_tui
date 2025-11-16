@@ -4,9 +4,11 @@ import typing
 import duckdb
 import numpy
 import rich.progress as rich_progress
-from cogent3 import make_seq
+from cogent3 import get_moltype
 from cogent3.app.composable import LOADER, define_app
 from cogent3.app.typing import IdentifierType
+from cogent3.core.alphabet import convert_alphabet
+from cogent3.core.seq_storage import decompose_gapped_seq_array
 
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config
@@ -15,18 +17,18 @@ from ensembl_tui import _util as eti_util
 from ensembl_tui._maf import parse
 
 _no_gaps = numpy.array([], dtype=numpy.int32)
+_dna = get_moltype("dna")
+_dna_alpha = _dna.most_degen_alphabet()
+_src = "".join(_dna.degen_alphabet).lower().encode("utf-8")
+_transform = convert_alphabet(src=_src, dest=_src.upper())
 
 
 def seq2gaps(record: dict) -> eti_align.AlignRecord:
-    seq = make_seq(record.pop("seq").upper(), moltype="dna")
-    indel_map, _ = seq.parse_out_gaps()
-    if indel_map.num_gaps:
-        record["gap_spans"] = numpy.array(
-            [indel_map.gap_pos, indel_map.get_gap_lengths()],
-            dtype=numpy.int32,
-        ).T
-    else:
-        record["gap_spans"] = _no_gaps
+    s = _transform(record.pop("seq").encode("utf-8"))
+    arr = _dna_alpha.to_indices(s)
+    # DNA alphabet's always have a gap index defined as an integer
+    _, gaps = decompose_gapped_seq_array(arr, typing.cast("int", _dna_alpha.gap_index))
+    record["gap_spans"] = gaps if gaps.size else _no_gaps
     return eti_align.AlignRecord(**record)
 
 
@@ -89,9 +91,6 @@ def add_records(
         if progress is not None:
             progress.update(writing, description=msg, advance=1)
 
-    if progress is not None:
-        progress.remove_task(writing)
-
 
 def install_alignment(
     config: eti_config.Config,
@@ -126,10 +125,8 @@ def install_alignment(
         if progress is not None:
             progress.update(reading, description=msg, advance=1)
 
-    if progress is not None:
-        progress.remove_task(reading)
-
     add_records(conn=agg, records=records, progress=progress)
+
     # write the parquet file, returns path to that file
     return eti_db_ingest.export_parquet(
         con=agg,

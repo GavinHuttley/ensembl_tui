@@ -560,7 +560,7 @@ def test_load_align_records():
         # to deem it a valid seq
         "seq": "-acCAGGAAG",
     }
-    got = eti_ingest_align.seq2gaps(maf_record)
+    got = eti_ingest_align.seq2gaps(maf_record.copy())
     assert (got.gap_spans == numpy.array([[0, 1]], dtype=numpy.int32)).all()
 
 
