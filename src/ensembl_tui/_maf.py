@@ -57,7 +57,7 @@ def _get_seqs(lines: list[str]) -> dict[eti_name.MafName, str]:
 
 def parse(
     path: eti_util.PathType,
-) -> typing.Generator[tuple[int, dict[eti_name.MafName, str]]]:
+) -> typing.Iterator[tuple[int, dict[eti_name.MafName, str]]]:
     with open_(path, mode="rb") as infile:
         data = infile.read()
 
