@@ -17,7 +17,7 @@ $ ls demo/
 ```
 
 !!! note
-    use help to see the currently supported Ensembl domains to download species data from using under `eti demo-config --help`
+    Use `eti demo-config --help` to see the currently supported Ensembl domains to download species data from.
 
 ### The species contents
 
@@ -52,6 +52,20 @@ Specify the ensemble release.
 Selecting a species is done by providing a section with the species name as a section. You can provide an abbreviation of the species name, which can be found in the `species-full.tsv` file which is written out by the `demo-config` command.
 
 For now, you must include `db=core` under the species section.
+
+### `[species_map]`
+
+This section represents the species naming information that is used to map names of a genome name, abbreviation, common name and the Ensembl database prefix. A variant of this will be written out to the `downloaded.cfg` and `installed.cfg` files. You can edit the abbreviation data to more memorable, and easy to type, names.
+
+```ini
+[species_map]
+header = genome_name	abbrev	common_name	db_prefix
+caenorhabditis_elegans = worm	caenorhabditis elegans (nematode, n2)	caenorhabditis_elegans
+saccharomyces_cerevisiae = yeast	saccharomyces cerevisiae	saccharomyces_cerevisiae
+```
+
+!!! note
+    This is an optional section. If missing, a species map file wil need to be provided.
 
 ### `[compara]`
 
