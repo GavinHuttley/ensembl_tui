@@ -11,6 +11,9 @@ $ eti install -d <dirname>
 !!! note
     You can utilize multiple processes on your machine for this installation step with the `-np #` argument. We recommend specifying the same number of processes as the number of genomes, e.g. `-np 10` for ten genomes.
 
+!!! warning
+    At present, installation is not interruptible. If you restart an installation, you will need to force overwriting of the current one using the `--force_overwrite` argument.
+
 ## What Is Installed
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
@@ -26,6 +29,8 @@ The `installed.cfg` file also specifies the Ensembl release, the software versio
 $ cat data/apes-115/installed.cfg
 ```
 
+The output also lists the versions of the software dependencies that were present at the time of installation. This is intended for debugging purposes.
+
 ## Check Your Installation
 
 Once you have finished your installation, you can check its contents using the `installed` command. This includes the listing of software versions at the time of the installation (useful for troubleshooting) plus species names, abbreviations etc..
@@ -36,8 +41,3 @@ $ eti installed -i data/apes-115
 
 !!! note
     Here we start specifying the installation directory using the `-i` option. This is required for all commands that reference an installation.
-
-!!! warning
-    At present, installation is not interruptible. If you need to reinstall, you will need to force overwriting of the current installation using the `--force_overwrite` argument.
-
-

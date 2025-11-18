@@ -53,8 +53,11 @@ $ eti installed -i data/small-install
 ### Summary Of A Species
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti species-summary -i data/small-install --species saccharomyces_cerevisiae
+$ eti species-summary -i data/small-install --species sac-cere
 ```
+
+!!! note
+    We can use the `abbrev` listed above to identify the species.
 
 ### Summary Of Compara
 
@@ -67,7 +70,7 @@ This shows the relationships between the species installed.
 ## Export Gene meta-data
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti dump-genes -i data/small-install --species saccharomyces_cerevisiae --outdir yeast
+$ eti dump-genes -i data/small-install --species sac-cere --outdir yeast
 ```
 
 Show the first five lines of the output file.
@@ -79,7 +82,7 @@ $ head -n 5 yeast/saccharomyces_cerevisiae*.tsv
 ## Export Homology Data
 
 ```console exec="1" source="console" result="ansi" workdir="./docs"
-$ eti homologs -i data/small-install --ref caenorhabditis_elegans --outdir worm_yeast --homology_type ortholog_one2one --limit 5
+$ eti homologs -i data/small-install --ref cae-eleg --outdir worm_yeast --homology_type ortholog_one2one --limit 5
 ```
 
 Listing the files that are written into the specified `worm_yeast` directory.
