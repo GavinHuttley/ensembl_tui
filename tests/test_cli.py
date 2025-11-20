@@ -14,7 +14,7 @@ RUNNER = CliRunner()
 
 @pytest.mark.slow
 @pytest.mark.internet
-@pytest.mark.timeout(350)
+@pytest.mark.timeout(500)
 def test_download(tmp_config_just_yeast):
     """runs download, install, drop according to a special test cfg"""
     tmp_dir = tmp_config_just_yeast.parent
