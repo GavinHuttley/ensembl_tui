@@ -14,7 +14,7 @@ RUNNER = CliRunner()
 
 @pytest.mark.slow
 @pytest.mark.internet
-@pytest.mark.timeout(120)
+@pytest.mark.timeout(350)
 def test_download(tmp_config_just_yeast):
     """runs download, install, drop according to a special test cfg"""
     tmp_dir = tmp_config_just_yeast.parent
@@ -24,16 +24,13 @@ def test_download(tmp_config_just_yeast):
         eti_cli.download, [f"-c{tmp_config_just_yeast}"], catch_exceptions=False
     )
     assert r.exit_code == 0, r.output
-    # make sure the download checkpoint file exists
     genome_dir = tmp_dir / "staging" / "genomes"
     dirnames = [dn.name for dn in genome_dir.iterdir() if dn.is_dir()]
     assert "saccharomyces_cerevisiae" in dirnames
-
     # make sure file sizes > 0
     paths = list((genome_dir / "saccharomyces_cerevisiae").glob("*"))
     size = sum(p.stat().st_size for p in paths)
     assert size > 0
-
     assert r.exit_code == 0, r.output
 
 
