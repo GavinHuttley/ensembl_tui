@@ -10,6 +10,7 @@ import numpy
 from cogent3.core.annotation_db import (
     AnnotationDbABC,
     FeatureDataType,
+    SqliteAnnotationDbMixin,
 )
 
 import ensembl_tui._mysql_core_attr as core_tables
@@ -913,6 +914,14 @@ class Annotations(AnnotationDbABC, eti_storage.ViewMixin):
                 limit=limit,
             )
 
+    def get_records_matching(self, *, seqid: str, **kwargs):
+        yield from self.get_features_matching(seqid=seqid, **kwargs)
+
+    def compatible(
+        self, other_db: SqliteAnnotationDbMixin, symmetric: bool = True
+    ) -> bool:
+        return super().compatible(other_db, symmetric)
+
 
 @dataclasses.dataclass(frozen=True)
 class species_seqid:
@@ -961,3 +970,19 @@ class MultispeciesAnnotations(AnnotationDbABC):
         sp_sid = self.name_map[seqid]
         db = self.species_annotations[sp_sid.species]
         return db.num_matches(seqid=sp_sid.seqid, **kwargs)
+
+    def get_records_matching(self, *, seqid: str, **kwargs):
+        if seqid not in self.name_map:
+            return ()
+        sp_sid = self.name_map[seqid]
+        db = self.species_annotations[sp_sid.species]
+        return db.get_features_matching(seqid=sp_sid.seqid, **kwargs)
+
+    def compatible(
+        self, other_db: SqliteAnnotationDbMixin, symmetric: bool = True
+    ) -> bool:
+        return super().compatible(other_db, symmetric)
+
+    def close(self) -> None:
+        for db in self.species_annotations.values():
+            db.close()
