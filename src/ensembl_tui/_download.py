@@ -37,20 +37,22 @@ def _remove_tmpdirs(path: eti_util.PathType) -> None:
         shutil.rmtree(tmpdir)
 
 
-def get_core_db_dirnames(config: eti_config.Config) -> dict[str, str]:
+def get_core_db_dirnames(
+    config: eti_config.Config, site_map: eti_site_map.SiteMap
+) -> dict[str, str]:
     """maps species name to ftp path to mysql core dbs"""
-    site_map = eti_site_map.get_site_map(config.host)
     remote_release_path = site_map.get_remote_release_path(config.release)
     # get all the mysql db names
     all_db_names = list(
-        eti_ftp.listdir(config.host, f"{remote_release_path}/mysql"),
+        eti_ftp.listdir(site_map.site, f"{remote_release_path}/mysql"),
     )
     selected_species = {}
+    core_db_names = set(config.get_core_db_names())
     for db_name in all_db_names:
         if "_core_" not in db_name:
             continue
         db = eti_name.EnsemblDbName(db_name.rsplit("/", maxsplit=1)[1])
-        if db.prefix in config.species_dbs and db.db_type == "core":
+        if db.db_type == "core" and db.prefix in core_db_names:
             selected_species[db.prefix] = db_name
     return selected_species
 
@@ -132,7 +134,7 @@ def download_species(
             colour="green",
         )
 
-    sp_db_map = get_core_db_dirnames(config)
+    sp_db_map = get_core_db_dirnames(config, site_map=site_map)
 
     # create the duckdb templates for the tables, if they don't exist
     make_core_db_templates(
@@ -157,7 +159,7 @@ def download_species(
         remote = site_map.get_seqs_path(db_prefix)
         remote_dir = remote_template.format(remote)
         remote_paths = list(
-            eti_ftp.listdir(config.host, path=remote_dir, pattern=valid_seq_file),
+            eti_ftp.listdir(site_map.site, path=remote_dir, pattern=valid_seq_file),
         )
         if verbose:
             eti_util.print_colour(text=f"{remote_paths=}", colour="yellow")
@@ -175,7 +177,7 @@ def download_species(
         _remove_tmpdirs(dest_path)
         icon = "🧬🧬"
         eti_ftp.download_data(
-            host=config.host,
+            host=site_map.site,
             local_dest=dest_path,
             remote_paths=remote_paths,
             description=f"{db_prefix[:10]}... {icon}",
@@ -192,7 +194,7 @@ def download_species(
         _remove_tmpdirs(dest_path)
         icon = "📚"
         eti_ftp.download_data(
-            host=config.host,
+            host=site_map.site,
             local_dest=dest_path,
             remote_paths=remote_paths,
             description=f"{db_prefix[:10]}... {icon}",
@@ -238,7 +240,7 @@ def download_aligns(
     valid_compara = valid_compara_align()
     for align_name in config.align_names:
         remote_path = remote_template.format(align_name)
-        remote_paths = list(eti_ftp.listdir(config.host, remote_path, valid_compara))
+        remote_paths = list(eti_ftp.listdir(site_map.site, remote_path, valid_compara))
         if verbose:
             print(remote_paths)
 
@@ -252,7 +254,7 @@ def download_aligns(
         local_dir.mkdir(parents=True, exist_ok=True)
         _remove_tmpdirs(local_dir)
         eti_ftp.download_data(
-            host=config.host,
+            host=site_map.site,
             local_dest=local_dir,
             remote_paths=remote_paths,
             description=f"{align_name[:10]}...",
@@ -302,7 +304,7 @@ def download_homology(
     for db_name in config.db_names:
         remote_path = remote_template.format(db_name)
         remote_paths = list(
-            eti_ftp.listdir(config.host, remote_path, valid_compara_homology()),
+            eti_ftp.listdir(site_map.site, remote_path, valid_compara_homology()),
         )
         if verbose:
             print(f"{remote_path=}", f"{remote_paths=}", sep="\n")
@@ -316,7 +318,7 @@ def download_homology(
         local_dir.mkdir(parents=True, exist_ok=True)
         _remove_tmpdirs(local_dir)
         eti_ftp.download_data(
-            host=config.host,
+            host=site_map.site,
             local_dest=local_dir,
             remote_paths=remote_paths,
             description=f"{db_name[:10]}...",

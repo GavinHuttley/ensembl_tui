@@ -57,6 +57,10 @@ class Config:
         self.staging_path = pathlib.Path(self.staging_path)
         self.install_path = pathlib.Path(self.install_path)
 
+    def get_core_db_names(self) -> list[str]:
+        names = [self.species_map.get_ensembl_db_prefix(n) for n in self.db_names]
+        return [n for n in names if n]
+
     @property
     def staging_template_path(self) -> pathlib.Path:
         return self.staging_genomes / "coredb_templates"
@@ -398,8 +402,7 @@ def read_config(
     for section in parser.sections():
         sec = _pop_section(parser, section)
         dbs = [db.strip() for db in sec["db"].split(",")]
-        # handle synonyms
-        species_name = sp_map.get_ensembl_db_prefix(section, level="raise")
+        species_name = sp_map.get_genome_name(section, level="raise")
         species_dbs[species_name] = dbs
 
     # we also want homologies if we want alignments

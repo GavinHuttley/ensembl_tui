@@ -113,6 +113,21 @@ def ensembl_metazoa_sitemap() -> SiteMap:
     )
 
 
+@register_ensembl_site_map("protists")
+def ensembl_metazoa_sitemap() -> SiteMap:
+    """the metazoa Ensembl site map"""
+    return SiteMap(
+        site="ftp.ensemblgenomes.org",
+        _alignments_path=None,
+        _homologies_path="tsv/ensembl-compara/homologies",
+        _trees_path=None,
+        db_host="mysql-eg-publicsql.ebi.ac.uk",
+        db_port=4157,
+        remote_path="pub/protists",
+        species_file_name="species_EnsemblProtists.txt",
+    )
+
+
 # for bacteria we have, but complexities related to the bacterial collection
 # a species belongs to. For example
 # https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-57/fasta/bacteria_15_collection/_butyribacterium_methylotrophicum_gca_001753695/dna/
