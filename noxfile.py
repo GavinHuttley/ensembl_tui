@@ -3,7 +3,7 @@ import sys
 
 import nox
 
-_py_versions = range(10, 14)
+_py_versions = range(10, 15)
 
 # on python >= 3.12 this will improve speed of test coverage a lot
 if sys.version_info >= (3, 12):
