@@ -205,3 +205,142 @@ def test_read_config_genomes(cfg_just_genomes, default_species_map):
     config = eti_config.read_config(config_path=cfg_just_genomes)
     expected = {default_species_map.get_genome_name(n) for n in COMMON_NAMES}
     assert set(config.species_dbs.keys()) == expected
+
+
+def test_read_config_with_domain(tmp_config_domain_format):
+    """Test reading config with new 'domain' option"""
+    config = eti_config.read_config(config_path=tmp_config_domain_format)
+    assert config.domain == "main"  # Domain stores user's choice
+
+
+def test_read_config_with_host_shows_deprecation(tmp_dir):
+    """Test that using 'host' triggers deprecation warning"""
+    import configparser
+
+    parser = configparser.ConfigParser()
+    parser.read(eti_util.get_resource_path("sample.cfg"))
+    # Remove domain, add host (to simulate old config format)
+    parser.remove_option("remote path", "domain")
+    parser.set("remote path", "host", value="ftp.ensembl.org")
+    parser.remove_section("Caenorhabditis elegans")
+    parser.remove_section("compara")
+    parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
+    parser.set("local path", "install_path", value=str(tmp_dir / "install"))
+    cfg_path = tmp_dir / "old_format.cfg"
+    with open(cfg_path, "w") as out:
+        parser.write(out)
+
+    with pytest.warns(DeprecationWarning, match="'host' option.*deprecated"):
+        config = eti_config.read_config(config_path=cfg_path)
+    assert config.domain == "ftp.ensembl.org"  # domain set from host
+
+
+def test_domain_takes_precedence_over_host(tmp_dir):
+    """Test that 'domain' takes precedence when both present"""
+    import configparser
+
+    parser = configparser.ConfigParser()
+    parser.read(eti_util.get_resource_path("sample.cfg"))
+    parser.set("remote path", "domain", value="metazoa")
+    parser.set("remote path", "host", value="ftp.ensembl.org")
+    parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
+    parser.set("local path", "install_path", value=str(tmp_dir / "install"))
+    parser.remove_section("Caenorhabditis elegans")
+    parser.remove_section("compara")
+    cfg_path = tmp_dir / "both.cfg"
+    with open(cfg_path, "w") as out:
+        parser.write(out)
+
+    with pytest.warns(DeprecationWarning):
+        config = eti_config.read_config(config_path=cfg_path)
+    assert config.domain == "metazoa"  # domain from config file
+
+
+def test_invalid_domain_raises(tmp_dir):
+    import configparser
+
+    parser = configparser.ConfigParser()
+    parser.read(eti_util.get_resource_path("sample.cfg"))
+    parser.remove_option("remote path", "host")
+    parser.set("remote path", "domain", value="invalid_domain")
+    parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
+    parser.set("local path", "install_path", value=str(tmp_dir / "install"))
+    parser.remove_section("Caenorhabditis elegans")
+    parser.remove_section("compara")
+    cfg_path = tmp_dir / "invalid.cfg"
+    with open(cfg_path, "w") as out:
+        parser.write(out)
+
+    with pytest.raises(ValueError):
+        eti_config.read_config(config_path=cfg_path)
+
+
+def test_missing_both_domain_and_host_raises(tmp_dir):
+    """Test that missing both domain and host causes clear error"""
+    import configparser
+
+    parser = configparser.ConfigParser()
+    parser.read(eti_util.get_resource_path("sample.cfg"))
+    parser.remove_option("remote path", "domain")
+    parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
+    parser.set("local path", "install_path", value=str(tmp_dir / "install"))
+    parser.remove_section("Caenorhabditis elegans")
+    parser.remove_section("compara")
+    cfg_path = tmp_dir / "missing.cfg"
+    with open(cfg_path, "w") as out:
+        parser.write(out)
+
+    with pytest.raises(ValueError):
+        eti_config.read_config(config_path=cfg_path)
+
+
+def test_write_config_uses_domain_not_host(tmp_config_domain_format):
+    """Test that Config.write() writes 'domain' not 'host'"""
+    import configparser
+
+    config = eti_config.read_config(config_path=tmp_config_domain_format)
+    config.write()
+
+    # Read back the written config
+    parser = configparser.ConfigParser()
+    written_path = config.staging_path / eti_config.DOWNLOADED_CONFIG_NAME
+    parser.read(written_path)
+
+    # Should have 'domain' and NOT 'host'
+    assert parser.has_option("remote path", "domain")
+    assert not parser.has_option("remote path", "host")
+
+
+@pytest.mark.parametrize(
+    ("domain", "expected_host"),
+    [
+        ("main", "ftp.ensembl.org"),
+        ("vertebrates", "ftp.ensembl.org"),
+        ("ftp.ensembl.org", "ftp.ensembl.org"),
+        ("metazoa", "ftp.ensemblgenomes.org"),
+        ("ftp.ensemblgenomes.org", "ftp.ensemblgenomes.org"),
+        ("protists", "ftp.ensemblgenomes.org"),
+    ],
+)
+def test_all_registered_domains_work(tmp_dir, domain, expected_host):
+    """Test that all registered domains can be used in config"""
+    import configparser
+
+    parser = configparser.ConfigParser()
+    parser.add_section("remote path")
+    parser.set("remote path", "domain", value=domain)
+    parser.add_section("local path")
+    parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
+    parser.set("local path", "install_path", value=str(tmp_dir / "install"))
+    parser.add_section("release")
+    parser.set("release", "release", value="115")
+    parser.add_section("Saccharomyces cerevisiae")
+    parser.set("Saccharomyces cerevisiae", "db", value="core")
+
+    cfg_path = tmp_dir / f"test_{domain.replace('.', '_')}.cfg"
+    with open(cfg_path, "w") as out:
+        parser.write(out)
+
+    # Should not raise
+    config = eti_config.read_config(config_path=cfg_path)
+    assert config.domain == domain  # Domain stores user's choice

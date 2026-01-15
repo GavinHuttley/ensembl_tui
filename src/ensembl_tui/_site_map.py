@@ -141,10 +141,27 @@ def ensembl_metazoa_sitemap() -> SiteMap:
 
 @cache
 def get_site_map(domain: str) -> SiteMap:
-    """returns a site map instance"""
+    """Returns a site map instance for the specified domain.
+
+    Parameters
+    ----------
+    domain : str
+        The Ensembl domain name (e.g., 'main', 'vertebrates', 'metazoa', 'protists').
+        Use get_site_map_names() to see all available options.
+
+    Returns
+    -------
+    SiteMap
+        Site configuration containing FTP host, database connection info, and paths.
+
+    Raises
+    ------
+    KeyError
+        If the domain is not registered.
+    """
     return _ensembl_site_map[domain]()
 
 
 def get_site_map_names() -> list[str]:
-    """returns the registered site map names"""
+    """Returns all registered Ensembl domain names."""
     return list(_ensembl_site_map)

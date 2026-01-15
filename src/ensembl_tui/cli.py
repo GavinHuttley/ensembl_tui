@@ -109,10 +109,15 @@ def download(
         )
         sys.exit(1)
 
-    config = eti_config.read_config(
-        config_path=configpath, root_dir=pathlib.Path.cwd(), species_map=species_map
-    )
-    site_map = eti_site_map.get_site_map(config.host)
+    try:
+        config = eti_config.read_config(
+            config_path=configpath, root_dir=pathlib.Path.cwd(), species_map=species_map
+        )
+    except ValueError as e:
+        eti_util.print_colour(text=str(e), colour="red", style="bold")
+        sys.exit(1)
+
+    site_map = eti_site_map.get_site_map(config.domain)
 
     if verbose:
         eti_util.print_colour(text=str(config), colour="yellow")

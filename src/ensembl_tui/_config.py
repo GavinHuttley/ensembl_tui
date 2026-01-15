@@ -43,7 +43,7 @@ def make_relative_to(
 
 @dataclass
 class Config:
-    host: str
+    domain: str  # User-specified domain (e.g., "main", "metazoa")
     release: str
     staging_path: pathlib.Path
     install_path: pathlib.Path
@@ -108,7 +108,7 @@ class Config:
             install_path = str(make_relative_to(self.staging_path, self.install_path))
 
         data = {
-            "remote path": {"host": str(self.host)},
+            "remote path": {"domain": str(self.domain)},
             "local path": {
                 "staging_path": staging_path,
                 "install_path": install_path,
@@ -343,6 +343,79 @@ def _pop_section(
     return data
 
 
+def _validate_and_resolve_domain(remote_section: dict[str, str]) -> tuple[str, str]:
+    """Validate and resolve domain/host from remote path section.
+
+    Handles backward compatibility by accepting both 'domain' and 'host'.
+    If both present, 'domain' takes precedence with a deprecation warning.
+    If only 'host' present, issues deprecation warning.
+
+    Parameters
+    ----------
+    remote_section : dict
+        The [remote path] section from config file
+
+    Returns
+    -------
+    tuple[str, str]
+        A tuple of (domain, host) where:
+        - domain: The user-specified domain name (e.g., "main", "metazoa")
+        - host: The resolved FTP hostname from site map (e.g., "ftp.ensembl.org")
+
+    Raises
+    ------
+    SystemExit
+        If validation fails (no domain/host specified, or invalid domain)
+    """
+    import warnings
+
+    domain_value = remote_section.get("domain")
+    host_value = remote_section.get("host")
+
+    # Validation: at least one must be present
+    if not domain_value and not host_value:
+        msg = (
+            "Config error: [remote path] section must contain either 'domain' or 'host'"
+        )
+        raise ValueError(msg)
+
+    # Precedence: domain takes priority if both present
+    if host_value or (domain_value and host_value):
+        if host_value:
+            msg = "The 'host' option in [remote path] is deprecated. Please use 'domain' instead. "
+            "Support for 'host' will be removed in a future version."
+        else:
+            msg = "Both 'domain' and 'host' found in [remote path]. Using 'domain' value. "
+            "The 'host' option is deprecated and will be removed in a future version."
+        warnings.warn(
+            msg,
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        domain = domain_value or host_value
+    elif domain_value:
+        domain = domain_value
+    else:
+        # This case should not occur due to earlier validation
+        eti_util.print_colour(
+            "Config error: Unable to determine domain from [remote path] section",
+            colour="red",
+        )
+        sys.exit(1)
+
+    # Validate domain exists in site map registry
+    available = eti_site_map.get_site_map_names()
+    if domain not in available:
+        msg = f"Invalid domain '{domain}'. Available domains: {', '.join(sorted(available))}"
+        raise ValueError(msg)
+
+    # Resolve the actual FTP host from the site map
+    site_map = eti_site_map.get_site_map(domain)
+    host = site_map.site
+
+    return domain, host
+
+
 def read_config(
     *,
     config_path: pathlib.Path,
@@ -375,8 +448,9 @@ def read_config(
         root_dir = config_path.parent
 
     release = _pop_section(parser, "release")["release"]
-    host = _pop_section(parser, "remote path")["host"]
-    site_map = eti_site_map.get_site_map(host)
+    remote_section = _pop_section(parser, "remote path")
+    domain, host = _validate_and_resolve_domain(remote_section)
+    site_map = eti_site_map.get_site_map(domain)
     # paths
     paths = _pop_section(parser, "local path")
     staging_path = _standardise_path(paths["staging_path"], root_dir)
@@ -443,7 +517,7 @@ def read_config(
         species_dbs |= {n: ["core"] for n in found}
 
     return Config(
-        host=host,
+        domain=domain,
         release=release,
         staging_path=staging_path,
         install_path=install_path,
