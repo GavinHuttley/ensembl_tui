@@ -56,8 +56,13 @@ class SiteMap:
     _homologies_path: str | None = None
     _trees_path: str | None = None
 
-    def get_seqs_path(self, ensembl_name: str) -> str:
+    def get_seqs_path(self, ensembl_name: str, collection_name: str | None) -> str:
         """path to unmasked genome sequences"""
+        # this needs to be self._seqs_path/ensembl_name/dna
+        # except when it's part of a collection, in which case its
+        # self._seqs_path/collection_name/ensembl_name/dna
+        if collection_name:
+            return f"{self._seqs_path}/{collection_name}/{ensembl_name}/dna"
         return f"{self._seqs_path}/{ensembl_name}/dna"
 
     def get_annotations_path(self, ensembl_name: str) -> str:
@@ -114,8 +119,8 @@ def ensembl_metazoa_sitemap() -> SiteMap:
 
 
 @register_ensembl_site_map("protists")
-def ensembl_metazoa_sitemap() -> SiteMap:
-    """the metazoa Ensembl site map"""
+def ensembl_protists_sitemap() -> SiteMap:
+    """the protists Ensembl site map"""
     return SiteMap(
         site="ftp.ensemblgenomes.org",
         _alignments_path=None,

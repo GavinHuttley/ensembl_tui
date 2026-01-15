@@ -153,10 +153,17 @@ def download_species(
 
     for key in config.species_dbs:
         db_prefix = config.species_map.get_ensembl_db_prefix(key)
-        local_root = config.staging_genomes / db_prefix
+        if "collection" in db_prefix:
+            collection_name = db_prefix
+            local_root = config.staging_genomes / key
+        else:
+            collection_name = None
+            local_root = config.staging_genomes / db_prefix
+
         local_root.mkdir(parents=True, exist_ok=True)
+
         # getting genome sequences
-        remote = site_map.get_seqs_path(db_prefix)
+        remote = site_map.get_seqs_path(key, collection_name=collection_name)
         remote_dir = remote_template.format(remote)
         remote_paths = list(
             eti_ftp.listdir(site_map.site, path=remote_dir, pattern=valid_seq_file),
@@ -171,7 +178,7 @@ def download_species(
             remote_paths = [p for p in remote_paths if not eti_util.dont_checksum(p)]
             remote_paths = remote_paths[:4] + paths
 
-        dest_path = config.staging_genomes / db_prefix / "fasta"
+        dest_path = local_root / "fasta"
         dest_path.mkdir(parents=True, exist_ok=True)
         # cleanup previous download attempts
         _remove_tmpdirs(dest_path)
@@ -180,7 +187,7 @@ def download_species(
             host=site_map.site,
             local_dest=dest_path,
             remote_paths=remote_paths,
-            description=f"{db_prefix[:10]}... {icon}",
+            description=f"{key[:10]}... {icon}",
             do_checksum=True,
             progress=progress,
         )
@@ -188,6 +195,8 @@ def download_species(
         # getting the annotations from mysql tables
         remote_dir = sp_db_map[db_prefix]
         remote_paths = get_remote_mysql_paths(remote_dir)
+        # the mysql data will always be under the db_prefix,
+        # even if it's a collection
         dest_path = config.staging_genomes / db_prefix / "mysql"
         dest_path.mkdir(parents=True, exist_ok=True)
         # cleanup previous download attempts
