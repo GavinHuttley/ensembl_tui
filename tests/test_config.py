@@ -302,17 +302,17 @@ def test_write_config_uses_domain_not_host(tmp_config_domain_format):
 
 
 @pytest.mark.parametrize(
-    ("domain", "expected_host"),
+    "domain",
     [
-        ("main", "ftp.ensembl.org"),
-        ("vertebrates", "ftp.ensembl.org"),
-        ("ftp.ensembl.org", "ftp.ensembl.org"),
-        ("metazoa", "ftp.ensemblgenomes.org"),
-        ("ftp.ensemblgenomes.org", "ftp.ensemblgenomes.org"),
-        ("protists", "ftp.ensemblgenomes.org"),
+        "main",
+        "vertebrates",
+        "ftp.ensembl.org",
+        "metazoa",
+        "ftp.ensemblgenomes.org",
+        "protists",
     ],
 )
-def test_all_registered_domains_work(tmp_dir, domain, expected_host):
+def test_all_registered_domains_work(tmp_dir, domain):
     """Test that all registered domains can be used in config"""
     parser = configparser.ConfigParser()
     parser.add_section("remote path")
