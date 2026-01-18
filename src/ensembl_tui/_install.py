@@ -22,12 +22,12 @@ def local_install_genomes(
     # we create the local installation
     config.install_genomes.mkdir(parents=True, exist_ok=True)
     # we create subdirectories for each species
-    for db_name in list(config.db_names):
+    db_names = [config.species_map.get_genome_name(sp) for sp in config.species_dbs]
+    for db_name in db_names:
         sp_dir = config.install_genomes / db_name
         sp_dir.mkdir(parents=True, exist_ok=True)
 
     # for each species, we identify the download and dest paths for annotations
-    db_names = list(config.db_names)
     if max_workers:
         max_workers = min(len(db_names) + 1, max_workers)
 

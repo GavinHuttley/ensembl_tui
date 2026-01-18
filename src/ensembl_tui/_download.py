@@ -299,6 +299,7 @@ def download_homology(
     if not config.homologies:
         return
 
+    # change homologies path to take an argument, which modifies order of path/genome
     remote_template = f"{site_map.remote_path}/release-{config.release}/{site_map.homologies_path}/{{}}"
 
     local = config.staging_homologies

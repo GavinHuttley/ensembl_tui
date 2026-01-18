@@ -96,7 +96,7 @@ class Config:
 
     def to_dict(self, relative_paths: bool = True) -> dict[str, dict[str, str]]:
         """returns cfg as a dict"""
-        if not self.db_names:
+        if not self.species_dbs:
             msg = "no db names"
             raise ValueError(msg)
 
@@ -128,7 +128,7 @@ class Config:
         if not data["compara"]:
             data.pop("compara")
 
-        for db_name in self.db_names:
+        for db_name in self.species_dbs:
             data[db_name] = {"db": "core"}
 
         return data

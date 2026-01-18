@@ -278,6 +278,8 @@ def make_combined_tables(
     *,
     config: eti_config.Config,
     db_name: str,
+    genome_name: str | None = None,
+    is_multi_genome: bool = False,
     cleanup: bool = True,
 ) -> None:
     """makes combined tables for transcripts and genes and writes as parquet files
@@ -287,7 +289,13 @@ def make_combined_tables(
     config
         an downloaed cfg instance
     db_name
-        directory name reprsenting a species
+        directory name representing a species (used for output paths)
+    genome_name
+        the actual genome name for filtering in multi-genome databases.
+        If is_multi_genome=True, this is used to query the meta table.
+    is_multi_genome
+        if True, filter tables by species_id from meta table and overwrite
+        coord_system.parquet and seq_region.parquet with filtered versions
     cleanup
         if provided, the parquet files from which merged tables are built
         are deleted on completion
@@ -295,8 +303,14 @@ def make_combined_tables(
     Notes
     -----
     Creates transcript_attr.parquet and gene_attr.parquet files.
+    For multi-genome databases, also filters and overwrites coord_system.parquet
+    and seq_region.parquet to contain only single-species data.
     """
-    from ensembl_tui._mysql_core_attr import make_gene_attr, make_transcript_attr
+    from ensembl_tui._mysql_core_attr import (
+        get_species_coord_system_ids,
+        make_gene_attr,
+        make_transcript_attr,
+    )
 
     # make the transcribed_attr table
     transcribed_tables = (
@@ -309,9 +323,51 @@ def make_combined_tables(
         "seq_region",
         "coord_system",
     )  # keep these one separate as we need them for repeats
+
+    # Add meta table if multi-genome
+    if is_multi_genome:
+        all_tables = transcribed_tables + preserve + ("meta",)
+    else:
+        all_tables = transcribed_tables + preserve
+
     # checks these tables already exist in parquet format, fails otherwise
-    conn = _make_db(config, db_name, transcribed_tables + preserve)
-    _ = make_transcript_attr(con=conn)
+    conn = _make_db(config, db_name, all_tables)
+
+    # Get coord_system_ids if filtering needed
+    coord_system_ids = None
+    if is_multi_genome and genome_name:
+        coord_system_ids = get_species_coord_system_ids(conn, genome_name)
+
+        # Filter and overwrite coord_system.parquet with single-species data
+        ids_str = ",".join(str(i) for i in coord_system_ids)
+        sql = f"CREATE TABLE coord_system_filtered AS SELECT * FROM coord_system WHERE coord_system_id IN ({ids_str})"
+        conn.sql(sql)
+        export_parquet(
+            con=conn,
+            table_name="coord_system_filtered",
+            dest_dir=config.install_genomes / db_name,
+        )
+        # Rename to replace original coord_system.parquet
+        filtered_path = (
+            config.install_genomes / db_name / "coord_system_filtered.parquet"
+        )
+        original_path = config.install_genomes / db_name / "coord_system.parquet"
+        filtered_path.rename(original_path)
+
+        # Filter and overwrite seq_region.parquet with single-species data
+        sql = f"CREATE TABLE seq_region_filtered AS SELECT * FROM seq_region WHERE coord_system_id IN ({ids_str})"
+        conn.sql(sql)
+        export_parquet(
+            con=conn,
+            table_name="seq_region_filtered",
+            dest_dir=config.install_genomes / db_name,
+        )
+        # Rename to replace original seq_region.parquet
+        filtered_path = config.install_genomes / db_name / "seq_region_filtered.parquet"
+        original_path = config.install_genomes / db_name / "seq_region.parquet"
+        filtered_path.rename(original_path)
+
+    _ = make_transcript_attr(con=conn, coord_system_ids=coord_system_ids)
     export_parquet(
         con=conn,
         table_name="transcript_attr",
@@ -320,8 +376,18 @@ def make_combined_tables(
     conn.close()
     # make the gene_attr table
     gene_tables = "gene", "xref"
-    conn = _make_db(config, db_name, gene_tables + preserve)
-    _ = make_gene_attr(con=conn)
+    if is_multi_genome:
+        all_tables = gene_tables + preserve + ("meta",)
+    else:
+        all_tables = gene_tables + preserve
+
+    conn = _make_db(config, db_name, all_tables)
+
+    # Get coord_system_ids again (new connection)
+    if is_multi_genome and genome_name:
+        coord_system_ids = get_species_coord_system_ids(conn, genome_name)
+
+    _ = make_gene_attr(con=conn, coord_system_ids=coord_system_ids)
     export_parquet(
         con=conn,
         table_name="gene_attr",
@@ -329,7 +395,11 @@ def make_combined_tables(
     )
     conn.close()
     if cleanup:
-        for table_name in transcribed_tables + gene_tables:
+        cleanup_tables = list(transcribed_tables + gene_tables)
+        # Add meta table to cleanup if multi-genome
+        if is_multi_genome:
+            cleanup_tables.append("meta")
+        for table_name in cleanup_tables:
             (config.install_genomes / db_name / f"{table_name}.parquet").unlink(
                 missing_ok=True,
             )
@@ -356,14 +426,23 @@ class mysql_dump_to_parquet:  # noqa: N801
         self._verbose = verbose
         self._make_combined = make_combined
 
-    def main(self, db_name: str) -> pathlib.Path:
-        dump_dir = self._staging_dir / db_name / "mysql"
+    def main(self, genome_name: str) -> pathlib.Path:
+        db_name = self._config.species_map.get_ensembl_db_prefix(genome_name)
+        is_multi_genome = db_name != genome_name  # Detection logic
+
+        if is_multi_genome:
+            dump_dir = self._staging_dir / db_name / "mysql"
+        else:
+            dump_dir = self._staging_dir / genome_name / "mysql"
+
         if not dump_dir.exists():
-            msg = f"no mysql dump dir for {db_name}"
+            msg = f"no mysql dump dir for {genome_name}"
             raise FileNotFoundError(msg)
 
-        dest_dir = self._install_dir / db_name
+        dest_dir = self._install_dir / genome_name
         dest_dir.mkdir(parents=True, exist_ok=True)
+
+        # Import all tables to parquet (no filtering here - write_parquet unchanged)
         for table_name in self._table_names:
             dump_path = dump_dir / f"{table_name}.txt.gz"
             if not dump_path.exists():
@@ -377,8 +456,14 @@ class mysql_dump_to_parquet:  # noqa: N801
                 dest_dir=dest_dir,
             )
 
-        # and now we construct the combined attr tables
+        # Create combined tables with filtering if needed
         if self._make_combined:
-            make_combined_tables(config=self._config, db_name=db_name, cleanup=True)
+            make_combined_tables(
+                config=self._config,
+                db_name=genome_name,  # Output directory name
+                genome_name=genome_name if is_multi_genome else None,
+                is_multi_genome=is_multi_genome,
+                cleanup=True,
+            )
 
         return dest_dir

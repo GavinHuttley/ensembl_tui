@@ -75,6 +75,10 @@ def load_db(db_name: pathlib.Path, table_names: set[str]) -> duckdb.DuckDBPyConn
     return con
 
 
+species_attrs = {
+    "species_name": "meta",
+}
+
 location_attrs = {
     "location": "seq_region",
     "coord_system": "coord_system",
@@ -115,6 +119,52 @@ def make_mysqldump_names() -> list[str]:
     all_tables = [f"{table}.txt.gz" for table in get_all_tables()]
     all_tables.insert(0, "CHECKSUMS")
     return all_tables
+
+
+def get_species_coord_system_ids(
+    conn: duckdb.DuckDBPyConnection,
+    genome_name: str,
+) -> list[int]:
+    """Get coord_system_id values for a specific genome in a multi-genome database.
+
+    Parameters
+    ----------
+    conn
+        DuckDB connection with meta and coord_system tables loaded
+    genome_name
+        The genome name to filter by (e.g., 'homo_sapiens')
+
+    Returns
+    -------
+    List of coord_system_id values for this species
+
+    Raises
+    ------
+    ValueError
+        If no species_id found for the given genome_name
+    """
+    # Step 1: Get species_id from meta table
+    sql = """
+    SELECT species_id
+    FROM meta
+    WHERE meta_key = 'species.db_name'
+    AND meta_value = ?
+    """
+    result = conn.execute(sql, [genome_name]).fetchone()
+    if not result:
+        msg = f"No species_id found in meta table for genome_name={genome_name}"
+        raise ValueError(msg)
+
+    species_id = result[0]
+
+    # Step 2: Get coord_system_id values for this species_id
+    sql = """
+    SELECT coord_system_id
+    FROM coord_system
+    WHERE species_id = ?
+    """
+    results = conn.execute(sql, [species_id]).fetchall()
+    return [r[0] for r in results]
 
 
 # we integrate transcript groups of tables into the following:
@@ -408,9 +458,27 @@ def get_transcript_attr_records(
     return
 
 
-def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConnection:
-    """creates a transcript_attr table from several other tables"""
-    sql = """CREATE VIEW IF NOT EXISTS exon_view AS
+def make_transcript_attr(
+    con: duckdb.DuckDBPyConnection,
+    coord_system_ids: list[int] | None = None,
+) -> duckdb.DuckDBPyConnection:
+    """creates a transcript_attr table from several other tables
+
+    Parameters
+    ----------
+    con
+        DuckDB connection
+    coord_system_ids
+        If provided, filter to only these coord_system_id values
+        (for multi-genome databases). If None, no filtering applied.
+    """
+    # Build WHERE clause if filtering needed
+    where_clause = ""
+    if coord_system_ids is not None:
+        ids_str = ",".join(str(i) for i in coord_system_ids)
+        where_clause = f"WHERE cs.coord_system_id IN ({ids_str})"
+
+    sql = f"""CREATE VIEW IF NOT EXISTS exon_view AS
         SELECT
             et.transcript_id AS transcript_id,
             ex.exon_id AS exon_id,
@@ -432,6 +500,7 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
         JOIN exon_transcript et ON ex.exon_id = et.exon_id
         JOIN transcript tr ON et.transcript_id = tr.transcript_id
         LEFT JOIN translation tl ON tr.transcript_id = tl.transcript_id
+        {where_clause}
         """
     # it's a left join between tr and tl to handle the case where
     # there is no translation and thus a transcript_id is missing from tl
@@ -449,10 +518,28 @@ def make_transcript_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConne
     return con
 
 
-def make_gene_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConnection:
-    """creates a gene_attr 'table' from several other tables"""
+def make_gene_attr(
+    con: duckdb.DuckDBPyConnection,
+    coord_system_ids: list[int] | None = None,
+) -> duckdb.DuckDBPyConnection:
+    """creates a gene_attr 'table' from several other tables
+
+    Parameters
+    ----------
+    con
+        DuckDB connection
+    coord_system_ids
+        If provided, filter to only these coord_system_id values
+        (for multi-genome databases). If None, no filtering applied.
+    """
+    # Build WHERE clause if filtering needed
+    where_clause = ""
+    if coord_system_ids is not None:
+        ids_str = ",".join(str(i) for i in coord_system_ids)
+        where_clause = f"WHERE cs.coord_system_id IN ({ids_str})"
+
     # need to also add coord_system_name to the gene_attr table
-    sql = """CREATE VIEW IF NOT EXISTS gene_attr AS
+    sql = f"""CREATE VIEW IF NOT EXISTS gene_attr AS
         SELECT
             g.gene_id AS gene_id,
             g.stable_id AS stable_id,
@@ -469,6 +556,7 @@ def make_gene_attr(con: duckdb.DuckDBPyConnection) -> duckdb.DuckDBPyConnection:
         JOIN seq_region sr ON g.seq_region_id = sr.seq_region_id
         JOIN coord_system cs ON sr.coord_system_id = cs.coord_system_id
         LEFT JOIN xref x ON g.display_xref_id = x.xref_id
+        {where_clause}
         """
     con.sql(sql)
     return con

@@ -173,7 +173,7 @@ class SpeciesNameMap:
         """returns cogent3 Table"""
         rows = [
             [abrv, self._abrv_to_common[abrv], self._abrv_to_genome[abrv], db_prefix]
-            for db_prefix, abrv in self._db_to_abrv.items()
+            for abrv, db_prefix in self._abrv_to_db.items()
         ]
         return make_table(
             header=TABLE_COLUMNS,
