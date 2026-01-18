@@ -37,7 +37,7 @@ This is a `.ini` format. A section is denoted by square brackets surrounding the
 
 ### `[remote path]`
 
-This is the section defining which Ensembl FTP server hosts the data.
+This is the section defining which Ensembl domain hosts the data you want, e.g. main, metazoa, protists.
 
 ### `[local path]`
 
@@ -84,7 +84,7 @@ For example, the following config would download 10 primate genomes along with w
 
 ```ini
 [remote path]
-host=ftp.ensembl.org
+domain=main
 [local path]
 staging_path=download_115
 install_path=install_115
@@ -92,7 +92,7 @@ install_path=install_115
 release=115
 [compara]
 align_names=10_primates.epo
-homologies =
+homologies=
 ```
 
 ```bash exec="1" workdir="./docs"
