@@ -10,7 +10,7 @@ from ensembl_tui import _site_map as eti_smap
 @pytest.mark.timeout(10)
 def test_get_db_names(tmp_config_just_yeast, ENSEMBL_RELEASE_VERSION):
     cfg = eti_config.read_config(config_path=tmp_config_just_yeast)
-    db_names = eti_download.get_core_db_dirnames(cfg)
+    db_names = eti_download.get_core_db_dirnames(cfg, eti_smap.get_site_map("main"))
     assert db_names == {
         "saccharomyces_cerevisiae": f"pub/release-{ENSEMBL_RELEASE_VERSION}/mysql/saccharomyces_cerevisiae_core_{ENSEMBL_RELEASE_VERSION}_4",
     }

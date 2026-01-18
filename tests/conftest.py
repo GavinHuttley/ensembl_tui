@@ -50,6 +50,24 @@ def tmp_config_just_yeast(tmp_dir):
     return download_cfg
 
 
+@pytest.fixture
+def tmp_config_domain_format(tmp_dir):
+    """Config using new 'domain' format instead of 'host'"""
+    parser = ConfigParser()
+    parser.read(eti_util.get_resource_path("sample.cfg"))
+    # Remove host, add domain
+    parser.remove_option("remote path", "host")
+    parser.set("remote path", "domain", value="main")
+    parser.remove_section("Caenorhabditis elegans")
+    parser.remove_section("compara")
+    parser.set("local path", "staging_path", value=str(tmp_dir / "staging"))
+    parser.set("local path", "install_path", value=str(tmp_dir / "install"))
+    download_cfg = tmp_dir / "download_domain.cfg"
+    with open(download_cfg, "w") as out:
+        parser.write(out)
+    return download_cfg
+
+
 def name_as_seqid(species, seqid, start, end):  # noqa: ARG001
     return seqid
 

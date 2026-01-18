@@ -56,8 +56,13 @@ class SiteMap:
     _homologies_path: str | None = None
     _trees_path: str | None = None
 
-    def get_seqs_path(self, ensembl_name: str) -> str:
+    def get_seqs_path(self, ensembl_name: str, collection_name: str | None) -> str:
         """path to unmasked genome sequences"""
+        # this needs to be self._seqs_path/ensembl_name/dna
+        # except when it's part of a collection, in which case its
+        # self._seqs_path/collection_name/ensembl_name/dna
+        if collection_name:
+            return f"{self._seqs_path}/{collection_name}/{ensembl_name}/dna"
         return f"{self._seqs_path}/{ensembl_name}/dna"
 
     def get_annotations_path(self, ensembl_name: str) -> str:
@@ -113,6 +118,21 @@ def ensembl_metazoa_sitemap() -> SiteMap:
     )
 
 
+@register_ensembl_site_map("protists")
+def ensembl_protists_sitemap() -> SiteMap:
+    """the protists Ensembl site map"""
+    return SiteMap(
+        site="ftp.ensemblgenomes.org",
+        _alignments_path=None,
+        _homologies_path="tsv/ensembl-compara/homologies",
+        _trees_path=None,
+        db_host="mysql-eg-publicsql.ebi.ac.uk",
+        db_port=4157,
+        remote_path="pub/protists",
+        species_file_name="species_EnsemblProtists.txt",
+    )
+
+
 # for bacteria we have, but complexities related to the bacterial collection
 # a species belongs to. For example
 # https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-57/fasta/bacteria_15_collection/_butyribacterium_methylotrophicum_gca_001753695/dna/
@@ -126,10 +146,27 @@ def ensembl_metazoa_sitemap() -> SiteMap:
 
 @cache
 def get_site_map(domain: str) -> SiteMap:
-    """returns a site map instance"""
+    """Returns a site map instance for the specified domain.
+
+    Parameters
+    ----------
+    domain : str
+        The Ensembl domain name (e.g., 'main', 'vertebrates', 'metazoa', 'protists').
+        Use get_site_map_names() to see all available options.
+
+    Returns
+    -------
+    SiteMap
+        Site configuration containing FTP host, database connection info, and paths.
+
+    Raises
+    ------
+    KeyError
+        If the domain is not registered.
+    """
     return _ensembl_site_map[domain]()
 
 
 def get_site_map_names() -> list[str]:
-    """returns the registered site map names"""
+    """Returns all registered Ensembl domain names."""
     return list(_ensembl_site_map)
