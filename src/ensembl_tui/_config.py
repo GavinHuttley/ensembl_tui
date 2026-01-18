@@ -379,9 +379,8 @@ def _validate_and_resolve_domain(remote_section: dict[str, str]) -> tuple[str, s
         )
         raise ValueError(msg)
 
-    # Precedence: domain takes priority if both present
     if host_value:
-        msg = "The 'host' option in [remote path] is deprecated. Please use 'domain' instead. "
+        msg = "The 'host' option in [remote path] is deprecated, use 'domain' instead."
         warnings.warn(
             msg,
             DeprecationWarning,
