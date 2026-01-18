@@ -380,29 +380,16 @@ def _validate_and_resolve_domain(remote_section: dict[str, str]) -> tuple[str, s
         raise ValueError(msg)
 
     # Precedence: domain takes priority if both present
-    if host_value or (domain_value and host_value):
-        if host_value:
-            msg = "The 'host' option in [remote path] is deprecated. Please use 'domain' instead. "
-            "Support for 'host' will be removed in a future version."
-        else:
-            msg = "Both 'domain' and 'host' found in [remote path]. Using 'domain' value. "
-            "The 'host' option is deprecated and will be removed in a future version."
+    if host_value:
+        msg = "The 'host' option in [remote path] is deprecated. Please use 'domain' instead. "
         warnings.warn(
             msg,
             DeprecationWarning,
             stacklevel=3,
         )
         domain = domain_value or host_value
-    elif domain_value:
-        domain = domain_value
     else:
-        # This case should not occur due to earlier validation
-        eti_util.print_colour(
-            "Config error: Unable to determine domain from [remote path] section",
-            colour="red",
-        )
-        sys.exit(1)
-
+        domain = domain_value
     # Validate domain exists in site map registry
     available = eti_site_map.get_site_map_names()
     if domain not in available:
