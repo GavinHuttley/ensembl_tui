@@ -215,8 +215,6 @@ def test_read_config_with_domain(tmp_config_domain_format):
 
 def test_read_config_with_host_shows_deprecation(tmp_dir):
     """Test that using 'host' triggers deprecation warning"""
-    import configparser
-
     parser = configparser.ConfigParser()
     parser.read(eti_util.get_resource_path("sample.cfg"))
     # Remove domain, add host (to simulate old config format)
@@ -237,8 +235,6 @@ def test_read_config_with_host_shows_deprecation(tmp_dir):
 
 def test_domain_takes_precedence_over_host(tmp_dir):
     """Test that 'domain' takes precedence when both present"""
-    import configparser
-
     parser = configparser.ConfigParser()
     parser.read(eti_util.get_resource_path("sample.cfg"))
     parser.set("remote path", "domain", value="metazoa")
@@ -257,8 +253,6 @@ def test_domain_takes_precedence_over_host(tmp_dir):
 
 
 def test_invalid_domain_raises(tmp_dir):
-    import configparser
-
     parser = configparser.ConfigParser()
     parser.read(eti_util.get_resource_path("sample.cfg"))
     parser.remove_option("remote path", "host")
@@ -277,8 +271,6 @@ def test_invalid_domain_raises(tmp_dir):
 
 def test_missing_both_domain_and_host_raises(tmp_dir):
     """Test that missing both domain and host causes clear error"""
-    import configparser
-
     parser = configparser.ConfigParser()
     parser.read(eti_util.get_resource_path("sample.cfg"))
     parser.remove_option("remote path", "domain")
@@ -296,8 +288,6 @@ def test_missing_both_domain_and_host_raises(tmp_dir):
 
 def test_write_config_uses_domain_not_host(tmp_config_domain_format):
     """Test that Config.write() writes 'domain' not 'host'"""
-    import configparser
-
     config = eti_config.read_config(config_path=tmp_config_domain_format)
     config.write()
 
@@ -312,20 +302,18 @@ def test_write_config_uses_domain_not_host(tmp_config_domain_format):
 
 
 @pytest.mark.parametrize(
-    ("domain", "expected_host"),
+    "domain",
     [
-        ("main", "ftp.ensembl.org"),
-        ("vertebrates", "ftp.ensembl.org"),
-        ("ftp.ensembl.org", "ftp.ensembl.org"),
-        ("metazoa", "ftp.ensemblgenomes.org"),
-        ("ftp.ensemblgenomes.org", "ftp.ensemblgenomes.org"),
-        ("protists", "ftp.ensemblgenomes.org"),
+        "main",
+        "vertebrates",
+        "ftp.ensembl.org",
+        "metazoa",
+        "ftp.ensemblgenomes.org",
+        "protists",
     ],
 )
-def test_all_registered_domains_work(tmp_dir, domain, expected_host):
+def test_all_registered_domains_work(tmp_dir, domain):
     """Test that all registered domains can be used in config"""
-    import configparser
-
     parser = configparser.ConfigParser()
     parser.add_section("remote path")
     parser.set("remote path", "domain", value=domain)
