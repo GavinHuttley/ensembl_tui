@@ -91,7 +91,8 @@ def installed_aligns(tmp_path, default_species_map):
     for name in names:
         dirname = align_dir / name
         dirname.mkdir(parents=True, exist_ok=True)
-        (dirname / f"align_blocks.{eti_align.ALIGN_STORE_SUFFIX}").open(mode="w")
+        db = (dirname / f"align_blocks.{eti_align.ALIGN_STORE_SUFFIX}").open(mode="w")
+        db.close()
     return eti_config.InstalledConfig(
         release="11",
         install_path=tmp_path,

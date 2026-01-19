@@ -200,6 +200,7 @@ def test_building_alignment(genomedbs_aligndb, namer):
     )
     orig = small_seqs()[1:5]
     assert got.to_dict() == orig.to_dict()
+    got.annotation_db.close()
 
 
 @pytest.mark.parametrize(
@@ -351,6 +352,8 @@ def test_select_alignment_minus_strand(start_end, namer):
     elif start != None == end:  # noqa E711
         end = len(s2) - s2_ft.map.start
         start = None
+
+    aln.annotation_db.close()
 
     # mouse sequence is on minus strand, so need to adjust
     # coordinates for query
