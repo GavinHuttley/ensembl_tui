@@ -133,14 +133,6 @@ def ensembl_protists_sitemap() -> SiteMap:
     )
 
 
-# for bacteria we have, but complexities related to the bacterial collection
-# a species belongs to. For example
-# https://ftp.ensemblgenomes.ebi.ac.uk/pub/bacteria/release-57/fasta/bacteria_15_collection/_butyribacterium_methylotrophicum_gca_001753695/dna/
-# so to address this, the sitemap class needs to download the species table from ensembl bacteria
-# and cache the collection/species mapping
-# site = "ftp.ensemblgenomes.ebi.ac.uk",
-# _genomes_path = "fasta",
-# _annotations_path = "gff3",
 # _homologies_path = "pan_ensembl/tsv/ensembl-compara/homologies",
 
 

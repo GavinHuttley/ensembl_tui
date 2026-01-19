@@ -24,7 +24,7 @@ def _(data: bytes) -> bytes:
 
 
 @functools.singledispatch
-def blob_to_array(data: bytes) -> numpy.ndarray:
+def blob_to_array(data: bytes | numpy.ndarray) -> numpy.ndarray:
     with io.BytesIO(data) as out:
         out.seek(0)
         return numpy.load(out)
