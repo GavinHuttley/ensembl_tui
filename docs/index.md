@@ -16,7 +16,7 @@ pip install ensembl-tui
 
 ## Installation And Usage With `uv`
 
-Speaking of `uv` (the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/)), it provides a simplified approach to install `eti` as a command-line only tool as
+Speaking of `uv` (see the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/)), it provides a simplified approach to install `eti` as a command-line only tool as
 
 ```
 uv tool install ensembl-tui
