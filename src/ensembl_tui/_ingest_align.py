@@ -103,7 +103,7 @@ def install_alignment(
 
     dest_dir.mkdir(parents=True, exist_ok=True)
     paths = list(src_dir.glob(f"{align_name}*maf*"))
-    aln_loader = load_align_records(set(config.db_names))
+    aln_loader = load_align_records(set(config.species_dbs))
     agg = make_alignment_aggregator_db()
     records = []
     series = eti_util.get_iterable_tasks(

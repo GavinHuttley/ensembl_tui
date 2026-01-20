@@ -135,7 +135,7 @@ def local_install_homology(
     config.install_homologies.mkdir(parents=True, exist_ok=True)
 
     dirnames = []
-    for sp in config.db_names:
+    for sp in config.species_dbs:
         path = config.staging_homologies / sp
         dirnames.extend(list(path.glob("*.tsv*")))
 
@@ -145,7 +145,7 @@ def local_install_homology(
         eti_util.print_colour(f"homologies {max_workers=}", "yellow")
 
     loader = homology_ingest.load_homologies(
-        allowed_species=set(config.db_names),
+        allowed_species=set(config.species_dbs),
     )
     if progress is not None:
         msg = "Loading homologies"
