@@ -389,11 +389,12 @@ def _validate_and_resolve_domain(remote_section: dict[str, str]) -> tuple[str, s
         domain = domain_value or host_value
     else:
         domain = domain_value
-    # Validate domain exists in site map registry
-    available = eti_site_map.get_site_map_names()
-    if domain not in available:
-        msg = f"Invalid domain '{domain}'. Available domains: {', '.join(sorted(available))}"
-        raise ValueError(msg)
+
+    try:
+        site_map = eti_site_map.get_site_map(domain)
+    except KeyError as err:
+        msg = f"Invalid domain '{domain}'. Available domains: {', '.join(sorted(eti_site_map.get_site_map_names()))}"
+        raise ValueError(msg) from err
 
     # Resolve the actual FTP host from the site map
     site_map = eti_site_map.get_site_map(domain)

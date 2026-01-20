@@ -133,9 +133,6 @@ def ensembl_protists_sitemap() -> SiteMap:
     )
 
 
-# _homologies_path = "pan_ensembl/tsv/ensembl-compara/homologies",
-
-
 @cache
 def get_site_map(domain: str) -> SiteMap:
     """Returns a site map instance for the specified domain.
@@ -161,4 +158,4 @@ def get_site_map(domain: str) -> SiteMap:
 
 def get_site_map_names() -> list[str]:
     """Returns all registered Ensembl domain names."""
-    return list(_ensembl_site_map)
+    return [n for n in _ensembl_site_map if not n.startswith("ftp")]

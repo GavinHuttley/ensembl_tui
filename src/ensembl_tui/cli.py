@@ -48,13 +48,13 @@ def main() -> None:
 
 @main.command(**_click_command_opts)
 @cli_opt.dbrc_out
-@cli_opt.site
+@cli_opt.domain
 @cli_opt.force
-def demo_config(outpath: pathlib.Path, site: str, force_overwrite: bool) -> None:
+def demo_config(outpath: pathlib.Path, domain: str, force_overwrite: bool) -> None:
     """exports sample config and species table to the nominated path"""
     from ensembl_tui._download import download_species_table
 
-    site_map = eti_site_map.get_site_map(site)
+    site_map = eti_site_map.get_site_map(domain)
     table = download_species_table(
         site_map=site_map,
     )

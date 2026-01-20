@@ -17,10 +17,9 @@ def test_standard_smp():
 
 def test_get_site_map_names():
     names = eti_smap.get_site_map_names()
-    assert "ftp.ensembl.org" in names
-    assert "ftp.ensemblgenomes.org" in names
     assert "main" in names
     assert "metazoa" in names
+    assert "protists" in names
 
 
 def test_get_default_site_map_species():

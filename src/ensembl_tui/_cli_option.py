@@ -299,11 +299,11 @@ nprocs = click.option(
     help="Number of procs to use.",
     show_default=True,
 )
-site = click.option(
-    "--site",
+domain = click.option(
+    "--domain",
     default="main",
     type=click.Choice(eti_site_map.get_site_map_names(), case_sensitive=False),
-    help="Ensembl site to use for species list.",
+    help="Ensembl domain to use for species list.",
 )
 species_map = click.option(
     "-sm",
