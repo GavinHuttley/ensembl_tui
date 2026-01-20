@@ -48,13 +48,13 @@ def main() -> None:
 
 @main.command(**_click_command_opts)
 @cli_opt.dbrc_out
-@cli_opt.site
+@cli_opt.domain
 @cli_opt.force
-def demo_config(outpath: pathlib.Path, site: str, force_overwrite: bool) -> None:
+def demo_config(outpath: pathlib.Path, domain: str, force_overwrite: bool) -> None:
     """exports sample config and species table to the nominated path"""
     from ensembl_tui._download import download_species_table
 
-    site_map = eti_site_map.get_site_map(site)
+    site_map = eti_site_map.get_site_map(domain)
     table = download_species_table(
         site_map=site_map,
     )
@@ -557,7 +557,7 @@ def alignments(
 
     config = eti_config.read_installed_cfg(installed)
     align_db = eti_align.load_aligndb(config=config, align_name=align_name)
-    ref_species = config.species_map.get_ensembl_db_prefix(ref)
+    ref_species = config.species_map.get_genome_name(ref)
     if ref_species not in align_db.get_species_names():
         eti_util.print_colour(
             text=f"species {ref!r} not in the alignment",

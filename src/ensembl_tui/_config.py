@@ -190,7 +190,7 @@ class InstalledConfig:
         return self.install_path / _GENOMES_NAME
 
     def installed_genome(self, species: str) -> pathlib.Path:
-        db_name = self.species_map.get_ensembl_db_prefix(species, level="raise")
+        db_name = self.species_map.get_genome_name(species, level="raise")
         return self.genomes_path / db_name
 
     def list_genomes(self) -> list[str]:
@@ -389,11 +389,12 @@ def _validate_and_resolve_domain(remote_section: dict[str, str]) -> tuple[str, s
         domain = domain_value or host_value
     else:
         domain = domain_value
-    # Validate domain exists in site map registry
-    available = eti_site_map.get_site_map_names()
-    if domain not in available:
-        msg = f"Invalid domain '{domain}'. Available domains: {', '.join(sorted(available))}"
-        raise ValueError(msg)
+
+    try:
+        site_map = eti_site_map.get_site_map(domain)
+    except KeyError as err:
+        msg = f"Invalid domain '{domain}'. Available domains: {', '.join(sorted(eti_site_map.get_site_map_names()))}"
+        raise ValueError(msg) from err
 
     # Resolve the actual FTP host from the site map
     site_map = eti_site_map.get_site_map(domain)

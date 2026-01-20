@@ -151,11 +151,13 @@ def download_species(
             description=msg,
         )
 
-    for key in config.species_dbs:
-        db_prefix = config.species_map.get_ensembl_db_prefix(key)
-        if "collection" in db_prefix:
+    for genome_name in config.species_dbs:
+        abbrev = config.species_map.get_abbreviation(genome_name)
+        db_prefix = config.species_map.get_ensembl_db_prefix(genome_name)
+        if genome_name != db_prefix:
+            # genome in a collection
             collection_name = db_prefix
-            local_root = config.staging_genomes / key
+            local_root = config.staging_genomes / genome_name
         else:
             collection_name = None
             local_root = config.staging_genomes / db_prefix
@@ -163,7 +165,7 @@ def download_species(
         local_root.mkdir(parents=True, exist_ok=True)
 
         # getting genome sequences
-        remote = site_map.get_seqs_path(key, collection_name=collection_name)
+        remote = site_map.get_seqs_path(genome_name, collection_name=collection_name)
         remote_dir = remote_template.format(remote)
         remote_paths = list(
             eti_ftp.listdir(site_map.site, path=remote_dir, pattern=valid_seq_file),
@@ -187,7 +189,7 @@ def download_species(
             host=site_map.site,
             local_dest=dest_path,
             remote_paths=remote_paths,
-            description=f"{key[:10]}... {icon}",
+            description=f"{abbrev} {icon}",
             do_checksum=True,
             progress=progress,
         )
@@ -206,7 +208,7 @@ def download_species(
             host=site_map.site,
             local_dest=dest_path,
             remote_paths=remote_paths,
-            description=f"{db_prefix[:10]}... {icon}",
+            description=f"{abbrev} {icon}",
             do_checksum=True,
             progress=progress,
         )
@@ -311,8 +313,15 @@ def download_homology(
             description=msg,
         )
 
-    for db_name in config.db_names:
-        remote_path = remote_template.format(db_name)
+    for genome_name in config.species_dbs:
+        abbrev = config.species_map.get_abbreviation(genome_name)
+        db_name = config.species_map.get_ensembl_db_prefix(genome_name)
+        if db_name == genome_name:
+            remote_path = remote_template.format(genome_name)
+        else:
+            # genome is in a collection
+            remote_path = remote_template.format(f"{db_name}/{genome_name}")
+
         remote_paths = list(
             eti_ftp.listdir(site_map.site, remote_path, valid_compara_homology()),
         )
@@ -324,14 +333,14 @@ def download_homology(
             remote_paths = [p for p in remote_paths if not eti_util.is_signature(p)]
             remote_paths = remote_paths[:4]
 
-        local_dir = local / db_name
+        local_dir = local / genome_name
         local_dir.mkdir(parents=True, exist_ok=True)
         _remove_tmpdirs(local_dir)
         eti_ftp.download_data(
             host=site_map.site,
             local_dest=local_dir,
             remote_paths=remote_paths,
-            description=f"{db_name[:10]}...",
+            description=f"{abbrev}",
             do_checksum=False,  # no checksums for species homology files
             progress=progress,
         )

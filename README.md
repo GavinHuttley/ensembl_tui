@@ -68,9 +68,12 @@ Some commands can be run in parallel but have moderate memory requirements. If y
     exports sample config and species table to the nominated path
 
   Options:
-    -o, --outpath PATH     Path to directory to export all rc contents.
-    -f, --force_overwrite  Overwrite existing data.
-    --help                 Show this message and exit.
+    -o, --outpath PATH              Path to directory to export all rc contents.
+    --domain [vertebrates|main|metazoa|protists]
+                                    Ensembl domain to use for species list.
+                                    [default: main]
+    -f, --force_overwrite           Overwrite existing data.
+    --help                          Show this message and exit.
 
   ```
   <!-- [[[end]]] -->
@@ -109,12 +112,14 @@ Some commands can be run in parallel but have moderate memory requirements. If y
     download data from Ensembl's ftp site
 
   Options:
-    -c, --configpath PATH  Path to config file specifying databases, (only species
-                           or compara at present).
-    -d, --debug            Maximum verbosity, and reduces number of downloads,
-                           etc...
+    -c, --configpath PATH    Path to config file specifying databases, (only
+                             species or compara at present).
+    -d, --debug              Maximum verbosity, and reduces number of downloads,
+                             etc...
+    -sm, --species_map TEXT  Tsv file with species names, abbreviations etc..
+                             [default: main]
     -v, --verbose
-    --help                 Show this message and exit.
+    --help                   Show this message and exit.
 
   ```
   <!-- [[[end]]] -->
