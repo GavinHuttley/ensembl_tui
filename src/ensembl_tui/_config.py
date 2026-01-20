@@ -190,7 +190,7 @@ class InstalledConfig:
         return self.install_path / _GENOMES_NAME
 
     def installed_genome(self, species: str) -> pathlib.Path:
-        db_name = self.species_map.get_ensembl_db_prefix(species, level="raise")
+        db_name = self.species_map.get_genome_name(species, level="raise")
         return self.genomes_path / db_name
 
     def list_genomes(self) -> list[str]:
