@@ -244,7 +244,7 @@ def download_aligns(
     msg = "Downloading alignments"
     if progress is not None:
         align_download = progress.add_task(
-            total=len(config.species_dbs),
+            total=len(config.align_names),
             description=msg,
         )
 
