@@ -23,6 +23,7 @@ dependencies = [
     "cogent3==2026.1.12a1",
     "cogent3-h5seqs==0.7.3",
     "duckdb",
+    "httpx",
     "numba",
     "numpy",
     "polars",

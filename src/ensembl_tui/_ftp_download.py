@@ -3,6 +3,8 @@ import typing
 from collections.abc import Callable
 from ftplib import FTP, error_perm
 
+import httpx
+
 from rich.progress import Progress, track
 from unsync import unsync
 
@@ -52,12 +54,12 @@ def _copy_to_local(
 ) -> eti_util.PathType:
     if dest.exists():
         return dest
-    ftp = configured_ftp(host=host)
-    # pass in checksum and keep going until it's correct?
-    with eti_util.atomic_write(dest, mode="wb") as outfile:
-        ftp.retrbinary(f"RETR {src}", outfile.write)
-
-    ftp.close()
+    url = f"https://{host}/{str(src).lstrip('/')}"
+    with httpx.stream("GET", url, follow_redirects=True, timeout=300.0) as response:
+        response.raise_for_status()
+        with eti_util.atomic_write(dest, mode="wb") as outfile:
+            for chunk in response.iter_bytes(chunk_size=1024 * 1024):
+                outfile.write(chunk)
     return dest
 
 
