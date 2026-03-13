@@ -1,9 +1,8 @@
 import pathlib
 import typing
+import urllib.request
 from collections.abc import Callable
 from ftplib import FTP, error_perm
-
-import httpx
 
 from rich.progress import Progress, track
 from unsync import unsync
@@ -55,10 +54,9 @@ def _copy_to_local(
     if dest.exists():
         return dest
     url = f"https://{host}/{str(src).lstrip('/')}"
-    with httpx.stream("GET", url, follow_redirects=True, timeout=300.0) as response:
-        response.raise_for_status()
+    with urllib.request.urlopen(url, timeout=300.0) as response:
         with eti_util.atomic_write(dest, mode="wb") as outfile:
-            for chunk in response.iter_bytes(chunk_size=1024 * 1024):
+            while chunk := response.read(1024 * 1024):
                 outfile.write(chunk)
     return dest
 
