@@ -47,19 +47,30 @@ def listdir(
 
 
 def _copy_to_local(
-    host: str,
-    src: eti_util.PathType,
-    dest: eti_util.PathType,
+        host: str,
+        src: eti_util.PathType,
+        dest: eti_util.PathType,
+        retries: int = 3,
 ) -> eti_util.PathType:
     if dest.exists():
         return dest
     url = f"https://{host}/{str(src).lstrip('/')}"
-    with urllib.request.urlopen(url, timeout=300.0) as response:
-        with eti_util.atomic_write(dest, mode="wb") as outfile:
-            while chunk := response.read(1024 * 1024):
-                outfile.write(chunk)
-    return dest
 
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(url, timeout=300.0) as response:
+                with eti_util.atomic_write(dest, mode="wb") as outfile:
+                    while chunk := response.read(1024 * 1024):
+                        outfile.write(chunk)
+            return dest  # Success
+        except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+            if attempt == retries - 1:
+                raise e
+            # Small delay before retrying (exponential backoff)
+            import time
+            time.sleep(2 ** attempt)
+
+    return dest
 
 unsynced_copy_to_local = unsync(_copy_to_local)
 
