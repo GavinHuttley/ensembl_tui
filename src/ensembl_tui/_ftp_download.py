@@ -47,10 +47,10 @@ def listdir(
 
 
 def _copy_to_local(
-        host: str,
-        src: eti_util.PathType,
-        dest: eti_util.PathType,
-        retries: int = 3,
+    host: str,
+    src: eti_util.PathType,
+    dest: eti_util.PathType,
+    retries: int = 3,
 ) -> eti_util.PathType:
     if dest.exists():
         return dest
@@ -68,9 +68,11 @@ def _copy_to_local(
                 raise e
             # Small delay before retrying (exponential backoff)
             import time
-            time.sleep(2 ** attempt)
+
+            time.sleep(2**attempt)
 
     return dest
+
 
 unsynced_copy_to_local = unsync(_copy_to_local)
 
