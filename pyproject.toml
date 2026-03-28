@@ -20,7 +20,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "click",
-    "cogent3==2026.1.12a1",
+    "cogent3>=2026.1.12a1",
     "cogent3-h5seqs==0.7.3",
     "duckdb",
     "numba",
