@@ -5,9 +5,9 @@ from collections import defaultdict
 
 import cogent3
 import numpy
-from scinexus.composable import define_app
 from cogent3.core import alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
+from scinexus.composable import define_app
 
 from ensembl_tui import _annotation as eti_ann
 from ensembl_tui import _config as eti_config

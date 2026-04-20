@@ -161,9 +161,7 @@ def local_install_homology(
     # we merge the homology groups
     items = results.items()
     agg_iter = (
-        progress(items, msg="Aggregating homologies")
-        if progress is not None
-        else items
+        progress(items, msg="Aggregating homologies") if progress is not None else items
     )
     for rel_type, records in agg_iter:
         results[rel_type] = homology_ingest.merge_grouped(records)
@@ -171,9 +169,7 @@ def local_install_homology(
     # write the homology groups to in-memory db
     items = results.items()
     write_iter = (
-        progress(items, msg="Installing homologies")
-        if progress is not None
-        else items
+        progress(items, msg="Installing homologies") if progress is not None else items
     )
     db = homology_ingest.make_homology_aggregator_db()
     for rel_type, records in write_iter:
