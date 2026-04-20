@@ -71,7 +71,9 @@ def demo_config(outpath: pathlib.Path, domain: str, force_overwrite: bool) -> No
     if outpath.exists():
         shutil.rmtree(outpath)
     outpath.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(eti_util.ENSEMBLDBRC, outpath, dirs_exist_ok=True)
+    shutil.copytree(
+        eti_util.ENSEMBLDBRC, outpath, dirs_exist_ok=True, copy_function=shutil.copyfile
+    )  # install may be read only
     # we assume all files starting with alphabetical characters are valid
     for fn in pathlib.Path(outpath).glob("*"):
         if not fn.stem.isalpha():
