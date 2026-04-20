@@ -4,7 +4,7 @@ import shutil
 from collections.abc import Generator
 
 import duckdb
-from cogent3.app.composable import LOADER, define_app
+from scinexus.composable import LOADER, define_app
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _util as eti_util

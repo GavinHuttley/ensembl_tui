@@ -15,8 +15,8 @@ from typing import IO
 
 import numba
 import numpy
-from cogent3.app.composable import define_app
-from cogent3.util.parallel import as_completed
+from scinexus.composable import define_app
+from scinexus.parallel import as_completed
 from rich import text as rich_text
 
 if typing.TYPE_CHECKING:

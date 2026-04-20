@@ -5,7 +5,7 @@ import typing
 
 import duckdb
 from cogent3.app import typing as c3_types
-from cogent3.app.composable import LOADER, define_app
+from scinexus.composable import LOADER, define_app
 
 from ensembl_tui import _homology as eti_homology
 from ensembl_tui import _ingest_annotation as eti_annotation

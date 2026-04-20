@@ -28,6 +28,7 @@ dependencies = [
     "polars",
     "pyarrow",
     "rich",
+    "scinexus",
     "scitrack",
     "typing_extensions",
     "trogon",

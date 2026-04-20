@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import cogent3
 import numpy
-from cogent3.app.composable import define_app
+from scinexus.composable import define_app
 from cogent3.core import alignment as c3_align
 from cogent3.core.location import _DEFAULT_GAP_DTYPE, IndelMap
 

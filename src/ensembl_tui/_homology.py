@@ -3,7 +3,7 @@ import typing
 
 import typing_extensions
 from cogent3 import make_table, make_unaligned_seqs
-from cogent3.app.composable import NotCompleted, define_app
+from scinexus.composable import NotCompleted, define_app
 from cogent3.app.typing import (
     SeqsCollectionType,
 )

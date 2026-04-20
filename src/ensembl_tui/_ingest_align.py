@@ -5,7 +5,7 @@ import duckdb
 import numpy
 import rich.progress as rich_progress
 from cogent3 import get_moltype
-from cogent3.app.composable import LOADER, define_app
+from scinexus.composable import LOADER, define_app
 from cogent3.app.typing import IdentifierType
 from cogent3.core.alphabet import convert_alphabet
 from cogent3.core.seq_storage import decompose_gapped_seq_array
