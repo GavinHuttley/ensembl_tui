@@ -132,7 +132,7 @@ def download(
         eti_util.print_colour(text=str(config.species_dbs), colour="yellow")
 
     config.write()
-    scinexus.set_default_progress("rich")
+    scinexus.set_progress_backend("rich")
     pbar = scinexus.get_progress(show_progress=True)
     with eti_util.keep_running():
         eti_download.download_species(
@@ -190,7 +190,7 @@ def install(
 
     config.install_path.mkdir(parents=True, exist_ok=True)
     eti_config.write_installed_cfg(config)
-    scinexus.set_default_progress("rich")
+    scinexus.set_progress_backend("rich")
     pbar = scinexus.get_progress(show_progress=True)
     with eti_util.keep_running():
         local_install_genomes(
@@ -424,7 +424,7 @@ def homologs(
     db = eti_homology.load_homology_db(
         path=config.homologies_path,
     )
-    scinexus.set_default_progress("rich")
+    scinexus.set_progress_backend("rich")
     pbar = scinexus.get_progress(show_progress=True)
 
     related = []
@@ -605,7 +605,7 @@ def alignments(
     )
     output = open_data_store(outdir, mode="w", suffix="fa")
     writer = get_app("write_seqs", format_name="fasta", data_store=output)
-    scinexus.set_default_progress("rich")
+    scinexus.set_progress_backend("rich")
     pbar = scinexus.get_progress(show_progress=True)
     with eti_util.keep_running():
         for alignments in pbar(
