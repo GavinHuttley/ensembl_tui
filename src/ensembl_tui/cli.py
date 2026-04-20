@@ -97,7 +97,7 @@ def download(
     verbose: bool,
 ) -> None:
     """download data from Ensembl's ftp site"""
-    from rich import progress
+    import scinexus
 
     from ensembl_tui import _download as eti_download
 
@@ -130,36 +130,29 @@ def download(
         eti_util.print_colour(text=str(config.species_dbs), colour="yellow")
 
     config.write()
-    with (
-        eti_util.keep_running(),
-        progress.Progress(
-            progress.TextColumn("[progress.description]{task.description}"),
-            progress.BarColumn(),
-            progress.TaskProgressColumn(),
-            progress.TimeRemainingColumn(),
-            progress.TimeElapsedColumn(),
-        ) as prog_bar,
-    ):
+    scinexus.set_default_progress("rich")
+    pbar = scinexus.get_progress(show_progress=True)
+    with eti_util.keep_running():
         eti_download.download_species(
             site_map=site_map,
             config=config,
             debug=debug,
             verbose=verbose,
-            progress=prog_bar,
+            progress=pbar,
         )
         eti_download.download_homology(
             site_map=site_map,
             config=config,
             debug=debug,
             verbose=verbose,
-            progress=prog_bar,
+            progress=pbar,
         )
         eti_download.download_aligns(
             site_map=site_map,
             config=config,
             debug=debug,
             verbose=verbose,
-            progress=prog_bar,
+            progress=pbar,
         )
 
     eti_util.print_colour(text=f"Downloaded to {config.staging_path}", colour="green")
@@ -177,7 +170,7 @@ def install(
     verbose: bool,
 ) -> None:
     """create the local representations of the data"""
-    from rich import progress
+    import scinexus
 
     from ensembl_tui._install import (
         local_install_alignments,
@@ -195,36 +188,29 @@ def install(
 
     config.install_path.mkdir(parents=True, exist_ok=True)
     eti_config.write_installed_cfg(config)
-    with (
-        eti_util.keep_running(),
-        progress.Progress(
-            progress.TextColumn("[progress.description]{task.description}"),
-            progress.BarColumn(),
-            progress.TaskProgressColumn(),
-            progress.TimeRemainingColumn(),
-            progress.TimeElapsedColumn(),
-        ) as progress_bar,
-    ):
+    scinexus.set_default_progress("rich")
+    pbar = scinexus.get_progress(show_progress=True)
+    with eti_util.keep_running():
         local_install_genomes(
             config,
             force_overwrite=force_overwrite,
             max_workers=num_procs,
             verbose=verbose,
-            progress=progress_bar,
+            progress=pbar,
         )
         local_install_homology(
             config,
             force_overwrite=force_overwrite,
             max_workers=num_procs,
             verbose=verbose,
-            progress=progress_bar,
+            progress=pbar,
         )
         local_install_alignments(
             config,
             force_overwrite=force_overwrite,
             max_workers=num_procs,
             verbose=verbose,
-            progress=progress_bar,
+            progress=pbar,
         )
 
     eti_util.print_colour(
@@ -384,7 +370,7 @@ def homologs(
     verbose: bool,
 ) -> None:
     """exports CDS sequence data in fasta format for homology type relationship"""
-    from rich import progress
+    import scinexus
 
     LOGGER = CachingLogger()
     LOGGER.log_args()
@@ -436,61 +422,56 @@ def homologs(
     db = eti_homology.load_homology_db(
         path=config.homologies_path,
     )
+    scinexus.set_default_progress("rich")
+    pbar = scinexus.get_progress(show_progress=True)
+
     related = []
-    with progress.Progress(
-        progress.TextColumn("[progress.description]{task.description}"),
-        progress.BarColumn(),
-        progress.TaskProgressColumn(),
-        progress.TimeRemainingColumn(),
-        progress.TimeElapsedColumn(),
-    ) as progress_bar:
-        searching = progress_bar.add_task(
-            total=limit or len(ref_genes),
-            description="Homolog search",
-        )
+    target = limit or len(ref_genes)
+    with pbar.context(msg="Homolog search") as ctx:
         for gid in ref_genes:
             if rel := db.get_related_to(gene_id=gid, relationship_type=homology_type):
                 related.append(rel)
-                progress_bar.update(searching, advance=1)
+                ctx.update(progress=len(related) / target)
 
             if limit and len(related) >= limit:
                 break
 
-        progress_bar.update(searching, advance=len(ref_genes))
+    if verbose:
+        eti_util.print_colour(
+            text=f"Found {len(related)} homolog groups",
+            colour="yellow",
+        )
 
-        if verbose:
-            eti_util.print_colour(
-                text=f"Found {len(related)} homolog groups",
-                colour="yellow",
-            )
+    get_seqs = eti_homology.collect_cds(config=config)
+    out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
 
-        get_seqs = eti_homology.collect_cds(config=config)
-        out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
-
-        reading = progress_bar.add_task(total=len(related), description="Extracting 🧬")
-        for seqs in get_seqs.as_completed(
+    child = pbar.child()
+    for seqs in child(
+        get_seqs.as_completed(
             related,
             parallel=num_procs > 1,
             show_progress=False,
             par_kw={"max_workers": num_procs},
-        ):
-            progress_bar.update(reading, advance=1)
-            if not seqs:
-                if verbose:
-                    eti_util.print_colour(text=f"{seqs=}", colour="yellow")
+        ),
+        total=len(related),
+        msg="Extracting 🧬",
+    ):
+        if not seqs:
+            if verbose:
+                eti_util.print_colour(text=f"{seqs=}", colour="yellow")
 
-                out_dstore.write_not_completed(
-                    data=seqs.to_json(),
-                    unique_id=seqs.source,
-                )
-                continue
-            if not seqs.seqs:
-                if verbose:
-                    eti_util.print_colour(text=f"{seqs.seqs=}", colour="yellow")
-                continue
+            out_dstore.write_not_completed(
+                data=seqs.to_json(),
+                unique_id=seqs.source,
+            )
+            continue
+        if not seqs.seqs:
+            if verbose:
+                eti_util.print_colour(text=f"{seqs.seqs=}", colour="yellow")
+            continue
 
-            txt = seqs.to_fasta()
-            out_dstore.write(data=txt, unique_id=seqs.source)
+        txt = seqs.to_fasta()
+        out_dstore.write(data=txt, unique_id=seqs.source)
 
     log_file_path = pathlib.Path(LOGGER.log_file_path)
     LOGGER.shutdown()
@@ -528,7 +509,7 @@ def alignments(
     verbose: bool,
 ) -> None:
     """export multiple alignments in fasta format for named genes"""
-    from rich import progress
+    import scinexus
 
     from ensembl_tui import _align as eti_align
 
@@ -622,22 +603,14 @@ def alignments(
     )
     output = open_data_store(outdir, mode="w", suffix="fa")
     writer = get_app("write_seqs", format_name="fasta", data_store=output)
-    with (
-        eti_util.keep_running(),
-        progress.Progress(
-            progress.TextColumn("[progress.description]{task.description}"),
-            progress.BarColumn(),
-            progress.TaskProgressColumn(),
-            progress.TimeRemainingColumn(),
-            progress.TimeElapsedColumn(),
-        ) as progress_bar,
-    ):
-        task = progress_bar.add_task(
+    scinexus.set_default_progress("rich")
+    pbar = scinexus.get_progress(show_progress=True)
+    with eti_util.keep_running():
+        for alignments in pbar(
+            maker.as_completed(locations, show_progress=False),
             total=limit or len(locations),
-            description="Getting alignment data",
-        )
-        for alignments in maker.as_completed(locations, show_progress=False):
-            progress_bar.update(task, advance=1)
+            msg="Getting alignment data",
+        ):
             if not alignments:
                 if verbose:
                     eti_util.print_colour(str(alignments), colour="red")

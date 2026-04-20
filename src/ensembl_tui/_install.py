@@ -1,6 +1,6 @@
 import shutil
 
-from rich.progress import Progress
+from scinexus.progress import Progress
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome
@@ -41,28 +41,19 @@ def local_install_genomes(
         series=db_names,
         max_workers=max_workers,
     )
-    if progress is not None:
-        msg = "Installing features 📚"
-        write_features = progress.add_task(
-            total=len(db_names),
-            description=msg,
-            advance=0,
-        )
-
-    for result in tasks:
+    task_iter = (
+        progress(tasks, total=len(db_names), msg="Installing features 📚")
+        if progress is not None
+        else tasks
+    )
+    for result in task_iter:
         if not result:
             msg = f"{result=}"
             raise RuntimeError(msg)
 
-        if progress is not None:
-            progress.update(write_features, description=msg, advance=1)
-
     if verbose:
         eti_util.print_colour("\nFinished installing features", "yellow")
 
-    if progress is not None:
-        msg = "Installing  🧬🧬"
-        write_seqs = progress.add_task(total=len(db_names), description=msg, advance=0)
     # we parallelise across databases
     writer = eti_genome.fasta_to_hdf5(config=config)
     tasks = eti_util.get_iterable_tasks(
@@ -70,13 +61,15 @@ def local_install_genomes(
         series=db_names,
         max_workers=max_workers,
     )
-    for result in tasks:
+    task_iter = (
+        progress(tasks, total=len(db_names), msg="Installing 🧬🧬")
+        if progress is not None
+        else tasks
+    )
+    for result in task_iter:
         if not result:
             msg = f"{result=}"
             raise RuntimeError(msg)
-
-        if progress is not None:
-            progress.update(write_seqs, description=msg, advance=1)
 
     if verbose:
         eti_util.print_colour("\nFinished installing sequences", "yellow")
@@ -147,58 +140,44 @@ def local_install_homology(
     loader = homology_ingest.load_homologies(
         allowed_species=set(config.species_dbs),
     )
-    if progress is not None:
-        msg = "Loading homologies"
-        load_homs = progress.add_task(
-            total=len(dirnames),
-            description=msg,
-            advance=0,
-            transient=True,
-        )
 
     tasks = eti_util.get_iterable_tasks(
         func=loader,
         series=dirnames,
         max_workers=max_workers,
     )
+    task_iter = (
+        progress(tasks, total=len(dirnames), msg="Loading homologies")
+        if progress is not None
+        else tasks
+    )
     results = {}
-    for result in tasks:
+    for result in task_iter:
         for rel_type, records in result.items():
             if rel_type not in results:
                 results[rel_type] = []
             results[rel_type].extend(records)
 
-        if progress is not None:
-            progress.update(load_homs, description=msg, advance=1)
-
-    if progress is not None:
-        progress.remove_task(load_homs)
-        msg = "Aggregating homologies"
-        agg = progress.add_task(
-            total=len(results),
-            description=msg,
-            advance=0,
-            transient=True,
-        )
-
     # we merge the homology groups
-    for rel_type, records in results.items():
+    items = results.items()
+    agg_iter = (
+        progress(items, msg="Aggregating homologies")
+        if progress is not None
+        else items
+    )
+    for rel_type, records in agg_iter:
         results[rel_type] = homology_ingest.merge_grouped(records)
 
-        if progress is not None:
-            progress.update(agg, description=msg, advance=1)
-
     # write the homology groups to in-memory db
-    if progress is not None:
-        progress.remove_task(agg)
-        msg = "Installing homologies"
-        write = progress.add_task(total=len(results), description=msg, advance=0)
-
+    items = results.items()
+    write_iter = (
+        progress(items, msg="Installing homologies")
+        if progress is not None
+        else items
+    )
     db = homology_ingest.make_homology_aggregator_db()
-    for rel_type, records in results.items():
+    for rel_type, records in write_iter:
         db.add_records(records=records, relationship_type=rel_type)
-        if progress is not None:
-            progress.update(write, description=msg, advance=1)
 
     homology_ingest.write_homology_views(agg=db, outdir=config.install_homologies)
     if verbose:

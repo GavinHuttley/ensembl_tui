@@ -3,7 +3,7 @@ import typing
 from collections.abc import Callable
 from ftplib import FTP, error_perm
 
-from rich.progress import Progress, track
+from scinexus.progress import Progress
 from unsync import unsync
 
 from ensembl_tui import _util as eti_util
@@ -75,8 +75,11 @@ def _get_saved_paths_unsync(description, host, local_dest, remote_paths):
 
 def _get_saved_paths(description, host, local_dest, remote_paths):  # pragma: no cover
     # keep this, it's useful for debugging
+    import scinexus
+
+    pbar = scinexus.get_progress(show_progress=True)
     saved_paths = []
-    for path in track(remote_paths, description=description, transient=True):
+    for path in pbar(remote_paths, msg=description):
         saved = _copy_to_local(host, path, local_dest / pathlib.Path(path).name)
         saved_paths.append(saved)
     return saved_paths
@@ -93,38 +96,28 @@ def download_data(
 ) -> bool:
     saved_paths = _get_saved_paths_unsync(description, host, local_dest, remote_paths)
 
-    if progress is not None:
-        download = progress.add_task(
-            total=len(remote_paths),
-            description=description,
-            transient=True,
-        )
+    saved_iter = (
+        progress(saved_paths, total=len(remote_paths), msg=description)
+        if progress is not None
+        else saved_paths
+    )
     # load the signature data and sig calc keyed by parent dir
     all_checksums = {}
     all_check_funcs = {}
-    for path in saved_paths:
+    all_saved = []
+    for path in saved_iter:
+        all_saved.append(path)
         if eti_util.is_signature(path):
             all_checksums[str(path.parent)] = eti_util.get_signature_data(path)
             all_check_funcs[str(path.parent)] = eti_util.get_sig_calc_func(path.name)
 
-        if progress is not None:
-            progress.update(download, description=description, advance=1)
-
-    if progress is not None:
-        progress.remove_task(download)
-
     if do_checksum:
-        msg = "Validating checksums"
-        if progress:
-            checking = progress.add_task(
-                total=len(remote_paths),
-                description=msg,
-                transient=True,
-            )
-        for path in saved_paths:
-            if progress is not None:
-                progress.update(checking, description=msg, advance=1)
-
+        check_iter = (
+            progress(all_saved, msg="Validating checksums")
+            if progress is not None
+            else all_saved
+        )
+        for path in check_iter:
             if eti_util.dont_checksum(path):
                 continue
             key = str(path.parent)
@@ -132,8 +125,5 @@ def download_data(
             calc_sig = all_check_funcs[key]
             signature = calc_sig(path.read_bytes(), path.stat().st_size)
             assert signature == expect_sig, path
-
-        if progress is not None:
-            progress.remove_task(checking)
 
     return True

@@ -5,7 +5,7 @@ import shutil
 import typing
 
 import cogent3
-from rich.progress import Progress
+from scinexus.progress import Progress
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _ftp_download as eti_ftp
@@ -86,18 +86,17 @@ def make_core_db_templates(
     Communicates with the Ensembl MySQL server to infer the table schema's.
     """
     table_names = eti_db_attr.get_all_tables()
-    if progress is not None:
-        msg = "Making db templates"
-        make_templates = progress.add_task(
-            total=len(table_names),
-            description=msg,
-        )
 
     template_dest = config.staging_template_path
     # get one species db name which wqe use to infer the db schema
     db_name = next(iter(sp_db_map.values())).split("/")[-1]
     template_dest.mkdir(parents=True, exist_ok=True)
-    for table_name in table_names:
+    table_iter = (
+        progress(table_names, msg="Making db templates")
+        if progress is not None
+        else table_names
+    )
+    for table_name in table_iter:
         eti_db_ingest.make_table_template(
             dest_dir=template_dest,
             db_name=db_name,
@@ -105,8 +104,6 @@ def make_core_db_templates(
             db_host=site_map.db_host,
             db_port=site_map.db_port,
         )
-        if progress is not None:
-            progress.update(make_templates, description=msg, advance=1)
 
 
 def download_species(
@@ -144,14 +141,13 @@ def download_species(
         progress=progress,
     )
 
-    msg = "Downloading genomes"
-    if progress is not None:
-        species_download = progress.add_task(
-            total=len(config.species_dbs),
-            description=msg,
-        )
-
-    for genome_name in config.species_dbs:
+    inner = progress.child() if progress is not None else None
+    species_iter = (
+        progress(config.species_dbs, msg="Downloading genomes")
+        if progress is not None
+        else config.species_dbs
+    )
+    for genome_name in species_iter:
         abbrev = config.species_map.get_abbreviation(genome_name)
         db_prefix = config.species_map.get_ensembl_db_prefix(genome_name)
         if genome_name != db_prefix:
@@ -191,7 +187,7 @@ def download_species(
             remote_paths=remote_paths,
             description=f"{abbrev} {icon}",
             do_checksum=True,
-            progress=progress,
+            progress=inner,
         )
 
         # getting the annotations from mysql tables
@@ -210,11 +206,8 @@ def download_species(
             remote_paths=remote_paths,
             description=f"{abbrev} {icon}",
             do_checksum=True,
-            progress=progress,
+            progress=inner,
         )
-
-        if progress is not None:
-            progress.update(species_download, description=msg, advance=1)
 
 
 class valid_compara_align:  # noqa: N801
@@ -241,15 +234,14 @@ def download_aligns(
 
     remote_template = f"{site_map.remote_path}/release-{config.release}/{site_map.alignments_path}/{{}}"
 
-    msg = "Downloading alignments"
-    if progress is not None:
-        align_download = progress.add_task(
-            total=len(config.align_names),
-            description=msg,
-        )
-
+    inner = progress.child() if progress is not None else None
+    align_iter = (
+        progress(config.align_names, msg="Downloading alignments")
+        if progress is not None
+        else config.align_names
+    )
     valid_compara = valid_compara_align()
-    for align_name in config.align_names:
+    for align_name in align_iter:
         remote_path = remote_template.format(align_name)
         remote_paths = list(eti_ftp.listdir(site_map.site, remote_path, valid_compara))
         if verbose:
@@ -270,11 +262,8 @@ def download_aligns(
             remote_paths=remote_paths,
             description=f"{align_name[:10]}...",
             do_checksum=True,
-            progress=progress,
+            progress=inner,
         )
-
-        if progress is not None:
-            progress.update(align_download, description=msg, advance=1)
 
     return
 
@@ -306,14 +295,13 @@ def download_homology(
 
     local = config.staging_homologies
 
-    msg = "Downloading homology"
-    if progress is not None:
-        species_download = progress.add_task(
-            total=len(config.species_dbs),
-            description=msg,
-        )
-
-    for genome_name in config.species_dbs:
+    inner = progress.child() if progress is not None else None
+    species_iter = (
+        progress(config.species_dbs, msg="Downloading homology")
+        if progress is not None
+        else config.species_dbs
+    )
+    for genome_name in species_iter:
         abbrev = config.species_map.get_abbreviation(genome_name)
         db_name = config.species_map.get_ensembl_db_prefix(genome_name)
         if db_name == genome_name:
@@ -342,11 +330,8 @@ def download_homology(
             remote_paths=remote_paths,
             description=f"{abbrev}",
             do_checksum=False,  # no checksums for species homology files
-            progress=progress,
+            progress=inner,
         )
-
-        if progress is not None:
-            progress.update(species_download, description=msg, advance=1)
 
     return
 
