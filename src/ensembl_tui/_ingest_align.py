@@ -4,11 +4,11 @@ import typing
 import duckdb
 import numpy
 from cogent3 import get_moltype
-from scinexus.composable import LOADER, define_app
-from scinexus.progress import Progress
 from cogent3.app.typing import IdentifierType
 from cogent3.core.alphabet import convert_alphabet
 from cogent3.core.seq_storage import decompose_gapped_seq_array
+from scinexus.composable import LOADER, define_app
+from scinexus.progress import Progress
 
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config

@@ -3,11 +3,11 @@ import typing
 
 import typing_extensions
 from cogent3 import make_table, make_unaligned_seqs
-from scinexus.composable import NotCompleted, define_app
 from cogent3.app.typing import (
     SeqsCollectionType,
 )
 from cogent3.util.io import PathType
+from scinexus.composable import NotCompleted, define_app
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _genome as eti_genome

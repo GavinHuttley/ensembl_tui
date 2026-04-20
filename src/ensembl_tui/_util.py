@@ -15,9 +15,9 @@ from typing import IO
 
 import numba
 import numpy
+from rich import text as rich_text
 from scinexus.composable import define_app
 from scinexus.parallel import as_completed
-from rich import text as rich_text
 
 if typing.TYPE_CHECKING:
     from cogent3.core.table import Table
