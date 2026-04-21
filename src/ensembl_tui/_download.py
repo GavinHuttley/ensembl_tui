@@ -91,9 +91,10 @@ def make_core_db_templates(
     # get one species db name which wqe use to infer the db schema
     db_name = next(iter(sp_db_map.values())).split("/")[-1]
     template_dest.mkdir(parents=True, exist_ok=True)
+    pbar = progress.child(leave=True) if progress is not None else progress
     table_iter = (
-        progress(table_names, msg="Making db templates")
-        if progress is not None
+        pbar(list(table_names), msg="Making db templates")
+        if pbar is not None
         else table_names
     )
     for table_name in table_iter:
