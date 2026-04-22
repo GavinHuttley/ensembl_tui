@@ -157,7 +157,7 @@ def download(
             progress=pbar,
         )
 
-    eti_util.print_colour(text=f"Downloaded to {config.staging_path}", colour="green")
+    eti_util.print_colour(text=f"\nDownloaded to {config.staging_path}", colour="green")
 
 
 @main.command(**_click_command_opts)
@@ -216,7 +216,7 @@ def install(
         )
 
     eti_util.print_colour(
-        text=f"Contents installed to {str(config.install_path)!r}",
+        text=f"\nContents installed to {str(config.install_path)!r}",
         colour="green",
     )
 

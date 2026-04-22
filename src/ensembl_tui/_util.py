@@ -123,7 +123,7 @@ def load_ensembl_checksum(path: pathlib.Path) -> dict:
         if not line:
             continue
         s, b, p, *_ = line.split()
-        result[p] = int(s), int(b)
+        result[pathlib.Path(p).name] = int(s), int(b)
     result.pop("README", None)
     return result
 

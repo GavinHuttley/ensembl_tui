@@ -27,7 +27,7 @@ _valid_seq = re.compile(r"dna[.](nonchromosomal|toplevel)\.fa\.gz")
 
 def valid_seq_file(name: str) -> bool:
     """unmasked genomic DNA sequences"""
-    return _valid_seq.search(name) is not None
+    return _valid_seq.search(name) is not None or eti_util.is_signature(name)
 
 
 def _remove_tmpdirs(path: eti_util.PathType) -> None:
