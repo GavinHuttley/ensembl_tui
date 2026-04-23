@@ -3,12 +3,12 @@ import typing
 
 import duckdb
 import numpy
-import rich.progress as rich_progress
 from cogent3 import get_moltype
-from cogent3.app.composable import LOADER, define_app
 from cogent3.app.typing import IdentifierType
 from cogent3.core.alphabet import convert_alphabet
 from cogent3.core.seq_storage import decompose_gapped_seq_array
+from scinexus.composable import LOADER, define_app
+from scinexus.progress import Progress
 
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _config as eti_config
@@ -64,7 +64,7 @@ def make_alignment_aggregator_db() -> duckdb.DuckDBPyConnection:
 def add_records(
     conn: duckdb.DuckDBPyConnection,
     records: typing.Sequence[eti_align.AlignRecord],
-    progress: rich_progress.Progress | None = None,
+    progress: Progress | None = None,
 ) -> None:
     if not records:
         return
@@ -79,23 +79,20 @@ def add_records(
     sql = (
         f"INSERT INTO align_blocks ({', '.join(col_order)}) VALUES ({val_placeholder})"
     )
-    if progress is not None:
-        msg = "Writings aligns ✍️"
-        writing = progress.add_task(total=len(records), description=msg, advance=0)
-
-    for record in records:
+    record_iter = (
+        progress(records, msg="Writing aligns ✍️") if progress is not None else records
+    )
+    for record in record_iter:
         if record.block_id in used:
             continue
 
         conn.sql(sql, params=record.to_record(col_order))
-        if progress is not None:
-            progress.update(writing, description=msg, advance=1)
 
 
 def install_alignment(
     config: eti_config.Config,
     align_name: str,
-    progress: rich_progress.Progress | None = None,
+    progress: Progress | None = None,
     max_workers: int | None = None,
 ) -> pathlib.Path:
     src_dir = config.staging_aligns / align_name
@@ -111,21 +108,21 @@ def install_alignment(
         series=paths,
         max_workers=max_workers,
     )
-    if progress is not None:
-        msg = "Reading aligns 📖"
-        reading = progress.add_task(total=len(paths), description=msg, advance=0)
-
-    for result in series:
+    pbar = progress.child(leave=False) if progress is not None else progress
+    series_iter = (
+        pbar(series, total=len(paths), msg="Reading aligns 📖")
+        if pbar is not None
+        else series
+    )
+    for result in series_iter:
         if not result:
             msg = f"{result=}"
             raise RuntimeError(msg)
 
         records.extend(result)
 
-        if progress is not None:
-            progress.update(reading, description=msg, advance=1)
-
-    add_records(conn=agg, records=records, progress=progress)
+    child = progress.child(leave=True) if progress is not None else None
+    add_records(conn=agg, records=records, progress=child)
 
     # write the parquet file, returns path to that file
     return eti_db_ingest.export_parquet(

@@ -4,7 +4,7 @@ import shutil
 from collections.abc import Generator
 
 import duckdb
-from cogent3.app.composable import LOADER, define_app
+from scinexus.composable import LOADER, define_app
 
 from ensembl_tui import _config as eti_config
 from ensembl_tui import _util as eti_util
@@ -34,7 +34,7 @@ def show_some_data(
 ) -> None:  # pragma: no cover
     # this is a useful function for debugging
     sql = f"SELECT * FROM {table_name} LIMIT {limit}"
-    print(table_name, con.sql(sql), sep="\n")  # noqa: T201
+    print(f"{table_name!r}", con.sql(sql), sep="\n")  # noqa: T201
     sql = f"SELECT COUNT(*) as num_rows FROM {table_name}"
     print(con.sql(sql))  # noqa: T201
 

@@ -39,10 +39,10 @@ lcov*.info
 small-113/*
 .mypy_cache/*
 # data dynamically downloaded
-docs/data/*-114/*
-tests/data/*-114/*
-tests/data/prep_tests_data/*-114*
+docs/data/*-11*/*
+tests/data/*-11*/*
+tests/data/prep_tests_data/*-11*
 docs/data/*
-tests/data/*114*
+tests/data/*11*
 site/*
 ensembl_tui_data.zip

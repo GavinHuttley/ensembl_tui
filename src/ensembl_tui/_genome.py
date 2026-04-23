@@ -7,11 +7,11 @@ from collections.abc import Callable
 import cogent3
 import cogent3_h5seqs as c3h5
 import numpy
-from cogent3.app.composable import define_app
 from cogent3.core import alphabet as c3alpha
 from cogent3.core.sequence import Sequence
 from cogent3.core.table import Table
 from cogent3.parse.fasta import iter_fasta_records
+from scinexus.composable import define_app
 
 import ensembl_tui._annotation as eti_annots
 from ensembl_tui import _config as eti_config

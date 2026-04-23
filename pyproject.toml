@@ -27,7 +27,7 @@ dependencies = [
     "numpy",
     "polars",
     "pyarrow",
-    "rich",
+    "scinexus[rich]",
     "scitrack",
     "typing_extensions",
     "trogon",

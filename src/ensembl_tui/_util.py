@@ -15,9 +15,9 @@ from typing import IO
 
 import numba
 import numpy
-from cogent3.app.composable import define_app
-from cogent3.util.parallel import as_completed
 from rich import text as rich_text
+from scinexus.composable import define_app
+from scinexus.parallel import as_completed
 
 if typing.TYPE_CHECKING:
     from cogent3.core.table import Table
@@ -123,7 +123,7 @@ def load_ensembl_checksum(path: pathlib.Path) -> dict:
         if not line:
             continue
         s, b, p, *_ = line.split()
-        result[p] = int(s), int(b)
+        result[pathlib.Path(p).name] = int(s), int(b)
     result.pop("README", None)
     return result
 
