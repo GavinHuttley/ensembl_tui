@@ -34,7 +34,7 @@ def show_some_data(
 ) -> None:  # pragma: no cover
     # this is a useful function for debugging
     sql = f"SELECT * FROM {table_name} LIMIT {limit}"
-    print(table_name, con.sql(sql), sep="\n")  # noqa: T201
+    print(f"{table_name!r}", con.sql(sql), sep="\n")  # noqa: T201
     sql = f"SELECT COUNT(*) as num_rows FROM {table_name}"
     print(con.sql(sql))  # noqa: T201
 
