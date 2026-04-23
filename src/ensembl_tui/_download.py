@@ -235,7 +235,7 @@ def download_aligns(
 
     remote_template = f"{site_map.remote_path}/release-{config.release}/{site_map.alignments_path}/{{}}"
 
-    inner = progress.child() if progress is not None else None
+    inner = progress.child(leave=True) if progress is not None else None
     align_iter = (
         progress(config.align_names, msg="Downloading alignments")
         if progress is not None
@@ -296,7 +296,7 @@ def download_homology(
 
     local = config.staging_homologies
 
-    inner = progress.child() if progress is not None else None
+    inner = progress.child(leave=True) if progress is not None else None
     species_iter = (
         progress(config.species_dbs, msg="Downloading homology")
         if progress is not None

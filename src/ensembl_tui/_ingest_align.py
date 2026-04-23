@@ -108,9 +108,10 @@ def install_alignment(
         series=paths,
         max_workers=max_workers,
     )
+    pbar = progress.child(leave=False) if progress is not None else progress
     series_iter = (
-        progress(series, total=len(paths), msg="Reading aligns 📖")
-        if progress is not None
+        pbar(series, total=len(paths), msg="Reading aligns 📖")
+        if pbar is not None
         else series
     )
     for result in series_iter:
@@ -120,7 +121,7 @@ def install_alignment(
 
         records.extend(result)
 
-    child = progress.child() if progress is not None else None
+    child = progress.child(leave=True) if progress is not None else None
     add_records(conn=agg, records=records, progress=child)
 
     # write the parquet file, returns path to that file

@@ -133,30 +133,31 @@ def download(
 
     config.write()
     scinexus.set_progress_backend("rich")
-    pbar = scinexus.get_progress(show_progress=True)
+    prog = scinexus.get_progress(show_progress=True)
     with eti_util.keep_running():
         eti_download.download_species(
             site_map=site_map,
             config=config,
             debug=debug,
             verbose=verbose,
-            progress=pbar,
+            progress=prog,
         )
         eti_download.download_homology(
             site_map=site_map,
             config=config,
             debug=debug,
             verbose=verbose,
-            progress=pbar,
+            progress=prog,
         )
         eti_download.download_aligns(
             site_map=site_map,
             config=config,
             debug=debug,
             verbose=verbose,
-            progress=pbar,
+            progress=prog,
         )
 
+    prog.close()
     eti_util.print_colour(text=f"\nDownloaded to {config.staging_path}", colour="green")
 
 
@@ -191,8 +192,10 @@ def install(
     config.install_path.mkdir(parents=True, exist_ok=True)
     eti_config.write_installed_cfg(config)
     scinexus.set_progress_backend("rich")
-    pbar = scinexus.get_progress(show_progress=True)
-    with eti_util.keep_running():
+    with (
+        eti_util.keep_running(),
+        scinexus.get_progress(show_progress=True, leave=True) as pbar,
+    ):
         local_install_genomes(
             config,
             force_overwrite=force_overwrite,
@@ -425,11 +428,12 @@ def homologs(
         path=config.homologies_path,
     )
     scinexus.set_progress_backend("rich")
-    pbar = scinexus.get_progress(show_progress=True)
+    prog = scinexus.get_progress(show_progress=True)
 
     related = []
     target = limit or len(ref_genes)
-    with pbar.context(msg="Homolog search") as ctx:
+    progbar = prog.child(leave=True)
+    with progbar.context(msg="Homolog search 🔍") as ctx:
         for gid in ref_genes:
             if rel := db.get_related_to(gene_id=gid, relationship_type=homology_type):
                 related.append(rel)
@@ -447,8 +451,8 @@ def homologs(
     get_seqs = eti_homology.collect_cds(config=config)
     out_dstore = open_data_store(base_path=outdir, suffix="fa", mode="w")
 
-    child = pbar.child()
-    for seqs in child(
+    progbar = prog.child(leave=True)
+    for seqs in progbar(
         get_seqs.as_completed(
             related,
             parallel=num_procs > 1,
@@ -475,10 +479,16 @@ def homologs(
         txt = seqs.to_fasta()
         out_dstore.write(data=txt, unique_id=seqs.source)
 
+    prog.close()
     log_file_path = pathlib.Path(LOGGER.log_file_path)
     LOGGER.shutdown()
     out_dstore.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
     log_file_path.unlink()
+
+    eti_util.print_colour(
+        text=f"\n\nHomologs written to {str(outdir)!r}",
+        colour="green",
+    )
 
 
 @main.command(**_click_command_opts)
@@ -559,7 +569,6 @@ def alignments(
         sp: eti_genome.load_genome(config=config, species=sp)
         for sp in align_db.get_species_names()
     }
-
     if ref_genes and ref_coords:
         eti_util.print_colour(
             text="ERROR: cannot specify both ref_genes and ref_coords",
@@ -606,9 +615,10 @@ def alignments(
     output = open_data_store(outdir, mode="w", suffix="fa")
     writer = get_app("write_seqs", format_name="fasta", data_store=output)
     scinexus.set_progress_backend("rich")
-    pbar = scinexus.get_progress(show_progress=True)
+    prog = scinexus.get_progress(show_progress=True)
+    progbar = prog.child(leave=True)
     with eti_util.keep_running():
-        for alignments in pbar(
+        for alignments in progbar(
             maker.as_completed(locations, show_progress=False),
             total=limit or len(locations),
             msg="Getting alignment data",
@@ -633,12 +643,16 @@ def alignments(
                 identifier = f"{input_source}-{i}"
                 writer(aln, identifier=identifier)
 
+    prog.close()
     log_file_path = pathlib.Path(logger.log_file_path)
     logger.shutdown()
     output.write_log(unique_id=log_file_path.name, data=log_file_path.read_text())
     log_file_path.unlink(missing_ok=True)
 
-    eti_util.print_colour(text="Done!", colour="green")
+    eti_util.print_colour(
+        text=f"\nAlignments written to {str(outdir)!r}",
+        colour="green",
+    )
 
 
 if __name__ == "__main__":

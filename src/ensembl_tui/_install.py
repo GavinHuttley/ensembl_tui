@@ -41,9 +41,10 @@ def local_install_genomes(
         series=db_names,
         max_workers=max_workers,
     )
+    pbar = progress.child(leave=True) if progress is not None else progress
     task_iter = (
-        progress(tasks, total=len(db_names), msg="Installing features 📚")
-        if progress is not None
+        pbar(tasks, total=len(db_names), msg="Installing features 📚")
+        if pbar is not None
         else tasks
     )
     for result in task_iter:
@@ -61,9 +62,10 @@ def local_install_genomes(
         series=db_names,
         max_workers=max_workers,
     )
+    pbar = progress.child(leave=True) if progress is not None else progress
     task_iter = (
-        progress(tasks, total=len(db_names), msg="Installing 🧬🧬")
-        if progress is not None
+        pbar(tasks, total=len(db_names), msg="Installing 🧬🧬")
+        if pbar is not None
         else tasks
     )
     for result in task_iter:
@@ -146,9 +148,10 @@ def local_install_homology(
         series=dirnames,
         max_workers=max_workers,
     )
+    pbar = progress.child(leave=False) if progress is not None else progress
     task_iter = (
-        progress(tasks, total=len(dirnames), msg="Loading homologies")
-        if progress is not None
+        pbar(tasks, total=len(dirnames), msg="Loading homologies")
+        if pbar is not None
         else tasks
     )
     results = {}
@@ -160,17 +163,15 @@ def local_install_homology(
 
     # we merge the homology groups
     items = results.items()
-    agg_iter = (
-        progress(items, msg="Aggregating homologies") if progress is not None else items
-    )
+    pbar = progress.child(leave=False) if progress is not None else progress
+    agg_iter = pbar(items, msg="Aggregating homologies") if pbar is not None else items
     for rel_type, records in agg_iter:
         results[rel_type] = homology_ingest.merge_grouped(records)
 
     # write the homology groups to in-memory db
     items = results.items()
-    write_iter = (
-        progress(items, msg="Installing homologies") if progress is not None else items
-    )
+    pbar = progress.child(leave=True) if progress is not None else progress
+    write_iter = pbar(items, msg="Installing homologies") if pbar is not None else items
     db = homology_ingest.make_homology_aggregator_db()
     for rel_type, records in write_iter:
         db.add_records(records=records, relationship_type=rel_type)
