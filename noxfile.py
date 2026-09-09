@@ -1,19 +1,15 @@
-import os
-import sys
-
 import nox
 
-_py_versions = range(10, 15)
-
-# on python >= 3.12 this will improve speed of test coverage a lot
-if sys.version_info >= (3, 12):
-    os.environ["COVERAGE_CORE"] = "sysmon"
+_py_versions = range(11, 15)
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_backend="uv")
 def test(session):
-    session.install("-e.[test]")
-    session.run("pip", "list")
+    # on python >= 3.12 this will improve speed of test coverage a lot. Keyed
+    # off the session interpreter, not the one running nox.
+    if tuple(int(p) for p in session.python.split(".")) >= (3, 12):
+        session.env["COVERAGE_CORE"] = "sysmon"
+    session.install("-e", ".", "--group", "test")
     session.chdir("tests")
     session.run(
         "pytest",

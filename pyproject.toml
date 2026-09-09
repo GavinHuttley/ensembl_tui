@@ -1,9 +1,11 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["uv_build>=0.12.11,<0.13.0"]
+build-backend = "uv_build"
 
 [project]
 name = "ensembl_tui"
+version = "0.7.7"
+description = "Ensembl terminal user interface tools"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" },
     { name = "Arne Becker", email = "arne@ebi.ac.uk" },
@@ -47,7 +49,6 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-dynamic = ["version", "description"]
 
 [project.urls]
 Documentation = "https://ensembl-tui.readthedocs.io/"
@@ -57,7 +58,7 @@ Documentation = "https://ensembl-tui.readthedocs.io/"
 [project.scripts]
 eti = "ensembl_tui.cli:main"
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
     "pytest",
     "pytest-cov",
@@ -77,16 +78,12 @@ doc = [
 ]
 dev = [
     "cogapp",
-    "flit",
     "numpydoc",
     "psutil",
     "scriv",
-    "ensembl_tui[doc]",
-    "ensembl_tui[test]",
+    { include-group = "doc" },
+    { include-group = "test" },
 ]
-
-[tool.flit.sdist]
-include = ["src/*", "tests/*", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 markers = [
@@ -108,10 +105,34 @@ categories = [
     "Discontinued",
 ]
 output_file = "changelog.md"
-version = "literal: src/ensembl_tui/__init__.py:__version__"
+version = "literal: pyproject.toml: project.version"
 skip_fragments = "README.*"
 new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
 
 [tool.uv]
 reinstall-package = ["cogent3"]
+
+[tool.uv.build-backend]
+# flit only ever shipped VCS-tracked files, but uv_build does not consult the
+# VCS. tests/data accumulates tens of GB of fixture data downloaded during test
+# runs, and a glob that matches one of those directories pulls in its whole
+# subtree, so match the checked-in fixtures by extension instead.
+source-include = [
+    "tests/*.py",
+    "tests/data/*.cfg",
+    "tests/data/*.emf",
+    "tests/data/*.fasta",
+    "tests/data/*.gff3",
+    "tests/data/*.gz",
+    "tests/data/*.maf",
+    "tests/data/*.nh",
+    "tests/data/*.tsv",
+    "tests/data/sample-CHECKSUMS",
+    "tests/data/sample-MD5SUM",
+    "tests/data/prep_tests_data/*.cfg",
+    "tests/data/prep_tests_data/*.py",
+]
+# tool caches can sit inside src/ensembl_tui and would otherwise be packaged
+source-exclude = ["**/.mypy_cache", "**/.pytest_cache", "**/.ruff_cache", "**/__pycache__"]
+wheel-exclude = ["**/.mypy_cache", "**/.pytest_cache", "**/.ruff_cache", "**/__pycache__"]

@@ -28,7 +28,10 @@ def seq2gaps(record: dict) -> eti_align.AlignRecord:
     arr = _dna_alpha.to_indices(s)
     # DNA alphabet's always have a gap index defined as an integer
     _, gaps = decompose_gapped_seq_array(arr, typing.cast("int", _dna_alpha.gap_index))
-    record["gap_spans"] = gaps if gaps.size else _no_gaps
+    # gaps is a view into a numba buffer the size of the gapped sequence, so we
+    # copy to release it. the second column is cumulative gap lengths, which is
+    # what IndelMap stores and what AlignRecord.cum_gap_data returns
+    record["gap_spans"] = gaps.astype(numpy.int32) if gaps.size else _no_gaps
     return eti_align.AlignRecord(**record)
 
 

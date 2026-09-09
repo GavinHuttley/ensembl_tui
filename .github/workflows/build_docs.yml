@@ -46,28 +46,21 @@ jobs:
         run: |
           curl -L -o docs/ensembl_tui_data.zip "https://www.dropbox.com/scl/fi/pr5y1r3abi8mam26rasg3/ensembl_tui_data.zip?rlkey=jvke75kupiugs47zjhisans38&dl=1"
 
-      - uses: "actions/setup-python@v5"
-        with:
-            python-version: "3.14"
-
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-          cache-dependency-glob: "pyproject.toml"
+          cache-dependency-glob: "uv.lock"
 
       - name: Install Docs Dependencies
-        run: |
-          uv venv venv -p python
-          source venv/bin/activate
-          uv pip install ".[doc]"
+        # the project itself is needed, docs execute code, but the dev group is not
+        run: uv sync --no-default-groups --group doc --frozen
 
       - name: Build Documentation
         run: |
-          source venv/bin/activate
           # this dir needs to be in place for mkdocs to start
           mkdir -p docs/overrides
-          mkdocs build
+          uv run --no-sync mkdocs build
         working-directory: ${{ github.workspace }}
 
       - name: Upload Documentation Artifact

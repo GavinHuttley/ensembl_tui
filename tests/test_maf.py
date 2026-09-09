@@ -23,6 +23,27 @@ def test_read(DATA_DIR):
     assert set(block_ids) == expect
 
 
+_ONE_BLOCK = """\
+##maf version=1
+# id: 20060000040557
+a
+s homo_sapiens.1 100 7 + 1000 AC--GTA---CC
+s mouse.2        200 12 + 2000 ACTGGTAGGTCC
+s rat.3          300 8 + 3000 -CTGG--AGTC-
+"""
+
+
+@pytest.mark.parametrize("terminator", ("", "\n", "\n\n"))
+def test_read_last_record_of_final_block(tmp_path, terminator):
+    # real Ensembl maf files end with a blank line, but the final record must
+    # survive whether or not the last block is terminated by one
+    path = tmp_path / "sample.maf"
+    path.write_text(_ONE_BLOCK + terminator)
+    (block_id, alignment), *rest = list(eti_maf.parse(path))
+    assert not rest
+    assert sorted(n.species for n in alignment) == ["homo_sapiens", "mouse", "rat"]
+
+
 @pytest.mark.parametrize(
     "line",
     (

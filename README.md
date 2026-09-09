@@ -25,16 +25,16 @@ ensembl-tui provides the `eti` terminal application for obtaining a subset of th
 
 <details>
   <summary>Developer installation instructions</summary>
-  Fork the repo and clone your fork to your local machine. In the terminal, create either a python virtual environment or a new conda environment and activate it. In that virtual environment
+  Fork the repo and clone your fork to your local machine. Install <a href="https://docs.astral.sh/uv/">uv</a>, then from the root of your clone
 
   ```
-  $ pip install flit
+  $ uv sync
   ```
 
-  Then do the flit version of a "developer install". (It is basically creating a symlink to the repos source directory.)
+  That creates a `.venv/` with an editable install of the project plus all of the development dependencies. uv downloads a suitable Python itself, so you do not need one installed first. Run commands in that environment with `uv run`, for example
 
   ```
-  $ flit install -s --python `which python`
+  $ uv run eti --help
   ```
 </details>
 

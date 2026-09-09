@@ -89,13 +89,20 @@ class AlignRecord:
         )
 
     @property
-    def gap_data(self) -> tuple[numpy.ndarray, numpy.ndarray]:
-        if len(self.gap_spans):
-            gap_pos, gap_lengths = self.gap_spans.T
-        else:
-            gap_pos, gap_lengths = _no_gaps.copy(), _no_gaps.copy()
+    def cum_gap_data(self) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """gap positions in sequence coordinates and cumulative gap lengths
 
-        return gap_pos, gap_lengths
+        Notes
+        -----
+        The lengths are cumulative, which is how IndelMap stores them, so
+        they are passed to it as cum_gap_lengths and not as gap_lengths.
+        """
+        if len(self.gap_spans):
+            gap_pos, cum_gap_lengths = self.gap_spans.T
+        else:
+            gap_pos, cum_gap_lengths = _no_gaps.copy(), _no_gaps.copy()
+
+        return gap_pos, cum_gap_lengths
 
     def to_dict(self) -> dict:
         return dataclasses.asdict(self)
@@ -244,10 +251,10 @@ def get_alignment(
                 # start / stop are also genomic positions
                 genome_start = align_record.start
                 genome_end = align_record.stop
-                gap_pos, gap_lengths = align_record.gap_data
+                gap_pos, cum_gap_lengths = align_record.cum_gap_data
                 imap = IndelMap(
                     gap_pos=gap_pos,
-                    gap_lengths=gap_lengths,
+                    cum_gap_lengths=cum_gap_lengths,
                     parent_length=genome_end - genome_start,
                 )
 
@@ -289,10 +296,10 @@ def get_alignment(
             # coordinates for this species.
             genome_start = align_record.start
             genome_end = align_record.stop
-            gap_pos, gap_lengths = align_record.gap_data
+            gap_pos, cum_gap_lengths = align_record.cum_gap_data
             imap = IndelMap(
                 gap_pos=gap_pos,
-                gap_lengths=gap_lengths,
+                cum_gap_lengths=cum_gap_lengths,
                 parent_length=genome_end - genome_start,
             )
 
