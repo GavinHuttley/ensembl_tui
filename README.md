@@ -7,7 +7,15 @@
 
 # ensembl-tui
 
-ensembl-tui provides the `eti` terminal application for obtaining a subset of the data provided by Ensembl which can then be queried locally. You can have multiple such subsets on your machine, each corresponding to a different selection of species and data types.
+> **Warning**
+>
+> **Whole genome alignments had their gaps placed incorrectly. Please reinstall your alignment data.**
+>
+> In versions 0.7.6 and 0.7.7, `eti alignments` misread the gap lengths written by `eti install`. In any sequence with more than one gap, every gap after the first was made too long. Gaps therefore landed in the wrong columns and sequence was silently dropped from the end of the alignment. Reinstall the downloaded data with `eti install`.
+>
+> Our apologies for this error. Our thanks to Ulises Hernandez for reporting it.
+
+`ensembl-tui` provides the `eti` terminal application for obtaining a subset of the data provided by Ensembl which can then be queried locally. You can have multiple such subsets on your machine, each corresponding to a different selection of species and data types.
 
 > **Warning**
 > We currently **only support accessing data from the main ensembl.org** site. If you discover errors, please post a [bug report](https://github.com/cogent3/ensembl_tui/issues).
