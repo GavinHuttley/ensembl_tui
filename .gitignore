@@ -48,6 +48,8 @@ __pycache__
 *.wpr
 .vscode/*
 venv/
+# the uv project environment
+.venv/
 working/
 # vi
 .*.swp
