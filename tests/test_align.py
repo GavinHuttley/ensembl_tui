@@ -5,6 +5,7 @@ import cogent3_h5seqs as c3h5
 import duckdb
 import numpy
 import pytest
+from cogent3.core.location import IndelMap
 
 from ensembl_tui import _align as eti_align
 from ensembl_tui import _annotation as eti_annots
@@ -565,6 +566,134 @@ def test_load_align_records():
     }
     got = eti_ingest_align.seq2gaps(maf_record.copy())
     assert (got.gap_spans == numpy.array([[0, 1]], dtype=numpy.int32)).all()
+
+
+def _maf_record(seq: str, **kwargs) -> dict:
+    record = {
+        "species": "chlorocebus_sabaeus",
+        "seqid": "28",
+        "start": 0,
+        "stop": len(seq) - seq.count("-"),
+        "strand": "+",
+        "block_id": 20060000081647,
+        "source": "10_primates.epo.other_6.maf.gz",
+        "seq": seq,
+    }
+    return record | kwargs
+
+
+def test_seq2gaps_multiple_gaps():
+    # gap_spans holds cumulative gap lengths, matching what IndelMap keeps
+    # internally, so the second gap of 3 is stored as 2 + 3
+    got = eti_ingest_align.seq2gaps(_maf_record("AC--GTA---CC"))
+    assert (got.gap_spans == numpy.array([[2, 2], [5, 5]], dtype=numpy.int32)).all()
+
+
+@pytest.mark.parametrize(
+    "seq",
+    (
+        "AC--GTA---CC",
+        "--ACGTA---CC",
+        "AC--GTACC---",
+        "A-C-G-T-A-C-",
+        "-A-CG--TAC-C--G",
+    ),
+)
+def test_seq2gaps_indelmap_roundtrip(seq):
+    # get_alignment rebuilds an IndelMap from gap_spans this way, so the
+    # rebuilt map must have the number of columns we started with
+    record = eti_ingest_align.seq2gaps(_maf_record(seq))
+    gap_pos, cum_gap_lengths = record.cum_gap_data
+    imap = IndelMap(
+        gap_pos=gap_pos,
+        cum_gap_lengths=cum_gap_lengths,
+        parent_length=record.stop - record.start,
+    )
+    assert len(imap) == len(seq)
+
+
+def multi_gap_seqs():
+    # s2 and s3 have two gaps each, which is what tells a cumulative gap
+    # length apart from a per-gap one
+    seqs = {
+        "s1": "GTTGAAGTAGTAGAAGTTCCAAATAATGAA",
+        "s2": "GTG------GTAGAAGT--CAAATAATGAA",
+        "s3": "GCTGAAGT--TGGAAGTTGCAAAT---GAA",
+    }
+    return cogent3.make_aligned_seqs(
+        seqs,
+        moltype="dna",
+        info={"species": {"s1": "human", "s2": "mouse", "s3": "dog"}},
+    )
+
+
+@pytest.fixture
+def ingested_multi_gap_aligndb():
+    """genomes plus an AlignDb built through the real ingest path"""
+    aln = multi_gap_seqs()
+    species = aln.info.species
+    records = [
+        eti_ingest_align.seq2gaps(
+            _maf_record(
+                str(seq.gapped_seq),
+                species=species[seq.name],
+                seqid=seq.name,
+                block_id=0,
+                source="blah",
+            ),
+        )
+        for seq in aln.seqs
+    ]
+    agg = empty_align_agg_gap_store()
+    eti_ingest_align.add_records(records=records, conn=agg)
+    align_db = eti_align.AlignDb(source=":memory:", db=agg)
+
+    genomes = {}
+    for name, seq in aln.degap().to_dict().items():
+        genome = c3h5.make_unaligned(
+            "memory",
+            in_memory=True,
+            mode="w",
+            alphabet=eti_genome.alphabet,
+        )
+        genome.add_seqs(seqs={name: seq})
+        genomes[species[name]] = cogent3.make_unaligned_seqs(
+            genome,
+            annotation_db=None,
+            info={"species": species[name]},
+            moltype="dna",
+        )
+
+    return genomes, align_db
+
+
+@pytest.mark.parametrize(
+    ("ref_species", "seqid"),
+    (("human", "s1"), ("mouse", "s2"), ("dog", "s3")),
+)
+def test_building_alignment_multiple_gaps(
+    ingested_multi_gap_aligndb,
+    ref_species,
+    seqid,
+):
+    # round trip: ingest writes the gaps, get_alignment reads them back, and
+    # the alignment we get out is the one we put in. mouse and dog are the
+    # references with two gaps of their own
+    genomes, align_db = ingested_multi_gap_aligndb
+    got = next(
+        iter(
+            eti_align.get_alignment(
+                align_db,
+                genomes,
+                ref_species=ref_species,
+                seqid=seqid,
+            ),
+        ),
+    )
+    orig = multi_gap_seqs()
+    assert len(got) == len(orig)
+    assert sorted(got.to_dict().values()) == sorted(orig.to_dict().values())
+    got.annotation_db.close()
 
 
 def test_aln_seq_matches_genome(apes, apes_aligndb):
