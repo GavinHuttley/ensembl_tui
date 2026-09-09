@@ -109,7 +109,7 @@ def make_records(start, end, block_id):
         imap, s = gs.parse_out_gaps()
         if imap.num_gaps:
             gap_spans = numpy.array(
-                [imap.gap_pos, imap.get_gap_lengths()],
+                [imap.gap_pos, imap.cum_gap_lengths],
                 dtype=numpy.int32,
             ).T
         else:
