@@ -46,9 +46,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-apes-v3-${{ hashFiles('tests/data/apes-115.zip') }}
+          key: ${{ runner.os }}-apes-v4-${{ hashFiles('tests/data/apes-115.zip') }}
           restore-keys: |
-            ${{ runner.os }}-apes-v3-
+            ${{ runner.os }}-apes-v4-
 
       - name: Check apes data cache status
         run: |
