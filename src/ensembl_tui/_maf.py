@@ -21,7 +21,9 @@ def _get_alignment_block_indices(data: list[str]) -> list[tuple[int, int]]:
     if start is None:
         return []
 
-    blocks.append((start, i))
+    # the last block runs to the end of the file. the caller excludes the end
+    # index, so it has to be past the final line, not on it
+    blocks.append((start, len(data)))
     return blocks
 
 

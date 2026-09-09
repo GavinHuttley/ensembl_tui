@@ -698,8 +698,7 @@ def test_building_alignment_multiple_gaps(
 
 # tiny.maf has a single gap per record, so it cannot tell a per-gap length
 # apart from a running total. these records have three, two and none.
-# the trailing blank line matters, it terminates the block. without it the
-# parser drops the last record
+# the trailing blank line is what real Ensembl maf files have
 MULTI_GAP_MAF = """\
 ##maf version=1
 # NOTE: sample written for testing purposes
