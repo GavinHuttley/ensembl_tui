@@ -52,7 +52,7 @@ def setup_fonts() -> None:
     font_dest = font_dir / "roboto-fonts.zip"
     if not font_dest.exists():
         font_url = "https://fonts.google.com/download?family=Roboto"
-        urllib.request.urlretrieve(font_url, filename=font_dest)  # noqa: S310
+        urllib.request.urlretrieve(font_url, filename=font_dest)
 
 
 def on_pre_build(*args, **kwargs) -> None:
