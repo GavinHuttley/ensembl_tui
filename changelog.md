@@ -1,8 +1,14 @@
-### Contributors
+
+<a id='changelog-0.7.8'></a>
+# Changes since release "0.7.8"
+
+This is a major bug fix release.
+
+## Contributors
 
 - Ulises Hernandez, for reporting the gap placement bug
 
-### BUG
+## BUG
 
 - Gaps are placed correctly again when an alignment is read back. The gap
   lengths written by `eti install` are cumulative, matching how `IndelMap`
