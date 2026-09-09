@@ -696,6 +696,41 @@ def test_building_alignment_multiple_gaps(
     got.annotation_db.close()
 
 
+# tiny.maf has a single gap per record, so it cannot tell a per-gap length
+# apart from a running total. these records have three, two and none.
+# the trailing blank line matters, it terminates the block. without it the
+# parser drops the last record
+MULTI_GAP_MAF = """\
+##maf version=1
+# NOTE: sample written for testing purposes
+# id: 20060000040557
+a
+s homo_sapiens.1        100    7 +  1000 AC--GTA---CC
+s mouse.2               200   12 +  2000 ACTGGTAGGTCC
+s rat.3                 300    8 +  3000 -CTGG--AGTC-
+
+"""
+
+ALIGN_WIDTH = 12
+
+
+def test_install_path_multiple_gaps(tmp_path):
+    # the whole ingest path, maf text through to AlignRecord. every record in
+    # a block has to rebuild to the same number of alignment columns
+    path = tmp_path / "multi_gap.maf"
+    path.write_text(MULTI_GAP_MAF)
+    records = eti_ingest_align.load_align_records()(path)
+    assert len(records) == 3
+    for record in records:
+        gap_pos, cum_gap_lengths = record.cum_gap_data
+        imap = IndelMap(
+            gap_pos=gap_pos,
+            cum_gap_lengths=cum_gap_lengths,
+            parent_length=record.stop - record.start,
+        )
+        assert len(imap) == ALIGN_WIDTH, record.species
+
+
 def test_aln_seq_matches_genome(apes, apes_aligndb):
     genomes, align_db = apes, apes_aligndb
     hsap = genomes["homo_sapiens"]
