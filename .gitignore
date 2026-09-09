@@ -45,6 +45,7 @@ lcov*.info
 __pycache__
 *.code-workspace
 *.wpu
+*.wpr
 .vscode/*
 venv/
 working/
@@ -59,11 +60,14 @@ small-113/*
 docs/data/*-114/*
 tests/data/*-114/*
 tests/data/prep_tests_data/*-114*
-docs/data/*114*
+docs/data/*
 tests/data/*114*
+tests/data/**/*.tar
 site/*
-ensembl_tui_data.zip
+**/*.zip
 
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+.devcontainer
+CLAUDE.md
