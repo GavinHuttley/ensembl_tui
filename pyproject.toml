@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "ensembl_tui"
-version = "0.7.7"
+version = "0.7.8"
 description = "Ensembl terminal user interface tools"
 authors = [
     { name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" },
@@ -64,7 +64,7 @@ test = [
     "pytest-cov",
     "pytest-timeout",
     "pytest-xdist",
-    "ruff==0.14.11",
+    "ruff==0.16.6",
     "nox",
 ]
 doc = [
@@ -134,5 +134,15 @@ source-include = [
     "tests/data/prep_tests_data/*.py",
 ]
 # tool caches can sit inside src/ensembl_tui and would otherwise be packaged
-source-exclude = ["**/.mypy_cache", "**/.pytest_cache", "**/.ruff_cache", "**/__pycache__"]
-wheel-exclude = ["**/.mypy_cache", "**/.pytest_cache", "**/.ruff_cache", "**/__pycache__"]
+source-exclude = [
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/.ruff_cache",
+    "**/__pycache__",
+]
+wheel-exclude = [
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/.ruff_cache",
+    "**/__pycache__",
+]

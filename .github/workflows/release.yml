@@ -20,9 +20,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-small-v1-${{ hashFiles('tests/data/small-114.zip') }}
+          key: ${{ runner.os }}-small-v3-${{ hashFiles('tests/data/small-115.zip') }}
           restore-keys: |
-            ${{ runner.os }}-small-v1-
+            ${{ runner.os }}-small-v3-
 
       - name: Check cache status
         run: |
@@ -31,16 +31,16 @@ jobs:
       - name: Download small data file
         if: steps.cache-small-data.outputs.cache-hit != 'true'
         run: |
-          curl -L -o tests/data/small-114.zip "https://www.dropbox.com/scl/fi/a3dkt04z7d1t2p3io1pp6/small-114.zip?rlkey=di9ty6diu1kusjsopam891zyg&dl=1"
+          curl -L -o tests/data/small-115.zip "https://www.dropbox.com/scl/fi/cknsuhd6k8t6fjn1odzog/small-115.zip?rlkey=zkacmbhx4ssf4v80d78dd9uql&dl=1"
 
       - name: Set up apes installed cache
         id: cache-apes-data
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-apes-v1-${{ hashFiles('tests/data/apes-114.zip') }}
+          key: ${{ runner.os }}-apes-v4-${{ hashFiles('tests/data/apes-115.zip') }}
           restore-keys: |
-            ${{ runner.os }}-apes-v1-
+            ${{ runner.os }}-apes-v4-
 
       - name: Check apes data cache status
         run: |
@@ -49,16 +49,16 @@ jobs:
       - name: Download apes installation data file
         if: steps.cache-apes-data.outputs.cache-hit != 'true'
         run: |
-          curl -L -o tests/data/apes-114.zip "https://www.dropbox.com/scl/fi/cyr1p5aqteffsggtlqjo7/apes-114.zip?rlkey=sbq1h0kx37fz7gsmlblherxr5&dl=1"
+          curl -L -o tests/data/apes-115.zip "https://www.dropbox.com/scl/fi/h6kd0rlntvyzcb6d485fa/apes-115.zip?rlkey=4hza000j7btue6qwnxvnid5gb&dl=1"
 
       - name: Set up apes maf cache
         id: cache-apes-data-maf
         uses: actions/cache@v3
         with:
           path: tests/data
-          key: ${{ runner.os }}-apes-maf-v1-${{ hashFiles('tests/data/apes-114-maf.zip') }}
+          key: ${{ runner.os }}-apes-maf-v3-${{ hashFiles('tests/data/apes-115-maf.zip') }}
           restore-keys: |
-            ${{ runner.os }}-apes-maf-v1-
+            ${{ runner.os }}-apes-maf-v3-
 
       - name: Check apes maf cache status
         run: |
@@ -67,14 +67,14 @@ jobs:
       - name: Download apes maf data file
         if: steps.cache-apes-data-maf.outputs.cache-hit != 'true'
         run: |
-          curl -L -o tests/data/apes-114-maf.zip "https://www.dropbox.com/scl/fi/9kc57hitzhwwifq35je8l/apes-114-maf.zip?rlkey=mxeytmuv672cpfar7iirh7emm&dl=1"
+          curl -L -o tests/data/apes-115-maf.zip "https://www.dropbox.com/scl/fi/2wmle5kzjdqralppvddsr/apes-115-maf.zip?rlkey=u1hbfo0jqwhfkfukntgx5tbfn&dl=1"
 
       - name: Unzip data files
         run: |
           cd tests/data
-          unzip -o -q small-114.zip
-          unzip -o -q apes-114.zip
-          unzip -o -q apes-114-maf.zip
+          unzip -o -q small-115.zip
+          unzip -o -q apes-115.zip
+          unzip -o -q apes-115-maf.zip
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6

@@ -44,7 +44,7 @@ def get_db_prefix(name: str) -> str:
     db_type = get_dbtype_from_name(name)
     if not db_type:
         return name
-    parts = name.split(db_type)[0].split("_")
+    parts = name.split(db_type, maxsplit=1)[0].split("_")
     return "_".join(parts[:-1])
 
 

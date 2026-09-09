@@ -30,7 +30,7 @@ bytes_to_array = c3alpha.bytes_to_array(
 
 
 def _rename(label: str) -> str:
-    return label.split()[0]
+    return label.split(maxsplit=1)[0]
 
 
 @define_app
