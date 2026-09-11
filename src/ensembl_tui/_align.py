@@ -440,8 +440,10 @@ def _make_alignment(
 class construct_alignment:  # noqa: N801
     """reassemble an alignment that maps to a given genomic segment
 
-    If the segment spans multiple alignments these are joined using
-    the sep character.
+    Each alignment overlapping the segment is returned separately. More
+    than one is returned when the segment spans multiple alignment blocks,
+    or when a single block contains multiple segments of the reference
+    sequence, for example a duplicated region.
     """
 
     def __init__(
@@ -451,13 +453,11 @@ class construct_alignment:  # noqa: N801
         mask_features: list[str] | None = None,
         shadow: bool = False,
         mask_ref: bool = False,
-        sep: str = "?",
     ) -> None:
         self._align_db = align_db
         self._genomes = genomes
         self._mask_features = mask_features
         self._shadow = shadow
-        self._sep = sep
         self._ref_only = mask_ref
 
     def main(self, segment: eti_genome.genome_segment) -> list[c3_align.Alignment]:
