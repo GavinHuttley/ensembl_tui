@@ -71,12 +71,18 @@ def add_records(
 ) -> None:
     if not records:
         return
-    # we need to identify block_id's that have already been used
+    # we need to identify block_id's that have already been used. the lookup
+    # carries one placeholder per block id, which costs about a second per
+    # 20k ids even when it matches nothing, so skip it on an empty table.
+    # installing writes in a single call to a fresh table, so that is the
+    # usual case
     col_order = [c for c in eti_align.ALIGN_ATTR_COLS if c != "align_id"]
-    block_ids = tuple({r.block_id for r in records})
-    val_placeholder = ", ".join("?" * len(block_ids))
-    sql = f"SELECT DISTINCT(block_id) from align_blocks WHERE block_id IN ({val_placeholder})"
-    used = {r[0] for r in conn.sql(sql, params=block_ids).fetchall()}
+    used: set[int] = set()
+    if conn.sql("SELECT COUNT(*) from align_blocks").fetchone()[0]:
+        block_ids = tuple({r.block_id for r in records})
+        val_placeholder = ", ".join("?" * len(block_ids))
+        sql = f"SELECT DISTINCT(block_id) from align_blocks WHERE block_id IN ({val_placeholder})"
+        used = {r[0] for r in conn.sql(sql, params=block_ids).fetchall()}
 
     val_placeholder = ", ".join("?" * len(col_order))
     sql = (
@@ -85,10 +91,18 @@ def add_records(
     record_iter = (
         progress(records, msg="Writing aligns ✍️") if progress is not None else records
     )
+    # ensembl writes an alignment block once for each segment of the reference
+    # species it holds, and those copies go to the maf file of whichever
+    # chromosome anchors them. the same record therefore turns up repeatedly
+    # within one file, and again across files when a block spans chromosomes.
+    # `used` only covers block ids from earlier calls, so track what this
+    # batch has written as we go
+    seen: set[tuple[int, str, str, int, int, int]] = set()
     for record in record_iter:
-        if record.block_id in used:
+        if record.block_id in used or record.identity in seen:
             continue
 
+        seen.add(record.identity)
         conn.sql(sql, params=record.to_record(col_order))
 
 

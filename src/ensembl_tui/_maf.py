@@ -3,28 +3,10 @@
 
 import typing
 
-from cogent3 import open_
+from scinexus.io_util import iter_splitlines
 
 from ensembl_tui import _name as eti_name
 from ensembl_tui import _util as eti_util
-
-
-def _get_alignment_block_indices(data: list[str]) -> list[tuple[int, int]]:
-    blocks = []
-    start = None
-    for i, line in enumerate(data):
-        if line.startswith("a"):
-            if start is not None:
-                blocks.append((start, i))
-            start = i
-
-    if start is None:
-        return []
-
-    # the last block runs to the end of the file. the caller excludes the end
-    # index, so it has to be past the final line, not on it
-    blocks.append((start, len(data)))
-    return blocks
 
 
 def process_maf_line(line: str) -> tuple[eti_name.MafName, str]:
@@ -47,27 +29,45 @@ def process_maf_line(line: str) -> tuple[eti_name.MafName, str]:
     return n, seq
 
 
-def _get_seqs(lines: list[str]) -> dict[eti_name.MafName, str]:
-    alignment = {}
-    for line in lines:
-        if not line.startswith("s") or "ancestral" in line[:100]:
-            continue
-        n, seq = process_maf_line(line)
-        alignment[n] = seq
-    return alignment
+def _is_seq_line(line: str) -> bool:
+    return line.startswith("s") and "ancestral" not in line[:100]
+
+
+def _block_id(alignment: dict[eti_name.MafName, str]) -> int:
+    # the block ID's are made unique for each alignment by using
+    # the str(sorted(str(MafNames)))
+    names = "".join(sorted(str(n) for n in alignment))
+    return eti_util.hash64(names.encode("utf-8"))
 
 
 def parse(
     path: eti_util.PathType,
 ) -> typing.Iterator[tuple[int, dict[eti_name.MafName, str]]]:
-    with open_(path, mode="rb") as infile:
-        data = infile.read()
+    """yields the block id and aligned sequences of each alignment block
 
-    # the block ID's are made unique for each alignment by using
-    # the str(sorted(str(MafNames)))
-    data = data.decode("utf-8").splitlines()
-    for block_start, block_end in _get_alignment_block_indices(data):
-        alignment = _get_seqs(data[block_start + 1 : block_end])
-        names = "".join(sorted(str(n) for n in alignment))
-        block_id = eti_util.hash64(names.encode("utf-8"))
-        yield block_id, alignment
+    Notes
+    -----
+    A line beginning with "a" opens a block and the lines up to the next such
+    line belong to it. The file is read a chunk at a time and only one block is
+    held at once, which is what keeps the large Ensembl files off the heap.
+
+    Two caveats come from iter_splitlines. It compares the size of the file on
+    disk against its chunk size, so a compressed file smaller than that is read
+    whole however large it expands to. It also opens the file in text mode with
+    the encoding sniffed from the first 100 bytes, where this used to decode as
+    utf-8 throughout.
+    """
+    alignment: dict[eti_name.MafName, str] = {}
+    in_block = False
+    for line in iter_splitlines(path):
+        if line.startswith("a"):
+            if in_block:
+                yield _block_id(alignment), alignment
+            alignment = {}
+            in_block = True
+        elif in_block and _is_seq_line(line):
+            n, seq = process_maf_line(line)
+            alignment[n] = seq
+
+    if in_block:
+        yield _block_id(alignment), alignment
