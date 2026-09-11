@@ -44,6 +44,61 @@ def test_read_last_record_of_final_block(tmp_path, terminator):
     assert sorted(n.species for n in alignment) == ["homo_sapiens", "mouse", "rat"]
 
 
+_TWO_BLOCKS = """\
+##maf version=1
+# id: 20060000040557
+
+a score=1
+s homo_sapiens.1 100 7 + 1000 AC--GTA---CC
+s mouse.2        200 12 + 2000 ACTGGTAGGTCC
+
+a score=2
+s homo_sapiens.1 300 8 + 1000 -CTGG--AGTC-
+s rat.3          400 12 + 3000 ACTGGTAGGTCC
+i rat.3 N 0 C 0
+"""
+
+
+def test_read_block_boundaries(tmp_path):
+    # header lines belong to no block, an "a" line opens one, and everything
+    # up to the next "a" line belongs to it. non "s" lines are ignored
+    path = tmp_path / "two_blocks.maf"
+    path.write_text(_TWO_BLOCKS)
+    # unpacking is the assertion that there are exactly two blocks
+    first, second = eti_maf.parse(path)
+    assert sorted(n.species for n in first[1]) == ["homo_sapiens", "mouse"]
+    assert sorted(n.species for n in second[1]) == ["homo_sapiens", "rat"]
+    assert first[0] != second[0]
+
+
+def test_read_decodes_as_it_goes(tmp_path):
+    # a byte that cannot be decoded, placed past the reader's chunk size. the
+    # blocks before it still come back, which they would not if the file were
+    # read and decoded up front
+    path = tmp_path / "bad_byte_late.maf"
+    padding = "s pad.1 0 10 + 100 " + "A" * 400_000 + "\n"
+    good = _TWO_BLOCKS + "".join(f"a score={i}\n{padding}" for i in range(4))
+    path.write_bytes(good.encode("utf-8") + b"a score=9\ns bad.1 0 1 + 10 \xff\n")
+    gen = eti_maf.parse(path)
+    _, alignment = next(gen)
+    assert sorted(n.species for n in alignment) == ["homo_sapiens", "mouse"]
+    with pytest.raises(UnicodeDecodeError):
+        list(gen)
+
+
+def test_read_yields_blocks_incrementally(tmp_path):
+    # blocks come out one at a time, so a malformed block does not stop the
+    # ones before it being returned
+    path = tmp_path / "trailing_junk.maf"
+    path.write_text(_TWO_BLOCKS + "\na score=3\ns not enough fields\n")
+    gen = eti_maf.parse(path)
+    block_id, alignment = next(gen)
+    assert sorted(n.species for n in alignment) == ["homo_sapiens", "mouse"]
+    assert block_id
+    with pytest.raises(ValueError, match="unpack"):
+        list(gen)
+
+
 @pytest.mark.parametrize(
     "line",
     (
