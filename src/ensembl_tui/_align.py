@@ -129,21 +129,24 @@ class AlignDb(eti_storage.DuckdbParquetBase):
         seqid: str,
         start: int | None,
         stop: int | None,
-    ) -> list[str]:
-        sql = f"SELECT block_id from {self._tables[0]} WHERE species = ? AND seqid = ?"
+    ) -> list[tuple[int]]:
+        sql = (
+            f"SELECT DISTINCT block_id from {self._tables[0]} "
+            "WHERE species = ? AND seqid = ?"
+        )
         values = species, seqid
-        if start is not None and stop is not None:
-            # as long as start or stop are within the record start/stop, it's a match
-            sql = f"{sql} AND ((start <= ? AND ? < stop) OR (start <= ? AND ? < stop))"
-            values += (start, start, stop, stop)
-        elif start is not None:
-            # the aligned segment overlaps start
-            sql = f"{sql} AND start <= ? AND ? < stop"
-            values += (start, start)
-        elif stop is not None:
-            # the aligned segment overlaps stop
-            sql = f"{sql} AND start <= ? AND ? < stop"
-            values += (stop, stop)
+        # a block matches if it overlaps the query interval at all. coordinates
+        # are half open, so a block must finish strictly after the query start
+        # and begin strictly before the query stop. an absent bound means the
+        # query is open ended on that side. testing the two bounds separately
+        # keeps blocks that lie wholly inside the query, which a test of only
+        # the query end points would discard
+        if start is not None:
+            sql = f"{sql} AND ? < stop"
+            values += (start,)
+        if stop is not None:
+            sql = f"{sql} AND start < ?"
+            values += (stop,)
 
         return self.conn.sql(sql, params=values).fetchall()
 
@@ -213,6 +216,30 @@ class AlignDb(eti_storage.DuckdbParquetBase):
         self.conn.close()
 
 
+def _overlapping_ref_records(
+    block: set[AlignRecord],
+    ref_species: str,
+    seqid: str,
+    ref_start: int | None,
+    ref_end: int | None,
+) -> list[AlignRecord]:
+    """records for the reference sequence that overlap the query interval
+
+    Notes
+    -----
+    A single alignment block can contain more than one segment of the reference
+    sequence, for example where a region has been duplicated. Only the segments
+    overlapping the query are wanted, and they are returned in genomic order so
+    the result does not depend on the iteration order of the block set.
+    """
+    records = [r for r in block if r.species == ref_species and r.seqid == seqid]
+    if ref_start is not None:
+        records = [r for r in records if ref_start < r.stop]
+    if ref_end is not None:
+        records = [r for r in records if r.start < ref_end]
+    return sorted(records, key=lambda r: (r.start, r.stop))
+
+
 def get_alignment(
     align_db: AlignDb,
     genomes: dict[str, c3_align.SequenceCollection],
@@ -245,129 +272,163 @@ def get_alignment(
         # used for all other species -- they are converted into sequence
         # coordinates for each species -- selecting their sequence,
         # building the Aligned instance, and selecting the annotation subset.
-        for align_record in block:
-            if align_record.species == ref_species and align_record.seqid == seqid:
-                # ref_start, ref_end are genomic positions and the align_record
-                # start / stop are also genomic positions
-                genome_start = align_record.start
-                genome_end = align_record.stop
-                gap_pos, cum_gap_lengths = align_record.cum_gap_data
-                imap = IndelMap(
-                    gap_pos=gap_pos,
-                    cum_gap_lengths=cum_gap_lengths,
-                    parent_length=genome_end - genome_start,
-                )
-
-                # We use the IndelMap object to identify the alignment
-                # positions the ref_start / ref_end correspond to. The alignment
-                # positions are used below for slicing each sequence in the
-                # alignment.
-
-                # make sure the sequence start and stop are within this
-                # aligned block
-                seq_start = max(ref_start or genome_start, genome_start)
-                seq_end = min(ref_end or genome_end, genome_end)
-                # make these coordinates relative to the aligned segment
-                if align_record.strand == -1:
-                    # if record is on minus strand, then genome stop is
-                    # the alignment start
-                    seq_start, seq_end = genome_end - seq_end, genome_end - seq_start
-                else:
-                    seq_start = seq_start - genome_start
-                    seq_end = seq_end - genome_start
-
-                align_start = imap.get_align_index(seq_start)
-                align_end = imap.get_align_index(seq_end)
-                break
-        else:
+        ref_records = _overlapping_ref_records(
+            block,
+            ref_species,
+            seqid,
+            ref_start,
+            ref_end,
+        )
+        if not ref_records:
             msg = f"no matching alignment record for {ref_species!r}"
             raise ValueError(msg)
 
-        seqs = {}
-        gaps = {}
-        offsets = {}
-        reversed_seqs = set()
-        seqid_species = {}
-        ann_dbs = {}
-        for align_record in block:
-            record_species = align_record.species
-            genome = genomes[record_species]
-            # We need to convert the alignment coordinates into sequence
-            # coordinates for this species.
-            genome_start = align_record.start
-            genome_end = align_record.stop
-            gap_pos, cum_gap_lengths = align_record.cum_gap_data
-            imap = IndelMap(
-                gap_pos=gap_pos,
-                cum_gap_lengths=cum_gap_lengths,
-                parent_length=genome_end - genome_start,
+        for ref_record in ref_records:
+            yield _make_alignment(
+                block=block,
+                ref_record=ref_record,
+                genomes=genomes,
+                ref_species=ref_species,
+                ref_start=ref_start,
+                ref_end=ref_end,
+                namer=namer,
+                mask_features=mask_features,
+                shadow=shadow,
+                mask_ref=mask_ref,
             )
 
-            # We use the alignment indices derived for the reference sequence
-            # above
-            seq_start = imap.get_seq_index(align_start)
-            seq_end = imap.get_seq_index(align_end)
-            seq_length = seq_end - seq_start
-            if align_record.strand == -1:
-                # if it's neg strand, the alignment start is the genome stop
-                seq_start = imap.parent_length - seq_end
 
-            start = genome_start + seq_start
-            stop = genome_start + seq_start + seq_length
-            s = genome.seqs[align_record.seqid][start:stop]
+def _make_alignment(
+    *,
+    block: set[AlignRecord],
+    ref_record: AlignRecord,
+    genomes: dict[str, c3_align.SequenceCollection],
+    ref_species: str,
+    ref_start: int | None,
+    ref_end: int | None,
+    namer: typing.Callable[[str, str, int, int], str] | None,
+    mask_features: list[str] | None,
+    shadow: bool,
+    mask_ref: bool,
+) -> c3_align.Alignment:
+    """builds the alignment for one segment of the reference sequence"""
+    # ref_start, ref_end are genomic positions and the ref_record
+    # start / stop are also genomic positions
+    genome_start = ref_record.start
+    genome_end = ref_record.stop
+    gap_pos, cum_gap_lengths = ref_record.cum_gap_data
+    imap = IndelMap(
+        gap_pos=gap_pos,
+        cum_gap_lengths=cum_gap_lengths,
+        parent_length=genome_end - genome_start,
+    )
 
-            if namer:
-                name = namer(align_record.species, align_record.seqid, start, stop)
-            else:
-                name = f"{align_record.species}:{align_record.seqid}:{start}-{stop}"
+    # We use the IndelMap object to identify the alignment
+    # positions the ref_start / ref_end correspond to. The alignment
+    # positions are used below for slicing each sequence in the
+    # alignment.
 
-            s.name = name
-            s.replace_annotation_db(None)
-            # we now trim the gaps for this sequence to the sub-alignment
-            imap = imap[align_start:align_end]
+    # make sure the sequence start and stop are within this
+    # aligned block
+    seq_start = max(ref_start or genome_start, genome_start)
+    seq_end = min(ref_end or genome_end, genome_end)
+    # make these coordinates relative to the aligned segment
+    if ref_record.strand == -1:
+        # if record is on minus strand, then genome stop is
+        # the alignment start
+        seq_start, seq_end = genome_end - seq_end, genome_end - seq_start
+    else:
+        seq_start = seq_start - genome_start
+        seq_end = seq_end - genome_start
 
-            if not namer:
-                s.name = f"{s.name}:{align_record.strand}"
+    align_start = imap.get_align_index(seq_start)
+    align_end = imap.get_align_index(seq_end)
 
-            if s.name in seqs:
-                eti_util.print_colour(f"duplicated {s.name}", colour="yellow")
-
-            if align_record.strand == -1:
-                s = s.rc()
-                reversed_seqs.add(s.name)
-
-            seqs[s.name] = numpy.array(s)
-            gaps[s.name] = imap.array
-            if mask_ref and record_species != ref_species:
-                # limit features to only those from the reference genome
-                continue
-
-            offsets[s.name] = genome_start + seq_start
-            seqid_species[s.name] = eti_ann.get_species_seqid(
-                species=record_species,
-                seqid=align_record.seqid,
-            )
-            ann_dbs[record_species] = genome.annotation_db
-
-        aln_data = c3_align.AlignedSeqsData.from_seqs_and_gaps(
-            seqs=seqs,
-            gaps=gaps,
-            alphabet=DNA.most_degen_alphabet(),
-            offset=offsets,
-            reversed_seqs=reversed_seqs,
+    seqs = {}
+    gaps = {}
+    offsets = {}
+    reversed_seqs = set()
+    seqid_species = {}
+    ann_dbs = {}
+    for align_record in block:
+        record_species = align_record.species
+        genome = genomes[record_species]
+        # We need to convert the alignment coordinates into sequence
+        # coordinates for this species.
+        genome_start = align_record.start
+        genome_end = align_record.stop
+        gap_pos, cum_gap_lengths = align_record.cum_gap_data
+        imap = IndelMap(
+            gap_pos=gap_pos,
+            cum_gap_lengths=cum_gap_lengths,
+            parent_length=genome_end - genome_start,
         )
-        aln = c3_align.Alignment(seqs_data=aln_data, moltype=DNA)
 
-        ann_db = eti_ann.MultispeciesAnnotations(
-            name_map=seqid_species,
-            species_annotations=ann_dbs,
+        # We use the alignment indices derived for the reference sequence
+        # above
+        seq_start = imap.get_seq_index(align_start)
+        seq_end = imap.get_seq_index(align_end)
+        seq_length = seq_end - seq_start
+        if align_record.strand == -1:
+            # if it's neg strand, the alignment start is the genome stop
+            seq_start = imap.parent_length - seq_end
+
+        start = genome_start + seq_start
+        stop = genome_start + seq_start + seq_length
+        s = genome.seqs[align_record.seqid][start:stop]
+
+        if namer:
+            name = namer(align_record.species, align_record.seqid, start, stop)
+        else:
+            name = f"{align_record.species}:{align_record.seqid}:{start}-{stop}"
+
+        s.name = name
+        s.replace_annotation_db(None)
+        # we now trim the gaps for this sequence to the sub-alignment
+        imap = imap[align_start:align_end]
+
+        if not namer:
+            s.name = f"{s.name}:{align_record.strand}"
+
+        if s.name in seqs:
+            eti_util.print_colour(f"duplicated {s.name}", colour="yellow")
+
+        if align_record.strand == -1:
+            s = s.rc()
+            reversed_seqs.add(s.name)
+
+        seqs[s.name] = numpy.array(s)
+        gaps[s.name] = imap.array
+        if mask_ref and record_species != ref_species:
+            # limit features to only those from the reference genome
+            continue
+
+        offsets[s.name] = genome_start + seq_start
+        seqid_species[s.name] = eti_ann.get_species_seqid(
+            species=record_species,
+            seqid=align_record.seqid,
         )
-        aln.annotation_db = ann_db
+        ann_dbs[record_species] = genome.annotation_db
 
-        if mask_features:
-            aln = aln.with_masked_annotations(biotypes=mask_features, shadow=shadow)
+    aln_data = c3_align.AlignedSeqsData.from_seqs_and_gaps(
+        seqs=seqs,
+        gaps=gaps,
+        alphabet=DNA.most_degen_alphabet(),
+        offset=offsets,
+        reversed_seqs=reversed_seqs,
+    )
+    aln = c3_align.Alignment(seqs_data=aln_data, moltype=DNA)
 
-        yield aln
+    ann_db = eti_ann.MultispeciesAnnotations(
+        name_map=seqid_species,
+        species_annotations=ann_dbs,
+    )
+    aln.annotation_db = ann_db
+
+    if mask_features:
+        aln = aln.with_masked_annotations(biotypes=mask_features, shadow=shadow)
+
+    return aln
 
 
 @define_app

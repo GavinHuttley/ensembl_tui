@@ -418,21 +418,22 @@ def test_get_alignment_masked_features(coord):
 
 
 @pytest.mark.parametrize(
-    "coord",
+    ("coord", "num_blocks"),
     [
-        ("human", "s1", None, 11),  # finish within
-        ("human", "s1", 3, None),  # start within
-        ("human", "s1", 3, 9),  # within
-        ("human", "s1", 3, 13),  # extends past
+        (("human", "s1", None, 11), 1),  # finish within
+        (("human", "s1", 3, None), 2),  # open ended, so reaches the second block
+        (("human", "s1", 3, 9), 1),  # within
+        (("human", "s1", 3, 13), 1),  # extends past
+        (("human", "s1", 3, 25), 2),  # spans both blocks
     ],
 )
-def test_align_db_get_records(coord):
+def test_align_db_get_records(coord, num_blocks):
     kwargs = dict(zip(("species", "seqid", "start", "stop"), coord, strict=False))
-    # records are, we should get a single hit from each query
+    # the two blocks are human s1 1-12 and 22-30
     # [('blah', 0, 'human', 's1', 1, 12, '+', array([], dtype=int32)),
     _, align_db = make_sample(two_aligns=True)
     got = list(align_db.get_records_matching(**kwargs))
-    assert len(got) == 1
+    assert len(got) == num_blocks
 
 
 @pytest.mark.parametrize(
@@ -449,6 +450,81 @@ def test_align_db_get_records_required_only(coord):
     _, align_db = make_sample(two_aligns=True)
     got = list(align_db.get_records_matching(**kwargs))
     assert len(got) == 2
+
+
+def _abutting_blocks_aligndb(blocks):
+    """AlignDb holding one human record per (start, stop) pair"""
+    records = [
+        eti_align.AlignRecord(
+            source="blah",
+            block_id=i,
+            species="human",
+            seqid="s1",
+            start=start,
+            stop=stop,
+            strand=1,
+            gap_spans=numpy.array([], dtype=numpy.int32),
+        )
+        for i, (start, stop) in enumerate(blocks)
+    ]
+    agg = empty_align_agg_gap_store()
+    eti_ingest_align.add_records(records=records, conn=agg)
+    return eti_align.AlignDb(source=":memory:", db=agg)
+
+
+# three abutting blocks, so a query covering 5-25 wholly contains the middle one
+ABUTTING_BLOCKS = [(0, 10), (10, 20), (20, 30)]
+
+
+def _matching_block_ids(db, **kwargs):
+    return {
+        record.block_id
+        for block in db.get_records_matching(**kwargs)
+        for record in block
+    }
+
+
+@pytest.mark.parametrize(
+    ("start", "stop", "expect"),
+    [
+        (None, None, {0, 1, 2}),  # no bounds, every block
+        (5, 25, {0, 1, 2}),  # block 10-20 lies wholly inside the query
+        (5, None, {0, 1, 2}),  # open ended to the right
+        (None, 25, {0, 1, 2}),  # open ended to the left
+        (12, 18, {1}),  # query wholly inside one block
+        (10, 20, {1}),  # query is exactly one block
+        (None, 10, {0}),  # stop on a boundary, coords are half open
+        (20, None, {2}),  # start on a boundary
+        (9, 11, {0, 1}),  # straddles a boundary
+        (30, None, set()),  # past the last block
+        (None, 0, set()),  # before the first block
+    ],
+)
+def test_align_db_get_records_overlapping_blocks(start, stop, expect):
+    # the block id of each block is its index in ABUTTING_BLOCKS, so we can
+    # check which blocks came back and not merely how many
+    db = _abutting_blocks_aligndb(ABUTTING_BLOCKS)
+    got = _matching_block_ids(db, species="human", seqid="s1", start=start, stop=stop)
+    assert got == expect
+
+
+def test_align_db_get_records_interior_block_apes(apes_aligndb):
+    # three abutting blocks on human chromosome 22 in the installed ape data.
+    # a query spanning all three wholly contains the middle one, which the
+    # query used to discard
+    expect = {
+        6354501725715797620,  # 15236759-15297298, holds the query start
+        1037356032288920419,  # 15297298-15313015, interior to the query
+        4109310693625410416,  # 15313015-15576131, holds the query stop
+    }
+    got = _matching_block_ids(
+        apes_aligndb,
+        species="homo_sapiens",
+        seqid="22",
+        start=15236800,
+        stop=15576000,
+    )
+    assert got == expect
 
 
 @pytest.mark.parametrize(
@@ -728,6 +804,99 @@ def test_install_path_multiple_gaps(tmp_path):
             parent_length=record.stop - record.start,
         )
         assert len(imap) == ALIGN_WIDTH, record.species
+
+
+def _ref_record(start, stop, seqid="s1"):
+    return eti_align.AlignRecord(
+        source="blah",
+        block_id=0,
+        species="human",
+        seqid=seqid,
+        start=start,
+        stop=stop,
+        strand=1,
+        gap_spans=numpy.array([], dtype=numpy.int32),
+    )
+
+
+def test_overlapping_ref_records_only_keeps_overlaps():
+    # a block can hold several segments of the reference sequence, e.g. a
+    # duplicated region. only those overlapping the query belong to it
+    block = {_ref_record(0, 10), _ref_record(100, 110), _ref_record(200, 210)}
+    got = eti_align._overlapping_ref_records(  # noqa: SLF001
+        block,
+        "human",
+        "s1",
+        95,
+        150,
+    )
+    assert [(r.start, r.stop) for r in got] == [(100, 110)]
+
+
+def test_overlapping_ref_records_sorted_and_unbounded():
+    block = {_ref_record(200, 210), _ref_record(0, 10), _ref_record(100, 110)}
+    # no bounds keeps everything, in genomic order rather than set order
+    got = eti_align._overlapping_ref_records(block, "human", "s1", None, None)  # noqa: SLF001
+    assert [(r.start, r.stop) for r in got] == [(0, 10), (100, 110), (200, 210)]
+
+
+def test_overlapping_ref_records_ignores_other_seqids():
+    block = {_ref_record(0, 10), _ref_record(0, 10, seqid="s2")}
+    got = eti_align._overlapping_ref_records(block, "human", "s1", None, None)  # noqa: SLF001
+    assert [r.seqid for r in got] == ["s1"]
+
+
+def test_get_alignment_block_with_repeated_reference(apes, apes_aligndb):
+    # this block holds four human chromosome 22 segments, 18345396-18362750,
+    # 18499662-18517003, 18756973-18774323 and 21191227-21208639. the query
+    # sits inside the first, so that is the segment the alignment must be cut
+    # against, whatever order the block set yields its records in
+    start, stop = 18345496, 18345536
+    alns = list(
+        eti_align.get_alignment(
+            apes_aligndb,
+            apes,
+            "homo_sapiens",
+            "22",
+            start,
+            stop,
+        ),
+    )
+    assert len(alns) == 1
+    name = f"homo_sapiens:22:{start}-{stop}:-1"
+    expect = str(apes["homo_sapiens"].seqs["22"][start:stop].rc())
+    assert str(alns[0].seqs[name].seq) == expect
+
+
+def test_get_alignment_spanning_repeated_reference(apes, apes_aligndb):
+    # a wide query that picks up blocks holding several human segments. every
+    # human sequence returned must be the genome sequence at the coordinates
+    # in its own name, and no segment may be empty
+    start, stop = 18680267, 18780267
+    alns = list(
+        eti_align.get_alignment(
+            apes_aligndb,
+            apes,
+            "homo_sapiens",
+            "22",
+            start,
+            stop,
+        ),
+    )
+    assert alns
+    checked = 0
+    for aln in alns:
+        for name in aln.names:
+            if not name.startswith("homo_sapiens:22:"):
+                continue
+            coords, strand = name.rsplit(":", 1)
+            lo, hi = (int(v) for v in coords.split(":")[-1].split("-"))
+            assert lo < hi, name
+            expect = apes["homo_sapiens"].seqs["22"][lo:hi]
+            expect = str(expect.rc()) if strand == "-1" else str(expect)
+            assert str(aln.seqs[name].seq) == expect, name
+            checked += 1
+    assert checked
 
 
 def test_aln_seq_matches_genome(apes, apes_aligndb):
