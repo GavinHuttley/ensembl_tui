@@ -157,6 +157,68 @@ def test_aligndb_records_skip_duplicated_block_ids(small_records):
     assert agg.sql(sql).fetchone()[0] == count
 
 
+def test_aligndb_records_skip_duplicates_within_a_batch(small_records):
+    # a block spanning several chromosomes is written into the maf file of
+    # each, so install collects the same records more than once in one batch
+    agg = empty_align_agg_gap_store()
+    eti_ingest_align.add_records(conn=agg, records=small_records + small_records)
+    sql = "SELECT COUNT(*) FROM align_blocks"
+    assert agg.sql(sql).fetchone()[0] == len(small_records)
+
+
+def test_aligndb_records_skip_duplicates_from_another_file(small_records):
+    # the copies ensembl writes are tagged with the file they came from, so
+    # source is not part of what makes a record unique
+    import copy
+
+    from_other_file = copy.deepcopy(small_records)
+    for record in from_other_file:
+        record.source = "another.maf"
+    agg = empty_align_agg_gap_store()
+    eti_ingest_align.add_records(conn=agg, records=small_records + from_other_file)
+    sql = "SELECT COUNT(*) FROM align_blocks"
+    assert agg.sql(sql).fetchone()[0] == len(small_records)
+
+
+def test_align_record_eq_with_differing_gap_spans():
+    # equal identities hash alike, so they meet in the set get_records_matching
+    # builds. comparing the gap arrays directly raises when the shapes differ
+    kwargs = {
+        "source": "blah",
+        "block_id": 1,
+        "species": "human",
+        "seqid": "s1",
+        "start": 0,
+        "stop": 10,
+        "strand": 1,
+    }
+    ungapped = eti_align.AlignRecord(
+        gap_spans=numpy.array([], dtype=numpy.int32),
+        **kwargs,
+    )
+    gapped = eti_align.AlignRecord(
+        gap_spans=numpy.array([[1, 2]], dtype=numpy.int32),
+        **kwargs,
+    )
+    assert hash(ungapped) == hash(gapped)
+    assert ungapped != gapped
+    assert len({ungapped, gapped}) == 2
+
+
+def test_aligndb_records_keep_paralogues_within_a_block(small_records):
+    # two segments of one sequence can be in the same block, e.g. a duplicated
+    # region. they share a block id but are different records, so both stay
+    import copy
+
+    paralogue = copy.deepcopy(small_records[0])
+    paralogue.start += 1000
+    paralogue.stop += 1000
+    agg = empty_align_agg_gap_store()
+    eti_ingest_align.add_records(conn=agg, records=[*small_records, paralogue])
+    sql = "SELECT COUNT(*) FROM align_blocks"
+    assert agg.sql(sql).fetchone()[0] == len(small_records) + 1
+
+
 # fixture to make synthetic genome and alignment db
 # based on a given alignment
 @pytest.fixture

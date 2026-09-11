@@ -66,27 +66,32 @@ class AlignRecord:
     def __setitem__(self, item: str, value: VT) -> None:
         setattr(self, item, value)
 
+    @property
+    def identity(self) -> tuple[int, str, str, int, int, int]:
+        """the fields that identify this record within an alignment store"""
+        return (
+            self.block_id,
+            self.species,
+            self.seqid,
+            self.start,
+            self.stop,
+            self.strand,
+        )
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, AlignRecord):
             return False
 
-        attrs = "block_id", "species", "seqid", "start", "stop", "strand"
-        for attr in attrs:
-            if getattr(self, attr) != getattr(other, attr):
-                return False
-        return (self.gap_spans == other.gap_spans).all()
+        # array_equal rather than comparing the arrays directly, which raises
+        # when their shapes differ. equal identities with different gaps hash
+        # alike, so they do meet in the set get_records_matching builds
+        return self.identity == other.identity and numpy.array_equal(
+            self.gap_spans,
+            other.gap_spans,
+        )
 
     def __hash__(self) -> int:
-        return hash(
-            (
-                self.block_id,
-                self.species,
-                self.seqid,
-                self.start,
-                self.stop,
-                self.strand,
-            ),
-        )
+        return hash(self.identity)
 
     @property
     def cum_gap_data(self) -> tuple[numpy.ndarray, numpy.ndarray]:
